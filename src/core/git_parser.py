@@ -321,10 +321,10 @@ class GitParser:
 
         # Get commits from the branch
         try:
-            commits = list(self._repo.iter_commits(branch_name, max_count=limit or 1000))
+            commits = list(self._repo.iter_commits(branch_name, max_count=limit if limit else 1000))
         except Exception:
             # Fallback: try --all
-            commits = list(self._repo.iter_commits("--all", max_count=limit or 1000))
+            commits = list(self._repo.iter_commits("--all", max_count=limit if limit else 1000))
 
         # Parse commits
         commit_infos = [self.parse_commit(c) for c in commits]
