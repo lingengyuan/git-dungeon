@@ -312,11 +312,19 @@ class GitParser:
         if self._repo is None:
             raise GitError("Repository not loaded. Call load_repository first.")
 
-        commits = list(self._repo.iter_commits("--all"))
+        # Get branch name or use HEAD
+        try:
+            branch_name = self._repo.active_branch.name
+        except TypeError:
+            # No branch (bare repo or detached HEAD)
+            branch_name = "HEAD"
 
-        # Apply limit
-        if limit:
-            commits = commits[:limit]
+        # Get commits from the branch
+        try:
+            commits = list(self._repo.iter_commits(branch_name, max_count=limit or 1000))
+        except Exception:
+            # Fallback: try --all
+            commits = list(self._repo.iter_commits("--all", max_count=limit or 1000))
 
         # Parse commits
         commit_infos = [self.parse_commit(c) for c in commits]
