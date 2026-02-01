@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish-pypi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install build
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+  create-github-release:
+    runs-on: ubuntu-latest
+    needs: publish-pypi
+    steps:
+      - name: Create release notes
+        id: release-notes
+        run: |
+          echo '## Changes' > $GITHUB_STEP_SUMMARY
+          git log --oneline -20 >> $GITHUB_STEP_SUMMARY
+          cat $GITHUB_STEP_SUMMARY
+
+      - name: Get version tag
+        id: version
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          body_path: $GITHUB_STEP_SUMMARY
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -11,13 +11,13 @@ import random
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.core.game_engine import GameState
-from src.core.git_parser import GitParser, CommitInfo, FileChange
-from src.core.character import CharacterComponent, CharacterType
-from src.core.combat import CombatSystem, CombatEncounter, CombatAction, CombatResult
-from src.core.inventory import InventoryComponent, Item, ItemType, ItemRarity
-from src.core.entity import Entity
-from src.config import GameConfig, Difficulty
+from git_dungeon.core.game_engine import GameState
+from git_dungeon.core.git_parser import GitParser, CommitInfo, FileChange
+from git_dungeon.core.character import CharacterComponent, CharacterType
+from git_dungeon.core.combat import CombatSystem, CombatEncounter, CombatAction, CombatResult
+from git_dungeon.core.inventory import InventoryComponent, Item, ItemType, ItemRarity
+from git_dungeon.core.entity import Entity
+from git_dungeon.config import GameConfig, Difficulty
 
 
 def test_empty_repository():
@@ -394,7 +394,7 @@ def test_save_system_edge_cases():
     """Test save system edge cases."""
     print("\n=== Test: Save System Edge Cases ===")
     
-    from src.core.save_system import SaveSystem
+    from git_dungeon.core.save_system import SaveSystem
     
     state = GameState()
     

@@ -10,12 +10,12 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.core.game_engine import GameState
-from src.core.character import get_character, CharacterComponent, CharacterType, CharacterStats
-from src.core.inventory import InventoryComponent, Item, ItemType, ItemRarity, ItemFactory
-from src.core.combat import CombatSystem
-from src.core.save_system import SaveSystem
-from src.config import GameConfig
+from git_dungeon.core.game_engine import GameState
+from git_dungeon.core.character import get_character, CharacterComponent, CharacterType, CharacterStats
+from git_dungeon.core.inventory import InventoryComponent, Item, ItemType, ItemRarity, ItemFactory
+from git_dungeon.core.combat import CombatSystem
+from git_dungeon.core.save_system import SaveSystem
+from git_dungeon.config import GameConfig
 
 
 def test_basic_functionality():
@@ -166,7 +166,7 @@ def test_save_load():
     game.load_repository("/tmp/test_git_dungeon")
 
     # Save to a specific path
-    from src.core.save_system import SaveSystem
+    from git_dungeon.core.save_system import SaveSystem
     save_system = SaveSystem(Path(save_dir))
 
     success = save_system.save(game, 0)
@@ -281,7 +281,7 @@ def test_creature_name_generation():
     print("🧪 测试 10: 怪物名生成")
     print("=" * 60)
 
-    from src.core.git_parser import CommitInfo
+    from git_dungeon.core.git_parser import CommitInfo
 
     messages = [
         "feat: Add new feature",

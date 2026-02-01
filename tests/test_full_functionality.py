@@ -13,30 +13,12 @@ from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.core.game_engine import GameState
-from src.core.character import CharacterComponent, CharacterType
-from src.core.combat import CombatSystem, CombatAction, CombatResult
-from src.core.inventory import InventoryComponent, Item, ItemType, ItemRarity, ItemStats
-from src.core.lua import LuaEngine, MonsterTemplate, DropTable, Theme, DropEntry
-from src.config import GameConfig
-
-
-def create_test_screenshot(content: str, title: str) -> str:
-    """Create a text-based screenshot."""
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    border = "=" * 60
-    
-    screenshot = f"""
-{border}
-{title.upper().center(60)}
-{timestamp}
-{border}
-
-{content}
-
-{border}
-"""
-    return screenshot
+from git_dungeon.core.game_engine import GameState
+from git_dungeon.core.character import CharacterComponent, CharacterType
+from git_dungeon.core.combat import CombatSystem, CombatAction, CombatResult
+from git_dungeon.core.inventory import InventoryComponent, Item, ItemType, ItemRarity, ItemStats
+from git_dungeon.core.lua import LuaEngine, MonsterTemplate, DropTable, Theme, DropEntry
+from git_dungeon.config import GameConfig
 
 
 def test_1_repository_loading():
@@ -74,13 +56,6 @@ def test_1_repository_loading():
         
         assert result == True, "Failed to load repository"
         assert len(state.commits) >= 3, "Not enough commits"
-        
-        return create_test_screenshot(
-            f"Repository: {repo_path}\n"
-            f"Commits: {len(state.commits)}\n"
-            f"Status: SUCCESS",
-            "TEST 1: Repository Loading"
-        )
 
 
 def test_2_character_creation():
@@ -112,15 +87,6 @@ def test_2_character_creation():
     assert char.name == "Developer", "Wrong character name"
     assert char.level == 1, "Should start at level 1"
     assert char.current_hp == char.stats.hp.value, "Should be full HP"
-    
-    return create_test_screenshot(
-        f"Character: {char.name}\n"
-        f"Level: {char.level} | HP: {char.current_hp}/{char.stats.hp.value}\n"
-        f"ATK: {char.stats.attack.value} | DEF: {char.stats.defense.value}\n"
-        f"Power Level: {power}\n"
-        f"Status: SUCCESS",
-        "TEST 2: Character Creation"
-    )
 
 
 def test_3_character_leveling():
@@ -158,14 +124,6 @@ def test_3_character_leveling():
     
     assert char.level >= 2, "Should have leveled up"
     assert char.stats.hp.value > initial_hp, "HP should increase"
-    
-    return create_test_screenshot(
-        f"Before: Lv1, HP={initial_hp}, ATK={initial_atk}\n"
-        f"After: Lv{char.level}, HP={char.stats.hp.value}, ATK={char.stats.attack.value}\n"
-        f"EXP Gained: {char._total_exp_gained}\n"
-        f"Status: SUCCESS",
-        "TEST 3: Character Leveling"
-    )
 
 
 def test_4_inventory_system():
@@ -208,7 +166,7 @@ def test_4_inventory_system():
             print(f"    [{i}] {rarity_icon} {item.name} ({item.item_type.value})")
     
     # Test item usage with proper entity
-    from src.core.entity import Entity
+    from git_dungeon.core.entity import Entity
     
     # Create character component
     char_comp = CharacterComponent(CharacterType.PLAYER, "TestPlayer")
@@ -243,14 +201,6 @@ def test_4_inventory_system():
     # Get all items
     all_items = inventory.get_all_items()
     print(f"\n  Total items with quantity: {len(all_items)}")
-    
-    return create_test_screenshot(
-        f"Slots: {inventory.item_count}/10\n"
-        f"Items: {len(all_items)} types\n"
-        f"Potion test: HP 50 -> {char_comp.current_hp}\n"
-        f"Status: SUCCESS",
-        "TEST 4: Inventory System"
-    )
 
 
 def test_5_combat_system():
@@ -313,15 +263,6 @@ def test_5_combat_system():
     print(f"  Result: {'VICTORY' if enemy.current_hp <= 0 else 'INCOMPLETE'}")
     
     assert enemy.current_hp <= 0, "Enemy should be defeated"
-    
-    return create_test_screenshot(
-        f"Combat: Player vs Enemy\n"
-        f"Turns: {turn}\n"
-        f"Player: {player.current_hp} HP left\n"
-        f"Enemy: {'DEFEATED' if enemy.current_hp <= 0 else 'ALIVE'}\n"
-        f"Status: SUCCESS",
-        "TEST 5: Combat System"
-    )
 
 
 def test_6_lua_content_system():
@@ -383,14 +324,6 @@ def test_6_lua_content_system():
     print(f"    Monsters: {len(content['monsters'])}")
     print(f"    Drop tables: {len(content['drop_tables'])}")
     print(f"    Themes: {len(content['themes'])}")
-    
-    return create_test_screenshot(
-        f"Monsters: {len(engine.monsters)-1}\n"
-        f"Drop Tables: {len(engine.drop_tables)}\n"
-        f"Themes: {len(engine.themes)}\n"
-        f"Status: SUCCESS",
-        "TEST 6: Lua/JSON Content System"
-    )
 
 
 def test_7_save_load_system():
@@ -399,7 +332,7 @@ def test_7_save_load_system():
     print("TEST 7: Save/Load System")
     print("=" * 60)
     
-    from src.core.save_system import SaveSystem
+    from git_dungeon.core.save_system import SaveSystem
     
     with tempfile.TemporaryDirectory() as tmpdir:
         save_system = SaveSystem(tmpdir)
@@ -433,13 +366,6 @@ def test_7_save_load_system():
         
         assert new_char.level == initial_level, "Level not preserved"
         assert new_char._total_exp_gained == initial_exp, "EXP not preserved"
-        
-        return create_test_screenshot(
-            f"Before: Level {initial_level}, EXP {initial_exp}\n"
-            f"After: Level {new_char.level}, EXP {new_char._total_exp_gained}\n"
-            f"Status: SUCCESS",
-            "TEST 7: Save/Load System"
-        )
 
 
 def test_8_full_game_loop():
@@ -523,103 +449,3 @@ def test_8_full_game_loop():
         print(f"  Final level: {final_char.level}")
         print(f"  Final HP: {final_char.current_hp}")
         print(f"  Total EXP: {final_char._total_exp_gained}")
-        
-        return create_test_screenshot(
-            f"Game Loop Complete!\n"
-            f"Enemies Defeated: {kills}\n"
-            f"Damage Dealt: {total_damage_dealt}\n"
-            f"Damage Taken: {total_damage_taken}\n"
-            f"Final Level: {final_char.level}\n"
-            f"Status: SUCCESS",
-            "TEST 8: Full Game Loop"
-        )
-
-
-def main():
-    """Run all tests and generate report."""
-    print("\n" + "=" * 70)
-    print(" " * 20 + "GIT DUNGEON" + " " * 20)
-    print(" " * 15 + "FUNCTIONALITY TEST" + " " * 15)
-    print("=" * 70)
-    
-    screenshots = []
-    tests_passed = 0
-    tests_total = 8
-    
-    # Run all tests
-    try:
-        screenshots.append(test_1_repository_loading())
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        screenshots.append(f"TEST 1 FAILED: {e}")
-    
-    try:
-        screenshots.append(test_2_character_creation())
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        screenshots.append(f"TEST 2 FAILED: {e}")
-    
-    try:
-        screenshots.append(test_3_character_leveling())
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        screenshots.append(f"TEST 3 FAILED: {e}")
-    
-    try:
-        screenshots.append(test_4_inventory_system())
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        screenshots.append(f"TEST 4 FAILED: {e}")
-    
-    try:
-        screenshots.append(test_5_combat_system())
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        screenshots.append(f"TEST 5 FAILED: {e}")
-    
-    try:
-        screenshots.append(test_6_lua_content_system())
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        screenshots.append(f"TEST 6 FAILED: {e}")
-    
-    try:
-        screenshots.append(test_7_save_load_system())
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        screenshots.append(f"TEST 7 FAILED: {e}")
-    
-    try:
-        screenshots.append(test_8_full_game_loop())
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        screenshots.append(f"TEST 8 FAILED: {e}")
-    
-    # Generate final report
-    print("\n" + "=" * 70)
-    print(" " * 25 + "TEST RESULTS" + " " * 25)
-    print("=" * 70)
-    print(f"\n  Tests Passed: {tests_passed}/{tests_total}")
-    print(f"  Success Rate: {tests_passed/tests_total*100:.1f}%")
-    print(f"\n  {'✅ ALL TESTS PASSED!' if tests_passed == tests_total else '⚠️ SOME TESTS FAILED'}")
-    
-    # Save screenshots to file
-    report_path = "/root/projects/git-dungeon/test_screenshots.txt"
-    with open(report_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(screenshots))
-    print(f"\n  Screenshots saved to: {report_path}")
-    
-    return tests_passed == tests_total
-
-
-if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)

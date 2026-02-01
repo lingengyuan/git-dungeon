@@ -5,8 +5,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.core.game_engine import GameState
-from src.core.character import get_character
+from git_dungeon.core.game_engine import GameState
+from git_dungeon.core.character import get_character
 
 
 def test_full_gameplay():
