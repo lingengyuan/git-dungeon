@@ -109,9 +109,17 @@ def run_cli(
     log_file: Optional[str] = None,
     json_log: Optional[str] = None,
     no_color: bool = False,
-    auto: bool = False
+    auto: bool = False,
+    lang: str = "en"
 ):
     """Run the CLI game."""
+    # Add src to path for imports
+    src_path = Path(__file__).parent
+    project_root = src_path.parent.parent
+    
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
     from git_dungeon.main_cli import GitDungeonCLI
     
     log_level = logging.DEBUG if verbose else logging.INFO
@@ -119,7 +127,7 @@ def run_cli(
     logger.info(f"Starting Git Dungeon v{__version__}")
     
     try:
-        game = GitDungeonCLI(seed=seed, verbose=verbose, auto_mode=auto)
+        game = GitDungeonCLI(seed=seed, verbose=verbose, auto_mode=auto, lang=lang)
         success = game.start(repository)
         logger.info(f"Game ended with success={success}")
         return 0 if success else 1
@@ -131,6 +139,7 @@ def run_cli(
         if not verbose:
             print(f"Error: {e}", file=sys.stderr)
             print("Run with --verbose for details", file=sys.stderr)
+        return 1
         return 1
 
 
@@ -159,6 +168,9 @@ def main():
                         help="Write JSON log to file (JSONL format)")
     parser.add_argument("--auto", "-a", action="store_true",
                         help="Auto-battle mode (automatic combat)")
+    parser.add_argument("--lang", "-l", type=str, default="en",
+                        choices=["en", "zh", "zh_CN"],
+                        help="Language (en/zh_CN)")
     
     args = parser.parse_args()
     
@@ -179,7 +191,8 @@ def main():
         log_file=args.log_file,
         json_log=args.json_log,
         no_color=args.no_color,
-        auto=args.auto
+        auto=args.auto,
+        lang=args.lang
     )
 
 

@@ -31,13 +31,21 @@ from git_dungeon.engine.rules import (
 )
 from git_dungeon.config import GameConfig
 from git_dungeon.core.git_parser import GitParser, CommitInfo
+from git_dungeon.i18n import i18n, _
+from git_dungeon.i18n.translations import get_translation
 
 
 class GitDungeonCLI:
     """Main CLI game with chapter and shop support."""
     
-    def __init__(self, seed: Optional[int] = None, verbose: bool = False, auto_mode: bool = False):
+    def __init__(self, seed: Optional[int] = None, verbose: bool = False, auto_mode: bool = False, lang: str = "en"):
         self.seed = seed
+        self.lang = lang
+        self.verbose = verbose
+        
+        # Load language
+        i18n.load_language(lang)
+        
         self.rng = create_rng(seed)
         self.engine = Engine(rng=self.rng)
         self.combat_rules = CombatRules(rng=self.rng)
@@ -54,6 +62,12 @@ class GitDungeonCLI:
         self.verbose = verbose
         self.auto_mode = auto_mode
     
+    def _t(self, text: str) -> str:
+        """Translate text based on current language."""
+        if self.lang == "zh_CN":
+            return get_translation(text, "zh_CN")
+        return text
+    
     def start(self, repo_input: str) -> bool:
         """Start game with chapter system."""
         # Handle GitHub URL or local path
@@ -68,7 +82,7 @@ class GitDungeonCLI:
                 return False
         
         # Load repository
-        print(f"📦 Loading repository...")
+        print(self._t("Loading repository..."))
         config = GameConfig()
         parser = GitParser(config)
         
@@ -83,12 +97,12 @@ class GitDungeonCLI:
             print("❌ No commits found")
             return False
         
-        print(f"✅ Loaded {len(commits)} commits!")
+        print(f"{self._t('Loaded')} {len(commits)} {self._t('commits')}!")
         
         # Parse chapters
         self.chapter_system.parse_chapters(commits)
         
-        print(f"📖 Divided into {len(self.chapter_system.chapters)} chapters:")
+        print(f"{self._t('Divided into')} {len(self.chapter_system.chapters)} {self._t('chapters')}:")
         print(self.chapter_system.get_chapter_summary())
         
         # Initialize state
@@ -177,7 +191,7 @@ class GitDungeonCLI:
         
         # Show chapter context
         if chapter.is_boss_chapter:
-            print(f"👹 BOSS BATTLE: {enemy.name}")
+            print(f"{self._t('BOSS BATTLE')}: {enemy.name}")
             print(f"📖 Chapter: {chapter.name}")
         else:
             print(f"⚔️  {chapter.name}: {enemy.name}")
@@ -466,7 +480,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
             # Auto mode: skip shop
             return
         
-        print(f"\n🏪 Welcome to the shop!")
+        print(f"\n{self._t('Welcome to the shop')}")
         print(f"💰 Gold: {self.state.player.gold}")
         
         self.current_shop = self.shop_system.generate_shop_inventory(
@@ -733,6 +747,9 @@ def main():
     parser.add_argument("repository", nargs="?", default=None, help="Repository path or user/repo")
     parser.add_argument("--seed", "-s", type=int, default=None, help="Random seed")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose")
+    parser.add_argument("--lang", "-l", type=str, default="en", 
+                        choices=["en", "zh", "zh_CN"],
+                        help="Language (en/zh_CN)")
     
     args = parser.parse_args()
     
@@ -744,12 +761,12 @@ Usage:
     python src/main_cli_new.py <repo> [options]
 
 Examples:
-    python src/main_cli_new.py username/repo
-    python src/main_cli_new.py . --seed 12345
+    python src/main_cli_new.py username/repo --lang zh_CN
+    python src/main_cli_new.py . --seed 12345 --lang zh_CN
 """)
         return
     
-    game = GitDungeonCLI(seed=args.seed, verbose=args.verbose)
+    game = GitDungeonCLI(seed=args.seed, verbose=args.verbose, lang=args.lang)
     
     try:
         game.start(args.repository)
