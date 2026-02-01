@@ -1,22 +1,25 @@
-# Git Dungeon Roguelike - 项目方案 (Production-Grade vNext)
+# Git Dungeon Roguelike - 项目方案
 
-> 版本: 2.0
-> 更新日期: 2026-02-01
+> 版本: 1.0
+> 创建日期: 2026-01-31
 > 作者: OpenClaw (claw)
-> 状态: 待开发 (M0 进行中)
+> 状态: 已批准，待开发
 
 ---
 
 ## 目录
 
 1. [项目概述](#1-项目概述)
-2. [架构设计](#2-架构设计)
-3. [里程碑路线](#3-里程碑路线)
-4. [目录结构](#4-目录结构)
-5. [核心机制](#5-核心机制)
-6. [质量保证](#6-质量保证)
-7. [安装与运行](#7-安装与运行)
-8. [附录](#8-附录)
+2. [技术架构](#2-技术架构)
+3. [核心游戏机制](#3-核心游戏机制)
+4. [物品系统](#4-物品系统)
+5. [资源限制策略](#5-资源限制策略)
+6. [测试架构](#6-测试架构)
+7. [项目结构](#7-项目结构)
+8. [安装与运行](#8-安装与运行)
+9. [CI/CD 流程](#9-cicd-流程)
+10. [MVP 里程碑](#10-mvp-里程碑)
+11. [参考项目](#11-参考项目)
 
 ---
 
@@ -25,12 +28,6 @@
 ### 1.1 愿景
 
 将 Git 提交历史转化为一个有趣的肉鸽类地牢爬行游戏，让开发者通过游戏的方式回顾自己的代码历史。
-
-**生产级目标**：
-- **确定性**：相同仓库 + 相同 seed + 相同选择 → 结果一致
-- **可测试**：核心规则 100% 可单测
-- **可演进**：存档/内容版本化，规则可插拔
-- **可观测**：结构化事件流，支持战斗回放
 
 ### 1.2 核心创意
 
@@ -43,526 +40,83 @@ commit message      → 怪物名称 + 挑战描述
 commit 作者         → BOSS 信息
 改动的文件          → 掉落物品
 merge commit        → 商店/休息点
-revert commit       → BOSS 战
 ```
 
-### 1.3 非功能需求
+### 1.3 目标用户
 
-| 需求 | 说明 |
-|------|------|
-| 确定性 | 相同输入 → 相同输出（用于回归、平衡、debug） |
-| 可测试 | 核心规则 100% 单测；大仓库有性能测试 |
-| 可演进 | 存档版本化 + 迁移；内容可配置 |
-| 可观测 | 结构化日志；战斗回放支持 |
+- 开发者群体
+- Git 用户
+- Roguelike 游戏爱好者
 
-### 1.4 可玩性需求
+### 1.4 核心价值
 
-| 需求 | 说明 |
-|------|------|
-| 节奏 | 章节 → 精英 → BOSS → 结算 → 商店 → 下一章 |
-| 反馈 | 每次战斗产出 EXP/金币/掉落/剧情碎片 |
-| 差异 | 不同仓库玩起来像不同地牢 |
+- 有趣：游戏化代码历史
+- 安全：资源受限，不爆服务器
+- 可测试：完整的单元测试覆盖
+- 可扩展：Lua 脚本系统
 
 ---
 
-## 2. 架构设计
+## 2. 技术架构
 
-### 2.1 三层架构
+### 2.1 技术栈
+
+| 层级 | 技术选择 | 理由 |
+|------|----------|------|
+| 语言 | Python 3.11+ | 开发效率高、资源友好、类型系统完善 |
+| UI | Textual | 现代终端UI、GPU加速、活跃维护 |
+| Git解析 | GitPython | 轻量、稳定、文档完善 |
+| 测试 | pytest + pytest-asyncio | 成熟、插件丰富 |
+| 内容脚本 | Lua 5.4 | 嵌入式、易扩展、安全 |
+| 打包 | PyInstaller | 跨平台支持 |
+
+### 2.2 系统架构图
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Git Dungeon Roguelike                     │
+│                      Git Dungeon Roguelike                      │
 ├─────────────────────────────────────────────────────────────────┤
-│  UI Layer (表现层)                                               │
-│  ├── CLI Renderer (CLI 输出)                                     │
-│  └── TUI Renderer (Textual 界面)                                 │
-│      └── 只订阅 GameEvent 渲染，不直接读写状态                   │
+│  Core Engine (Python 3.11+)                                     │
+│  ├── Git Parser (gitpython) - 读取commit历史                    │
+│  ├── Game Engine (ECS架构) - 实体-组件-系统                     │
+│  ├── Combat System - 回合制战斗                                 │
+│  ├── Save System - 增量存档                                     │
+│  └── Resource Manager - 资源限制                                │
 ├─────────────────────────────────────────────────────────────────┤
-│  Core Engine (纯逻辑层)                                          │
-│  ├── model.py       - State, Enemy, Chapter (Pydantic/Dataclass)│
-│  ├── events.py      - GameEvent 定义 (JSON 可序列化)             │
-│  ├── rng.py         - 可注入 RNG (seed 支持)                     │
-│  ├── engine.py      - apply(action, state) -> (new_state, events)│
-│  └── rules/                                                    │
-│       ├── combat_rules.py    - 战斗规则                          │
-│       ├── loot_rules.py      - 掉落规则                          │
-│       ├── chapter_rules.py   - 章节规则                          │
-│       ├── economy_rules.py   - 经济规则                          │
-│       └── progression_rules.py - 成长规则                        │
+│  UI Layer (Textual)                                             │
+│  ├── Main Screen - 游戏主界面                                   │
+│  ├── Combat Screen - 战斗界面                                   │
+│  ├── Map Screen - 地图/进度                                     │
+│  ├── Inventory Screen - 物品栏                                  │
+│  └── Settings Screen - 设置                                     │
 ├─────────────────────────────────────────────────────────────────┤
-│  Adapters (I/O 适配层)                                           │
-│  ├── git_repo.py      - Git clone/open/parse                    │
-│  ├── save_store.py    - 存档 + 版本迁移                          │
-│  ├── content_loader.py - JSON/YAML/Lua 内容加载                  │
-│  └── plugin_loader.py  - 插件加载                                │
+│  Content Layer (Lua 5.4)                                        │
+│  ├── items.lua - 物品定义                                       │
+│  ├── monsters.lua - 怪物模板                                    │
+│  ├── skills.lua - 技能定义                                      │
+│  └── events.lua - 事件定义                                      │
+├─────────────────────────────────────────────────────────────────┤
+│  Testing Layer (pytest)                                         │
+│  ├── Unit Tests - 单元测试                                      │
+│  ├── Integration Tests - 集成测试                               │
+│  ├── Fuzzy Tests - 模糊测试                                     │
+│  └── Content Tests - 内容测试                                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.2 核心原则
+### 2.3 设计原则
 
-1. **引擎纯逻辑**：不依赖 Rich/Textual，不打印，不读 stdin
-2. **输入**：玩家指令 + 随机源 + 当前状态
-3. **输出**：新状态 + 一串 `GameEvent[]`
-4. **UI 只渲染事件**：CLI/TUI 订阅事件渲染
-
-### 2.3 事件模型
-
-所有玩法扩展（BOSS、商店、掉落、剧情）只要产出事件，就能被任何 UI 展示。
-
-```python
-# events.py - GameEvent 定义
-
-from dataclasses import dataclass, field
-from typing import Optional
-from enum import Enum
-from datetime import datetime
-
-
-class EventType(Enum):
-    """事件类型"""
-    BATTLE_STARTED = "battle_started"
-    DAMAGE_DEALT = "damage_dealt"
-    STATUS_APPLIED = "status_applied"
-    EXP_GAINED = "exp_gained"
-    LEVEL_UP = "level_up"
-    ITEM_DROPPED = "item_dropped"
-    GOLD_GAINED = "gold_gained"
-    CHAPTER_CLEARED = "chapter_cleared"
-    SHOP_ENTERED = "shop_entered"
-    GAME_SAVED = "game_saved"
-    GAME_LOADED = "game_loaded"
-    ERROR = "error"
-
-
-@dataclass
-class GameEvent:
-    """游戏事件基类（JSON 可序列化）"""
-    type: EventType
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    data: dict = field(default_factory=dict)
-    
-    def to_dict(self) -> dict:
-        return {
-            "type": self.type.value,
-            "timestamp": self.timestamp,
-            "data": self.data
-        }
-    
-    @classmethod
-    def from_dict(cls, data: dict) -> "GameEvent":
-        return cls(
-            type=EventType(data["type"]),
-            timestamp=data["timestamp"],
-            data=data["data"]
-        )
-
-
-# 具体事件定义
-@dataclass
-class DamageDealt(GameEvent):
-    """伤害事件"""
-    src: str  # 攻击者 ID
-    dst: str  # 目标 ID
-    amount: int
-    is_critical: bool = False
-    is_evaded: bool = False
-    
-    def __post_init__(self):
-        self.type = EventType.DAMAGE_DEALT
-
-
-@dataclass
-class ExpGained(GameEvent):
-    """经验获取事件"""
-    amount: int
-    reason: str  # "enemy_defeated", "chapter_complete"
-    
-    def __post_init__(self):
-        self.type = EventType.EXP_GAINED
-
-
-@dataclass
-class LevelUp(GameEvent):
-    """升级事件"""
-    new_level: int
-    delta_stats: dict
-    
-    def __post_init__(self):
-        self.type = EventType.LEVEL_UP
-
-
-@dataclass
-class ItemDropped(GameEvent):
-    """物品掉落事件"""
-    item_id: str
-    item_name: str
-    rarity: str  # common, rare, epic, legendary
-    reason: str
-    
-    def __post_init__(self):
-        self.type = EventType.ITEM_DROPPED
-
-
-@dataclass
-class ChapterCleared(GameEvent):
-    """章节完成事件"""
-    chapter_id: str
-    chapter_name: str
-    enemies_defeated: int
-    gold_reward: int
-    exp_reward: int
-    
-    def __post_init__(self):
-        self.type = EventType.CHAPTER_CLEARED
-```
-
-### 2.4 RNG 系统
-
-```python
-# rng.py - 可注入 RNG
-
-import random
-from typing import Protocol, Any
-
-
-class RNG(Protocol):
-    """随机数生成器接口"""
-    
-    def random(self) -> float:
-        """返回 [0, 1) 的随机浮点数"""
-        ...
-    
-    def randint(self, low: int, high: int) -> int:
-        """返回 [low, high] 的随机整数"""
-        ...
-    
-    def choice(self, seq: list) -> Any:
-        """从序列中随机选择一个元素"""
-        ...
-    
-    def shuffle(self, seq: list) -> None:
-        """打乱序列"""
-        ...
-    
-    def seed(self, seed: int) -> None:
-        """设置随机种子"""
-        ...
-    
-    def get_state(self) -> dict:
-        """获取随机状态（用于回放）"""
-        ...
-    
-    @classmethod
-    def from_state(cls, state: dict) -> "RNG":
-        """从状态恢复随机数生成器"""
-        ...
-
-
-class DefaultRNG:
-    """默认随机数生成器"""
-    
-    def __init__(self, seed: Optional[int] = None):
-        self._rng = random.Random(seed)
-    
-    def random(self) -> float:
-        return self._rng.random()
-    
-    def randint(self, low: int, high: int) -> int:
-        return self._rng.randint(low, high)
-    
-    def choice(self, seq: list) -> Any:
-        return self._rng.choice(seq)
-    
-    def shuffle(self, seq: list) -> None:
-        self._rng.shuffle(seq)
-    
-    def seed(self, seed: int) -> None:
-        self._rng.seed(seed)
-    
-    def get_state(self) -> dict:
-        return {
-            "state": self._rng.getstate()
-        }
-    
-    @classmethod
-    def from_state(cls, state: dict) -> "DefaultRNG":
-        rng = cls()
-        rng._rng.setstate(state["state"])
-        return rng
-```
-
-### 2.5 引擎核心
-
-```python
-# engine.py - 核心引擎
-
-from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
-from dataclasses import dataclass, field
-
-from .model import GameState, Action
-from .events import GameEvent
-from .rng import RNG
-
-
-@dataclass
-class Engine:
-    """游戏引擎 - 纯逻辑层
-    
-    输入：玩家指令、随机源、当前状态
-    输出：新状态 + 一串 GameEvent[]
-    """
-    
-    rng: RNG
-    save_version: int = 1
-    
-    def apply(
-        self,
-        state: GameState,
-        action: Action
-    ) -> Tuple[GameState, List[GameEvent]]:
-        """应用动作，返回新状态和事件"""
-        events = []
-        
-        # 分发到对应的规则处理器
-        if action.type == "battle_action":
-            new_state, battle_events = self._apply_battle_action(state, action)
-            events.extend(battle_events)
-        elif action.type == "shop_action":
-            new_state, shop_events = self._apply_shop_action(state, action)
-            events.extend(shop_events)
-        elif action.type == "chapter_action":
-            new_state, chapter_events = self._apply_chapter_action(state, action)
-            events.extend(chapter_events)
-        else:
-            events.append(GameEvent(
-                type=EventType.ERROR,
-                data={"message": f"Unknown action type: {action.type}"}
-            ))
-            return state, events
-        
-        return new_state, events
-    
-    def _apply_battle_action(
-        self,
-        state: GameState,
-        action: Action
-    ) -> Tuple[GameState, List[GameEvent]]:
-        """应用战斗动作"""
-        # ... 调用 combat_rules.py
-        pass
-    
-    def _apply_shop_action(
-        self,
-        state: GameState,
-        action: Action
-    ) -> Tuple[GameState, List[GameEvent]]:
-        """应用商店动作"""
-        # ... 调用 economy_rules.py
-        pass
-    
-    def _apply_chapter_action(
-        self,
-        state: GameState,
-        action: Action
-    ) -> Tuple[GameState, List[GameEvent]]:
-        """应用章节动作"""
-        # ... 调用 chapter_rules.py
-        pass
-```
+1. **ECS架构**: 实体-组件-系统分离，便于扩展
+2. **内容与逻辑分离**: 使用 Lua 定义游戏内容
+3. **资源受限**: 所有操作都有资源限制
+4. **测试驱动**: 先写测试再开发
+5. **渐进式加载**: 分块读取大仓库
 
 ---
 
-## 3. 里程碑路线
+## 3. 核心游戏机制
 
-### M0 — 根治现有 bug + 引擎事件化 (P0，必须先做)
-
-**目标**：EXP/升级必然生效；HP 显示问题消失；能够"回放一场战斗"。
-
-**交付**：
-- [ ] 引擎改为：`apply(action, state) -> (new_state, events[])`
-- [ ] EXP/升级从"显示层修补"改为"规则层产出 ExpGained/LevelUp 事件"
-- [ ] UI 渲染只读事件（CLI/TUI 同一套事件渲染接口）
-- [ ] 引入 `--seed`，所有随机都来自注入的 RNG
-- [ ] 存档版本化（`save_version` + migration pipeline）
-
-**DoD**：
-- [ ] 单测全绿（现有 5 个失败边界全部修掉）
-- [ ] 添加 "golden replay test"：固定仓库 + 固定 seed + 固定选择序列 → 事件摘要一致
-- [ ] 存档可跨版本加载（至少支持 v1->v2 一次迁移）
-
----
-
-### M1 — 章节系统 (P0：可玩性闭环的节拍器)
-
-**目标**：从"commit 列表刷怪"升级为"章节推进"，每章有开始/结算/奖励。
-
-**章节切分策略**：
-- Rule A：按 conventional commits（feat/fix/refactor/docs/test/chore…）聚合
-- Rule B：若 message 不规范，按时间窗（例如每 N 天一章）
-- Rule C：若 commit 极少，强制生成 1 章（避免空章节）
-
-**章内结构**：
-- 小怪（普通 commits）
-- 精英（大 diff / 修改核心目录）
-- 章 BOSS（先留接口，M2 补全）
-
-**DoD**：
-- [ ] 章节切分有明确单测：输入 commit 列表 → 输出章节结构稳定
-- [ ] 每章结算必产出：金币/EXP/掉落至少一种（强反馈）
-
----
-
-### M2 — BOSS (P1：高潮 + 仪式感)
-
-**目标**：让 merge/revert 变成"记忆点"，不是一个标签。
-
-**BOSS 类型**：
-- Merge BOSS：两阶段（冲突阶段 / 合并完成阶段）
-- Revert BOSS：会"反噬"（例如清除一个 buff、或降低金币收益）
-- Mega-commit 精英：diff 超阈值触发 mini-boss
-
-**DoD**：
-- [ ] 至少 2 种 BOSS 行为脚本（不只是血厚）
-- [ ] BOSS 必掉落稀有奖励（保证高潮反馈）
-
----
-
-### M3 — 商店 + 经济系统 (P1：循环闭合)
-
-**目标**：打怪的收益可消费，形成 build（构筑）空间。
-
-**经济模型**：
-- `gold`：章结算 + 掉落
-- `shop`：章结算进入
-- `price curve`：随章节递增，避免后期金币溢出
-
-**DoD**：
-- [ ] 至少 10 个商品（消耗品/永久提升/技能书）
-- [ ] 购买行为产出事件（可回放、可测试）
-
----
-
-### M4 — 掉落与物品 (P1：项目特色)
-
-**目标**：文件变化→掉落，构成"这个仓库玩起来像什么"的差异。
-
-**掉落映射**：
-- docs 变更多：知识类道具（MP/经验增益）
-- tests 变更多：防御类道具（DEF/抗性）
-- src 核心模块变更：技能类道具（新技能/技能强化）
-- 大 diff：高品质概率上升
-
-**DoD**：
-- [ ] rarity（common/rare/epic）与概率可控、可 seed 复现
-- [ ] 道具可装备/可消耗，并影响战斗规则（不是摆设）
-
----
-
-### M5 — Textual TUI (P1：体验升级)
-
-**目标**：把信息呈现做"像游戏"，并保持 engine 纯净。
-
-**实现原则**：
-- Textual 是 event-driven + message pump，UI 更新基于事件/状态变化
-- 引擎跑在后台任务里，UI 只消费事件队列
-
-**DoD**：
-- [ ] TUI 可完整通关（章节→战斗→商店→下一章）
-- [ ] CLI 仍是稳定 fallback（回归测试走 CLI 更稳）
-
----
-
-### M6 — 内容系统 (P2：Mod/可扩展生态)
-
-**目标**：把"内容"从代码里拔出来。
-
-**路线**：
-- v1：章节定义、掉落表、商店表、剧情文本（JSON/YAML）
-- v2：Lua（只用于行为脚本：BOSS AI/特殊事件）
-
----
-
-## 4. 目录结构
-
-```
-git-dungeon/
-├── src/
-│   ├── git_dungeon/
-│   │   ├── engine/                  # 纯逻辑：可单测、无 IO
-│   │   │   ├── __init__.py
-│   │   │   ├── model.py             # Pydantic/Dataclass: State, Enemy, Chapter...
-│   │   │   ├── events.py            # GameEvent 定义
-│   │   │   ├── rng.py               # 可注入 RNG（seed）
-│   │   │   ├── engine.py            # apply(action, state) -> (state, events)
-│   │   │   ├── replay.py            # events -> replay / assert helpers
-│   │   │   └── rules/               # 规则
-│   │   │       ├── __init__.py
-│   │   │       ├── combat_rules.py  # 战斗规则
-│   │   │       ├── loot_rules.py    # 掉落规则
-│   │   │       ├── chapter_rules.py # 章节规则
-│   │   │       ├── economy_rules.py # 经济规则
-│   │   │       └── progression_rules.py  # 成长规则
-│   │   │
-│   │   ├── adapters/                # I/O 适配层
-│   │   │   ├── __init__.py
-│   │   │   ├── git_repo.py          # clone/open/parse
-│   │   │   ├── save_store.py        # 存档 + 版本迁移
-│   │   │   ├── content_loader.py    # json/yaml/lua 内容加载
-│   │   │   └── plugin_loader.py     # entry points / lua hooks
-│   │   │
-│   │   ├── ui/                      # 表现层
-│   │   │   ├── __init__.py
-│   │   │   ├── cli_app.py           # CLI 应用
-│   │   │   ├── tui_app.py           # Textual TUI 应用
-│   │   │   └── renderers/           # 渲染器
-│   │   │       ├── __init__.py
-│   │   │       ├── cli_renderer.py  # CLI 渲染
-│   │   │       └── tui_renderer.py  # TUI 渲染
-│   │   │
-│   │   └── main.py                  # 稳定入口（选择 CLI/TUI）
-│   │
-│   └── ...
-│
-├── content/                         # 游戏内容（JSON/YAML）
-│   ├── chapters/
-│   │   └── default.yaml
-│   ├── items/
-│   │   └── weapons.yaml
-│   ├── loot_tables/
-│   │   └── common.yaml
-│   └── shops/
-│       └── default.yaml
-│
-├── migrations/                      # 存档迁移脚本
-│   ├── __init__.py
-│   └── v1_to_v2.py
-│
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   ├── golden/                      # 回放测试
-│   └── fuzz/
-│
-├── scripts/
-│   ├── build.sh
-│   └── test.sh
-│
-├── docs/
-│   ├── plan.md
-│   ├── ARCHITECTURE.md
-│   └── API.md
-│
-├── pyproject.toml
-├── pyinstaller.spec
-└── requirements.txt
-```
-
----
-
-## 5. 核心机制
-
-### 5.1 Git → 游戏元素映射
+### 3.1 Git → 游戏元素映射
 
 | Git 元素 | 游戏元素 | 说明 |
 |----------|----------|------|
@@ -575,7 +129,7 @@ git-dungeon/
 | branch commit | 隐藏关卡 / 支线任务 | 发现隐藏内容 |
 | revert commit | BOSS 战 | 特殊挑战 |
 
-### 5.2 Git 命令 → 战斗技能
+### 3.2 Git 命令 → 战斗技能
 
 | Git 命令 | 游戏技能 | 效果 |
 |----------|----------|------|
@@ -587,147 +141,777 @@ git-dungeon/
 | git reset --hard | 时间回溯 | 回到上一步状态 |
 | git merge | 组合技 | 多个敌人同时攻击 |
 
-### 5.3 存档结构
+### 3.3 游戏流程
 
-```python
-@dataclass
-class SaveData:
-    """存档数据结构"""
-    save_version: int = 2  # 当前版本
-    game_version: str = "2.0.0"
-    repo_fingerprint: str  # 仓库标识
-    seed: int  # 随机种子
-    created_at: str
-    updated_at: str
-    
-    # 游戏状态
-    state: GameState
-    
-    # 事件日志（用于回放）
-    events: List[dict]
-    
-    # 校验
-    checksum: str
-    
-    def validate(self) -> bool:
-        """验证存档完整性"""
-        return self.checksum == self._compute_checksum()
+```
+1. 选择 Git 仓库
+   ↓
+2. 解析 commit 历史 (受资源限制)
+   ↓
+3. 生成怪物列表
+   ↓
+4. 回合制战斗
+   - 玩家行动 (使用 Git 命令)
+   - 敌人行动
+   ↓
+5. 击败怪物获得物品
+   ↓
+6. 到达最新 commit 胜利
+   ↓
+7. 结算与存档
+```
+
+### 3.4 角色属性
+
+```
+玩家 (Developer):
+  HP     - 代码行数 (最大)
+  MP     - commit 数量 (技能点)
+  ATK    - 平均每 commit 添加行数
+  DEF    - 平均每 commit 删除行数
+  LEVEL  - 战斗次数
+  EXP    - 累计获得经验
+```
+
+### 3.5 怪物属性
+
+```
+怪物 (Commit):
+  NAME   - commit message (截取前30字符)
+  HP     - 总变更行数 (+/-)
+  ATK    - 添加行数
+  DEF    - 删除行数
+  EXP    - 变更行数 / 10
+  DROP   - 改动文件对应的物品
 ```
 
 ---
 
-## 6. 质量保证
+## 4. 物品系统
 
-### 6.1 测试覆盖目标
+### 4.1 文件类型 → 物品映射
+
+| 文件类型 | 物品 | 效果 |
+|----------|------|------|
+| *.py | 魔法书 | 学习新技能 |
+| *.go | 武器 | 攻击力+ |
+| *.js | 药水 | 恢复HP |
+| *.rs | 装备 | 防御+ |
+| *.md | 地图碎片 | 显示隐藏关卡 |
+| *.sql | 护符 | 幸运+ |
+| *.json | 符文 | 技能冷却- |
+| *.yaml | 卷轴 | 一次性技能 |
+| *.java | 圣杯 | 全属性+ |
+| *.cpp | 剑 | 高攻击 |
+
+### 4.2 物品稀有度
+
+| 稀有度 | 颜色 | 概率 | 效果加成 |
+|--------|------|------|----------|
+| 普通(Common) | 白色 | 60% | 基础效果 |
+| 稀有(Rare) | 蓝色 | 25% | +50% 效果 |
+| 史诗(Epic) | 紫色 | 10% | +100% 效果 |
+| 传说(Legendary) | 金色 | 4% | +200% 效果 |
+| 代码腐败(Corrupted) | 红色 | 1% | 高风险高回报 |
+
+### 4.3 物品属性
+
+```
+BaseItem:
+  - name: 物品名称
+  - type: 物品类型
+  - rarity: 稀有度
+  - value: 基础值
+  - description: 描述
+
+Weapon (继承BaseItem):
+  - attack: 攻击力加成
+
+Armor (继承BaseItem):
+  - defense: 防御力加成
+
+Consumable (继承BaseItem):
+  - effect: 效果类型 (HP恢复, MP恢复, Buff)
+  - amount: 效果量
+```
+
+---
+
+## 5. 资源限制策略
+
+### 5.1 配置类定义
+
+```python
+class Difficulty(Enum):
+    EASY = "easy"
+    NORMAL = "normal"
+    HARD = "hard"
+    HARDCORE = "harcore"
+
+class GameConfig(BaseModel):
+    """游戏配置"""
+    # 基础设置
+    repo_path: str = "./"
+    difficulty: Difficulty = Difficulty.NORMAL
+    
+    # 资源限制
+    max_commits: int = 1000
+    max_files_per_commit: int = 50
+    max_commit_message_len: int = 500
+    max_memory_mb: int = 100
+    cache_size: int = 100
+    chunk_size: int = 100
+    
+    # 游戏设置
+    auto_save: bool = True
+    auto_save_interval: int = 10
+    show_combat_log: bool = True
+    enable_sound: bool = True
+    
+    # 主题
+    theme: str = "default"
+    
+    class Config:
+        env_prefix = "GIT_DUNGEON_"
+```
+
+### 5.2 资源限制详情
+
+| 限制项 | 默认值 | 说明 | 超出处理 |
+|--------|--------|------|----------|
+| max_commits | 1000 | 最多读取1000个commit | 只读最近的1000个 |
+| max_files_per_commit | 50 | 每个commit最多50个文件 | 忽略超出的文件 |
+| max_commit_message_len | 500 | commit message最大长度 | 截断处理 |
+| max_memory_mb | 100 | 最大100MB内存 | 强制GC |
+| cache_size | 100 | commit缓存数量 | LRU淘汰 |
+| chunk_size | 100 | 分块处理大小 | 渐进式加载 |
+| render_fps | 30 | 渲染帧率上限 | 降帧处理 |
+| combat_timeout_sec | 300 | 战斗超时5分钟 | 强制跳过 |
+| auto_save_interval | 10 | 自动保存间隔 | 回合计数 |
+
+### 5.3 性能监控
+
+```python
+class ResourceMonitor:
+    """资源监控器"""
+    
+    def __init__(self):
+        self.memory_usage = 0
+        self.cpu_usage = 0
+        self.active_operations = []
+    
+    def check_memory(self) -> bool:
+        """检查内存是否超限"""
+        return self.memory_usage < settings.max_memory_mb
+    
+    def check_operations(self) -> bool:
+        """检查是否有阻塞操作"""
+        return len(self.active_operations) < 10
+    
+    def record_operation(self, op: str):
+        """记录操作开始"""
+        self.active_operations.append(op)
+    
+    def finish_operation(self, op: str):
+        """记录操作结束"""
+        self.active_operations.remove(op)
+```
+
+---
+
+## 6. 测试架构
+
+### 6.1 测试类型
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                     Testing Framework                           │
+├────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Unit Tests (pytest)                                           │
+│  ├── test_git_parser.py                                        │
+│  │   ├── test_parse_single_commit()                            │
+│  │   ├── test_parse_large_repo()                               │
+│  │   ├── test_parse_empty_repo()                               │
+│  │   └── test_handle_corrupt_data()                            │
+│  ├── test_combat_system.py                                     │
+│  │   ├── test_damage_calculation()                             │
+│  │   ├── test_critical_hit()                                   │
+│  │   ├── test_dodge_mechanic()                                 │
+│  │   └── test_skill_execution()                                │
+│  ├── test_character.py                                         │
+│  │   ├── test_level_up()                                       │
+│  │   ├── test_stat_calculation()                               │
+│  │   └── test_skill_unlocks()                                  │
+│  └── test_item_system.py                                       │
+│      ├── test_item_generation()                                │
+│      ├── test_item_rarity()                                    │
+│      └── test_item_combination()                               │
+│                                                                 │
+│  Integration Tests                                             │
+│  ├── test_full_gameplay.py                                     │
+│  ├── test_save_load_cycle()                                    │
+│  └── test_resource_limits()                                    │
+│                                                                 │
+│  Fuzzy Tests (随机测试)                                         │
+│  ├── test_random_commits()                                     │
+│  ├── test_random_player_actions()                              │
+│  └── test_edge_cases()                                         │
+│                                                                 │
+│  Content Tests (Lua内容验证)                                    │
+│  ├── test_item_definitions.lua                                 │
+│  ├── test_monster_templates.lua                                │
+│  └── test_skill_balances.lua                                   │
+│                                                                 │
+│  Performance Tests                                             │
+│  ├── test_memory_usage()                                       │
+│  ├── test_load_time()                                          │
+│  └── test_render_performance()                                 │
+│                                                                 │
+└────────────────────────────────────────────────────────────────┘
+```
+
+### 6.2 测试覆盖率要求
 
 | 模块 | 覆盖率要求 |
 |------|------------|
-| engine/ | >= 95% |
-| rules/*.py | >= 90% |
-| adapters/ | >= 80% |
+| core/git_parser.py | >= 95% |
+| core/combat.py | >= 90% |
+| core/character.py | >= 90% |
+| core/inventory.py | >= 85% |
+| core/save_system.py | >= 95% |
+| lua/interpreter.py | >= 80% |
 | 整体 | >= 85% |
 
-### 6.2 测试类型
+### 6.3 测试示例
 
-1. **单元测试**：规则层逻辑
-2. **集成测试**：完整流程
-3. **Golden 测试**：固定 seed → 固定事件序列
-4. **模糊测试**：随机操作序列
+```python
+# tests/unit/test_combat.py
+import pytest
+from src.core.combat import CombatSystem, DamageType
 
-### 6.3 性能要求
+class TestCombatSystem:
+    """战斗系统单元测试"""
+    
+    def setup_method(self):
+        """每个测试前初始化"""
+        self.combat = CombatSystem()
+        self.player = Character("Player", hp=100, attack=10, defense=5)
+        self.enemy = Character("Enemy", hp=50, attack=8, defense=3)
+    
+    def test_damage_calculation(self):
+        """测试伤害计算"""
+        damage = self.combat.calculate_damage(
+            attacker=self.player,
+            defender=self.enemy,
+            skill_multiplier=1.0
+        )
+        # 基础伤害 = 攻击 - 防御 = 10 - 3 = 7
+        assert damage == 7
+    
+    def test_critical_hit(self):
+        """测试暴击"""
+        # 暴击时伤害翻倍
+        damage = self.combat.calculate_damage(
+            attacker=self.player,
+            defender=self.enemy,
+            skill_multiplier=2.0
+        )
+        assert damage == 14
+    
+    def test_dodge_mechanic(self):
+        """测试闪避"""
+        # 设置高闪避率
+        self.enemy.dodge_chance = 1.0
+        
+        # 多次测试应该全部闪避
+        dodges = 0
+        for _ in range(100):
+            if self.combat.check_dodge(self.enemy):
+                dodges += 1
+        
+        assert dodges == 100
+```
 
-| 场景 | 指标 |
-|------|------|
-| 大仓库解析 | 5k commits < 5s |
-| 战斗响应 | < 100ms |
-| 存档加载 | < 500ms |
+### 6.4 模糊测试示例
 
-### 6.4 兼容底线
+```python
+# tests/fuzzy/test_random_actions.py
+import pytest
+from src.core.game_engine import GameEngine
+from src.utils.resource_manager import ResourceManager
 
-- Git 解析失败必须给出可读错误（网络/权限/空仓库/无 HEAD）
-- 大仓库解析必须有上限与缓存策略
+class TestFuzzy:
+    """模糊测试 - 随机操作"""
+    
+    def test_random_commits(self, tmp_path):
+        """测试随机 commit 数据"""
+        # 创建临时仓库
+        repo_path = tmp_path / "test_repo"
+        repo_path.mkdir()
+        
+        # 生成随机 commit 历史
+        engine = GameEngine()
+        resource_manager = ResourceManager()
+        
+        # 执行随机操作序列
+        for i in range(100):
+            # 随机选择仓库操作
+            action = random.choice([
+                "parse_commit",
+                "get_file_changes",
+                "get_author"
+            ])
+            
+            try:
+                if action == "parse_commit":
+                    engine.parse_commit(repo_path)
+                elif action == "get_file_changes":
+                    engine.get_file_changes(repo_path)
+                else:
+                    engine.get_author(repo_path)
+            except Exception as e:
+                # 任何异常都应该被捕获和处理
+                assert isinstance(e, (ValueError, IOError, GitError))
+    
+    def test_random_player_actions(self, game_state):
+        """测试随机玩家操作"""
+        engine = GameEngine(game_state)
+        
+        for _ in range(50):
+            action = random.choice([
+                "attack",
+                "use_skill",
+                "use_item",
+                "defend"
+            ])
+            
+            result = engine.execute_action(action)
+            # 确保不会崩溃
+            assert result is not None
+```
 
 ---
 
-## 7. 安装与运行
+## 7. 项目结构
 
-### 7.1 环境要求
+```
+git-dungeon/
+├── src/
+│   ├── __init__.py
+│   ├── main.py                    # 入口点
+│   ├── config/
+│   │   ├── __init__.py
+│   │   ├── settings.py            # 配置管理
+│   │   └── themes.py              # 主题系统
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── git_parser.py          # Git解析器
+│   │   ├── game_engine.py         # 游戏引擎(ECS)
+│   │   ├── entity.py              # 实体基类
+│   │   ├── component.py           # 组件基类
+│   │   ├── system.py              # 系统基类
+│   │   ├── combat.py              # 战斗系统
+│   │   ├── character.py           # 角色系统
+│   │   ├── inventory.py           # 物品栏系统
+│   │   ├── save_system.py         # 存档系统
+│   │   └── resource_manager.py    # 资源管理
+│   ├── content/
+│   │   ├── __init__.py
+│   │   ├── item_factory.py        # 物品工厂
+│   │   ├── monster_factory.py     # 怪物工厂
+│  _factory.py       # │   └── skill 技能工厂
+│   ├── lua/
+│   │   ├── __init__.py
+│   │   ├── interpreter.py         # Lua解释器
+│   │   └── content_loader.py      # 内容加载器
+│   ├── ui/
+│   │   ├── __init__.py
+│   │   ├── app.py                 # Textual主应用
+│   │   ├── screens/
+│   │   │   ├── __init__.py
+│   │   │   ├── main_screen.py     # 主界面
+│   │   │   ├── combat_screen.py   # 战斗界面
+│   │   │   ├── map_screen.py      # 地图界面
+│   │   │   ├── inventory_screen.py # 物品界面
+│   │   │   ├── settings_screen.py # 设置界面
+│   │   │   └── game_over_screen.py # 结束界面
+│   │   └── components/
+│   │       ├── __init__.py
+│   │       ├── character_panel.py  # 角色面板
+│   │       ├── combat_log.py       # 战斗日志
+│   │       ├── minimap.py          # 小地图
+│   │       └── dialog.py           # 对话框
+│   └── utils/
+│       ├── __init__.py
+│       ├── logger.py              # 日志系统
+│       ├── exceptions.py          # 自定义异常
+│       └── helpers.py             # 工具函数
+│
+├── assets/
+│   ├── lua/
+│   │   ├── items.lua             # 物品定义
+│   │   ├── monsters.lua          # 怪物模板
+│   │   ├── skills.lua            # 技能定义
+│   │   └── events.lua            # 事件定义
+│   ├── themes/
+│   │   ├── default.toml          # 默认主题
+│   │   ├── dark.toml             # 暗色主题
+│   │   └── retro.toml            # 复古主题
+│   ├── sounds/                   # 音效文件
+│   └── fonts/                    # 字体文件
+│
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py              # pytest配置
+│   ├── unit/
+│   │   ├── __init__.py
+│   │   ├── test_git_parser.py
+│   │   ├── test_combat.py
+│   │   ├── test_character.py
+│   │   ├── test_inventory.py
+│   │   └── test_save_system.py
+│   ├── integration/
+│   │   ├── __init__.py
+│   │   ├── test_full_gameplay.py
+│   │   └── test_save_load.py
+│   ├── fuzzy/
+│   │   ├── __init__.py
+│   │   ├── test_random_actions.py
+│   │   └── test_edge_cases.py
+│   ├── content/
+│   │   ├── __init__.py
+│   │   └── test_lua_content.py
+│   └── performance/
+│       ├── __init__.py
+│       ├── test_memory.py
+│       └── test_performance.py
+│
+├── scripts/
+│   ├── build.sh                 # 构建脚本
+│   ├── test.sh                  # 测试脚本
+│   ├── lint.sh                  # 代码检查
+│   └── package.sh               # 打包脚本
+│
+├── docs/
+│   ├── README.md
+│   ├── ARCHITECTURE.md
+│   ├── CONTENT_CREATION.md
+│   ├── TESTING.md
+│   └── API.md
+│
+├── requirements.txt
+├── requirements-dev.txt
+├── pyproject.toml
+├── Dockerfile
+├── .gitignore
+├── .pre-commit-config.yaml
+└── LICENSE
+```
+
+---
+
+## 8. 安装与运行
+
+### 8.1 环境要求
 
 - Python 3.11+
 - Git
-- uv (推荐) 或 pip
+- 终端支持 (256色, 鼠标)
 
-### 7.2 安装
-
-```bash
-# 使用 uv（推荐）
-uv venv
-source .venv/bin/activate
-uv pip install -e .
-
-# 或使用 pip
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
-```
-
-### 7.3 运行
+### 8.2 安装步骤
 
 ```bash
-# CLI 模式
-python -m git_dungeon username/repo
+# 克隆项目
+git clone https://github.com/yourusername/git-dungeon.git
+cd git-dungeon
 
-# 带 seed（可复现）
-python -m git_dungeon username/repo --seed 12345
+# 创建虚拟环境
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# 或
+.\venv\Scripts\activate  # Windows
 
-# TUI 模式
-textual run git_dungeon.main
-```
+# 安装依赖
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
-### 7.4 测试
+# 运行游戏
+python -m git_dungeon
 
-```bash
-# 全部测试
+# 运行测试
 pytest tests/ -v
+pytest tests/ --fuzzy  # 模糊测试
+pytest tests/ -k "performance"  # 性能测试
 
-# Golden 测试
-pytest tests/golden/ -v
+# 代码检查
+pre-commit run --all-files
 
-# 模糊测试
-pytest tests/fuzz/ -v
+# 构建
+./scripts/build.sh
+```
+
+### 8.3 Docker 运行
+
+```bash
+# 构建镜像
+docker build -t git-dungeon .
+
+# 运行
+docker run -it git-dungeon
 ```
 
 ---
 
-## 8. 附录
+## 9. CI/CD 流程
 
-### 8.1 技术栈
+### 9.1 GitHub Actions 配置
 
-| 层级 | 技术选择 | 理由 |
-|------|----------|------|
-| 语言 | Python 3.11+ | 开发效率高、类型系统完善 |
-| UI | Textual | 现代终端UI、GPU加速、事件驱动 |
-| Git解析 | GitPython | 轻量、稳定 |
-| 测试 | pytest | 成熟、插件丰富 |
-| 打包 | PyInstaller | 跨平台支持 |
+```yaml
+# .github/workflows/ci.yml
+name: CI
 
-### 8.2 参考项目
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      - name: Run unit tests
+        run: pytest tests/unit/ -v
+      - name: Run integration tests
+        run: pytest tests/integration/ -v
+      - name: Run fuzzy tests (30 seconds)
+        run: timeout 35 pytest tests/fuzzy/ -v
+      - name: Run performance tests
+        run: pytest tests/performance/ -v
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: ./scripts/build.sh
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: git-dungeon
+          path: bin/
+```
+
+### 9.2 代码质量检查
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-all
+```
+
+---
+
+## 10. MVP 里程碑
+
+### Phase 1: 基础框架 (Week 1)
+
+- [ ] Git 解析器
+  - [ ] 解析单个 commit
+  - [ ] 解析完整仓库历史
+  - [ ] 支持资源限制
+  - [ ] 单元测试 > 80%
+
+- [ ] 基础游戏循环
+  - [ ] 游戏状态管理
+  - [ ] 输入处理
+  - [ ] 渲染框架
+
+- [ ] 终端UI框架
+  - [ ] Textual 集成
+  - [ ] 主界面布局
+  - [ ] 导航系统
+
+**交付物**: 可运行的原型，支持解析 Git 仓库并在终端显示
+
+### Phase 2: 核心玩法 (Week 2)
+
+- [ ] 战斗系统
+  - [ ] 回合制战斗逻辑
+  - [ ] 伤害计算
+  - [ ] 技能系统
+  - [ ] 战斗UI
+
+- [ ] 角色系统
+  - [ ] 玩家属性
+  - [ ] 升级系统
+  - [ ] 状态效果
+
+- [ ] 物品系统
+  - [ ] 物品生成
+  - [ ] 物品栏管理
+  - [ ] 物品使用
+
+- [ ] 集成测试 > 90%
+
+**交付物**: 完整的战斗系统，可玩的核心玩法
+
+### Phase 3: 内容与扩展 (Week 3)
+
+- [ ] Lua 内容系统
+  - [ ] Lua 解释器集成
+  - [ ] 内容加载器
+  - [ ] 热重载支持
+
+- [ ] 物品/怪物模板
+  - [ ] 物品定义
+  - [ ] 怪物模板
+  - [ ] 技能定义
+
+- [ ] 多主题支持
+  - [ ] 主题系统
+  - [ ] 默认主题
+  - [ ] 暗色主题
+
+- [ ] 内容测试 100%
+
+**交付物**: 可扩展的内容系统，支持 Lua 脚本
+
+### Phase 4: 完善与优化 (Week 4)
+
+- [ ] 性能优化
+  - [ ] 内存优化
+  - [ ] 渲染优化
+  - [ ] 加载优化
+
+- [ ] 模糊测试
+  - [ ] 随机操作测试
+  - [ ] 边界情况测试
+  - [ ] CI 集成
+
+- [ ] 文档完善
+  - [ ] API 文档
+  - [ ] 用户文档
+  - [ ] 开发者文档
+
+- [ ] 打包发布
+  - [ ] PyInstaller 打包
+  - [ ] Docker 镜像
+  - [ ] 发布流程
+
+**交付物**: 可发布的完整版本
+
+---
+
+## 11. 参考项目
+
+### 11.1 主要参考
 
 | 项目 | GitHub | 亮点 |
 |------|--------|------|
-| End of Eden | gridbugs/end_of_eden | 模糊测试、内容测试、Lua脚本、CI集成 |
-| Oh My Git! | ohmygit/oh-my-git | Git 游戏化、卡片系统 |
-| Pokete | lxgr-linux/pokete | 完整的类型系统、mod支持 |
+| **End of Eden** | BigJk/end_of_eden | Fuzzy测试、内容测试、Lua脚本、CI集成 |
+| **GitType** | unhappychoice/gittype | 多语言支持、主题系统、产品化完善 |
+| **Pokete** | lxgr-linux/pokete | 完整的类型系统、mod支持、文档完善 |
 
-### 8.3 更新日志
+### 11.2 学习点
 
-| 版本 | 日期 | 更新内容 |
-|------|------|----------|
-| 1.0 | 2026-01-31 | 初始版本 |
-| 2.0 | 2026-02-01 | 生产级重构：事件流、seed、存档迁移、章节系统 |
+从 **End of Eden** 学习:
+- 模糊测试实现
+- Lua 内容分离
+- CI/CD 集成
+
+从 **GitType** 学习:
+- 产品化流程
+- 安装方式
+- 配置系统
+
+从 **Pokete** 学习:
+- Python 架构设计
+- 扩展性设计
+- 文档结构
 
 ---
 
-> **注意**：本项目采用渐进式开发，M0 为必须先完成的基础设施。M0 完成后，后续功能可独立迭代。
+## 附录
 
-**文档版本**: 2.0
+### A. 配置默认值
+
+```python
+DEFAULT_CONFIG = GameConfig(
+    repo_path="./",
+    difficulty=Difficulty.NORMAL,
+    max_commits=1000,
+    max_files_per_commit=50,
+    max_commit_message_len=500,
+    max_memory_mb=100,
+    cache_size=100,
+    chunk_size=100,
+    auto_save=True,
+    auto_save_interval=10,
+    show_combat_log=True,
+    enable_sound=True,
+    theme="default"
+)
+```
+
+### B. 常见问题
+
+Q: 为什么选择 Python 而不是 Go/Rust?
+A: 开发效率优先，Python 有丰富的游戏开发库，且团队熟悉程度高。
+
+Q: 为什么选择 Textual 而不是 ncurses?
+A: Textual 更现代、GPU 加速、维护活跃、API 友好。
+
+Q: 为什么用 Lua 而不是 JSON/YAML?
+A: Lua 更灵活，支持逻辑判断，便于扩展。
+
+### C. 后续规划
+
+- Web 版本 (React + WebSocket)
+- 移动端版本
+- 多人模式
+- 排行榜系统
+
+---
+
+> **注意**: 本文档为项目方案，后续开发请严格遵循。如需修改，请先讨论并更新文档。
+
+**文档版本控制**:
+- v1.0 (2026-01-31): 初始版本
