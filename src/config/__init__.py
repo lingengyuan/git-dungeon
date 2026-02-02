@@ -1,4 +1,4 @@
-"""Config module __init__."""
+"""Config package."""
 
 from .settings import GameConfig, Difficulty, load_config, DEFAULT_CONFIG
 

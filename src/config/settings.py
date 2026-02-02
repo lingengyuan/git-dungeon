@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class Difficulty(Enum):
@@ -13,11 +13,12 @@ class Difficulty(Enum):
     EASY = "easy"
     NORMAL = "normal"
     HARD = "hard"
-    HARDCORE = "harcore"
+    HARDCORE = "hardcore"
 
 
 class GameConfig(BaseModel):
     """Game configuration."""
+    model_config = ConfigDict(env_prefix="GIT_DUNGEON_")
 
     # Base settings
     repo_path: str = "./"
@@ -39,9 +40,6 @@ class GameConfig(BaseModel):
 
     # Theme
     theme: str = "default"
-
-    class Config:
-        env_prefix = "GIT_DUNGEON_"
 
 
 def load_config(config_path: Optional[Path] = None) -> GameConfig:

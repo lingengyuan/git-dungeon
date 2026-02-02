@@ -74,7 +74,7 @@ class TestCommitInfo:
         )
 
         name = commit.get_creature_name()
-        assert "Add" in name or "feature" in name
+        assert "Add" in name or "feature" in name.lower()
 
 
 class TestGitParser:

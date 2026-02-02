@@ -8,7 +8,7 @@ from typing import Optional
 
 from .component import Component
 from .entity import Entity
-from git_dungeon.utils.exceptions import GameError
+from ..utils.exceptions import GameError
 
 
 class CharacterType(Enum):

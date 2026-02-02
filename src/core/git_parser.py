@@ -8,9 +8,9 @@ from typing import Optional, Callable
 from git import Repo
 from git.exc import InvalidGitRepositoryError, BadName
 
-from git_dungeon.config import GameConfig
-from git_dungeon.utils.exceptions import GitError
-from git_dungeon.utils.logger import setup_logger
+from config.settings import GameConfig
+from .utils.exceptions import GitError
+from .utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -248,24 +248,31 @@ class GitParser:
             
         except InvalidGitRepositoryError as e:
             raise GitError(f"Invalid Git repository: {e}")
-        except Exception:
-            return False
     
     @property
     def is_loaded(self) -> bool:
         """Check if repository is loaded."""
         return self._repo is not None
     
-    def parse_commit(self, commit_hash: str) -> CommitInfo:
-        """Parse a single commit by hash (backward compatibility)."""
-        if self._repo is None:
-            raise GitError("Repository not loaded")
+    def parse_commit(self, commit) -> CommitInfo:
+        """Parse a single commit.
         
-        try:
-            commit = self._repo.commit(commit_hash)
-            return self._parse_commit_fast(commit)
-        except Exception as e:
-            raise GitError(f"Failed to parse commit {commit_hash}: {e}")
+        Args:
+            commit: Either a commit hash string or a git commit object
+            
+        Returns:
+            CommitInfo instance
+        """
+        # If commit is a string (hash), get the commit object first
+        if isinstance(commit, str):
+            if self._repo is None:
+                raise GitError("Repository not loaded")
+            try:
+                commit = self._repo.commit(commit)
+            except Exception as e:
+                raise GitError(f"Failed to parse commit {commit}: {e}")
+        
+        return self._parse_commit_fast(commit)
     
     def get_commit_by_hash(self, short_hash: str) -> Optional[CommitInfo]:
         """Get a commit by short hash."""
