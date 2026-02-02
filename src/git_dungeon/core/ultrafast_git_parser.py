@@ -94,7 +94,7 @@ class UltraFastGitParser:
             try:
                 if cls._repo_cache[path].head.is_valid():
                     return cls._repo_cache[path]
-            except:
+            except Exception:
                 pass
         
         repo = Repo(path, search_parent_directories=True)
@@ -254,7 +254,7 @@ class FastGitParser:
             try:
                 if cls._repo_cache[path].head.is_valid():
                     return cls._repo_cache[path]
-            except:
+            except Exception:
                 pass
         repo = Repo(path, search_parent_directories=True)
         cls._repo_cache[path] = repo
@@ -273,7 +273,7 @@ class FastGitParser:
                 self._repo,
                 self._repo.head.reference
             ))[:limit]
-        except:
+        except Exception:
             commits = list(self._repo.iter_commits())[:limit]
         
         # Parse commits (no file changes for speed)

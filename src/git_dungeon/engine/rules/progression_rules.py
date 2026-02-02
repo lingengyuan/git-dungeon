@@ -50,7 +50,6 @@ class ProgressionRules:
         Returns:
             Dictionary with stat gains
         """
-        old_level = new_level - 1
         
         return {
             "hp_gain": self.HP_PER_LEVEL,

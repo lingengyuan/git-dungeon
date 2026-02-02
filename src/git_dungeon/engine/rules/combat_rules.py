@@ -144,7 +144,6 @@ class CombatRules:
             
             # Check for escape (every 3 turns)
             if turns % 3 == 0 and roll_chance(self.rng, player_escape * 100):
-                escaped = True
                 result["escaped"] = True
                 break
         
@@ -174,7 +173,6 @@ class CombatRules:
         
         for _ in range(num_battles):
             # Copy RNG state for each battle
-            rng = self.rng.copy()
             temp_player_hp = player_hp
             temp_enemy_hp = enemy_hp
             turns = 0

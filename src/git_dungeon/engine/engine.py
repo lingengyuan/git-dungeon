@@ -67,7 +67,6 @@ class Engine:
         action: Action
     ) -> Tuple[GameState, List[GameEvent]]:
         """Handle combat-related actions (M1: 扩展支持状态机)"""
-        events = []
         action_name = action.action_name
         
         # M1: 回合开始
@@ -187,8 +186,6 @@ class Engine:
                 type=EventType.ERROR,
                 data={"message": "Invalid card index"}
             )]
-        
-        card = deck.hand[card_index]
         
         # 检查能量 (简化: 默认费用1)
         cost = 1  # 从 card 数据获取

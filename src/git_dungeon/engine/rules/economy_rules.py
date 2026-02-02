@@ -412,7 +412,6 @@ class ShopSystem:
             ))
         
         elif item.effect == "heal_mp":
-            old_mp = player_state.current_mp
             player_state.current_mp = min(
                 player_state.stats.mp.value,
                 player_state.current_mp + item.value

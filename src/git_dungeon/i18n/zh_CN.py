@@ -52,7 +52,6 @@ ZH_CN_TRANSLATIONS = {
     "CRIT!": "暴击!",
     "defeated": "已击败",
     "Defensive stance": "防御姿态",
-    "Skill": "技能",
     "Need": "需要",
     "MP, have": "MP, 当前",
     "Escaped": "逃跑成功",
@@ -70,7 +69,6 @@ ZH_CN_TRANSLATIONS = {
     # Shop
     "商店": "商店",
     "Welcome to the shop": "欢迎来到商店",
-    "Gold": "金币",
     "Purchased": "已购买",
     "Not enough gold": "金币不足",
     "Invalid choice": "无效选择",

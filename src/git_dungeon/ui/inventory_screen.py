@@ -42,7 +42,6 @@ def format_item_slot(index: int, item: Item | None, selected: bool = False) -> s
         return f"{prefix} {index}: Empty"
 
     icon = ITEM_TYPE_ICONS.get(item.item_type, "📦")
-    rarity_color = RARITY_COLORS.get(item.rarity, "white")
 
     # Format stats
     stats = []

@@ -236,7 +236,6 @@ class BiasTracker:
     
     def get_recommended_cards(self, count: int = 3) -> List[str]:
         """根据倾向推荐卡牌"""
-        weights = self.get_archetype_weights()
         dominant = self.get_dominant_archetype()
         
         # 返回主导流派的标签

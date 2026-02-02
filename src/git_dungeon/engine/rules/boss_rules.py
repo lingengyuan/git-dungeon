@@ -180,7 +180,6 @@ class BossState:
     
     def _transition_to_phase(self, new_phase: BossPhase):
         """Transition to a new phase."""
-        old_phase = self.phase
         self.phase = new_phase
         self.current_phase_index += 1
         

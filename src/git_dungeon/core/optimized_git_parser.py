@@ -99,7 +99,7 @@ class OptimizedGitParser:
                 # Verify repo is still valid
                 if cls._repo_cache[path].head.is_valid():
                     return cls._repo_cache[path]
-            except:
+            except Exception:
                 del cls._repo_cache[path]
         
         # Create new Repo (use search_parent_directories for better detection)
@@ -317,12 +317,12 @@ def get_commit_diff_fast(path: str, commit_hash: str) -> tuple[int, int]:
             if 'insertion' in line:
                 try:
                     additions = int(line.split()[0])
-                except:
+                except Exception:
                     pass
             elif 'deletion' in line:
                 try:
                     deletions = int(line.split()[0])
-                except:
+                except Exception:
                     pass
         
         return additions, deletions

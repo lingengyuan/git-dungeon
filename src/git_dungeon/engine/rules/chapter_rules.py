@@ -19,11 +19,14 @@ Each chapter has:
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import TYPE_CHECKING, List, Optional, Dict, Any
 from enum import Enum
 
 from git_dungeon.engine.rng import RNG
 from git_dungeon.engine.events import GameEvent, EventType
+
+if TYPE_CHECKING:
+    from git_dungeon.engine.rules.boss_rules import BossSystem, BossState
 
 
 class ChapterType(Enum):

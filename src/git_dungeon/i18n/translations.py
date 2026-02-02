@@ -137,7 +137,6 @@ TRANSLATIONS = {
         
         # Combat
         "BOSS BATTLE": "👹 BOSS 战",
-        "Chapter": "章节",
         "You attack": "你攻击",
         "for": "造成",
         "damage": "伤害",

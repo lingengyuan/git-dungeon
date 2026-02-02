@@ -1,10 +1,14 @@
 # events.py - GameEvent definitions (JSON serializable, simple classes)
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List
 from datetime import datetime
 from enum import Enum
 import uuid
+
+if TYPE_CHECKING:
+    from git_dungeon.engine.model import GameState
+    from git_dungeon.engine.rng import RNG
 
 
 class EventType(Enum):
@@ -369,7 +373,6 @@ def apply_event_choice(
     for effect in choice_effects:
         opcode = effect.get("opcode", "")
         value = effect.get("value", 0)
-        target = effect.get("target", "player")
         
         try:
             if opcode == EventEffectOpcode.GAIN_GOLD:

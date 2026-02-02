@@ -1,6 +1,5 @@
 # i18n module for Git Dungeon
 
-import os
 from typing import Dict, Optional
 
 # Import translations

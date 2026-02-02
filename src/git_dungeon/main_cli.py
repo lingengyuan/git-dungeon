@@ -524,7 +524,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
         print(f"   ⭐ +{exp} EXP  |  💰 +{gold} Gold")
         
         if did_level_up:
-            stats = self.progression_rules.calculate_level_up_stats(new_level)
+            self.progression_rules.calculate_level_up_stats(new_level)
             print(f"   🆙 LEVEL UP! Level {new_level}")
     
     def _create_enemy(self, commit: CommitInfo) -> EnemyState:

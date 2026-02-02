@@ -42,7 +42,6 @@ def format_item_slot(index: int, item: Item | None, selected: bool = False) -> s
         return f"{prefix} {index}: Empty"
 
     icon = ITEM_TYPE_ICONS.get(item.item_type, "📦")
-    rarity_color = RARITY_COLORS.get(item.rarity, "white")
 
     # Format stats
     stats = []
@@ -124,7 +123,6 @@ class ItemDetailPanel(Static):
             return
 
         icon = ITEM_TYPE_ICONS.get(self._item.item_type, "📦")
-        rarity_color = RARITY_COLORS.get(self._item.rarity, "white")
 
         yield Container(
             Static(f"{icon} {self._item.name}", classes="item-name"),

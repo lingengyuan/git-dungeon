@@ -88,7 +88,7 @@ class DefaultRNG:
     
     def copy(self) -> "DefaultRNG":
         """Create a copy with the same state"""
-        new_rng = cls(seed=self._seed)
+        new_rng = DefaultRNG(seed=self._seed)
         new_rng._rng.setstate(self._rng.getstate())
         return new_rng
 

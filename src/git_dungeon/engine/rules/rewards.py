@@ -284,7 +284,6 @@ class RewardsEngine:
             return ["strike", "defend", "debug_strike"]
         
         # 基于 commit 特征调整权重
-        card_pool = []
         
         # 大 diff：高费高伤卡
         large_diff = enemy.attack > 8 or enemy.max_hp > 40

@@ -18,6 +18,7 @@ __all__ = [
     "GameError",
     "setup_logger",
     "get_logger",
+    "_logger_setup",
     "clamp",
     "format_number",
     "truncate",
