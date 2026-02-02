@@ -47,6 +47,11 @@ class SaveMetadata:
     current_commit_index: int = 0
     total_commits_defeated: int = 0
 
+    @property
+    def save_version(self) -> str:
+        """Alias for schema_version for backward compatibility."""
+        return self.schema_version
+
     @classmethod
     def create(cls) -> "SaveMetadata":
         """Create new metadata with current time."""
