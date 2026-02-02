@@ -191,7 +191,7 @@ class InventoryComponent(Component):
             char = get_character(character)
             if item.stats.hp_bonus > 0:
                 char.heal(item.stats.hp_bonus)
-            if item.stats.mp_bonus > 0:
+            if item.stats.mp_bonus > 0 and char.stats:
                 char.current_mp = min(
                     char.stats.mp.value,
                     char.current_mp + item.stats.mp_bonus,
@@ -287,7 +287,7 @@ class ItemFactory:
 
         # Determine rarity
         roll = random.random()
-        cumulative = 0
+        cumulative: float = 0
         for rarity, chance in cls.RARITY_CHANCES.items():
             cumulative += chance
             if roll <= cumulative:

@@ -13,12 +13,12 @@ class I18n:
     _translations: Dict[str, Dict[str, str]] = {}
     _current_lang: str = 'en'
     
-    def __new__(cls):
+    def __new__(cls) -> 'I18n':
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def __init__(self):
+    def __init__(self) -> None:
         if not hasattr(self, '_initialized'):
             self._translations = {
                 'en': {},

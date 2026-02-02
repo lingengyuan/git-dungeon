@@ -3,6 +3,7 @@
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Static, Button
+from typing import Any
 
 
 def format_hp_bar(current: int, maximum: int, width: int = 20) -> str:
@@ -34,7 +35,7 @@ class CharacterPanel(Static):
         attack: int = 0,
         defense: int = 0,
         is_player: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         super().__init__(**kwargs)
         self._name = name
@@ -60,12 +61,12 @@ class CharacterPanel(Static):
             classes=f"character-panel {'player' if self._is_player else 'enemy'}",
         )
 
-    def update(
+    def update_stats(
         self,
-        hp: int = None,
-        mp: int = None,
-        attack: int = None,
-        defense: int = None,
+        hp: int | None = None,
+        mp: int | None = None,
+        attack: int | None = None,
+        defense: int | None = None,
     ) -> None:
         """Update character stats."""
         if hp is not None:
@@ -82,7 +83,7 @@ class CharacterPanel(Static):
 class CombatLog(Static):
     """Combat action log."""
 
-    def __init__(self, max_lines: int = 10, **kwargs):
+    def __init__(self, max_lines: int = 10, **kwargs: Any):
         super().__init__(**kwargs)
         self._max_lines = max_lines
         self._lines: list[str] = []
@@ -181,7 +182,7 @@ class CombatScreen(Static):
     }
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         """Initialize combat screen."""
         super().__init__(**kwargs)
         self._combat_log = CombatLog(id="combat-log")
@@ -246,9 +247,9 @@ class CombatScreen(Static):
     ) -> None:
         """Update player stats display."""
         panel = self.query_one("#player-panel", CharacterPanel)
-        panel.update(hp=hp, mp=mp, attack=attack, defense=defense)
+        panel.update_stats(hp=hp, mp=mp, attack=attack, defense=defense)
 
     def update_enemy_stats(self, hp: int, max_hp: int, attack: int, defense: int) -> None:
         """Update enemy stats display."""
         panel = self.query_one("#enemy-panel", CharacterPanel)
-        panel.update(hp=hp, attack=attack, defense=defense)
+        panel.update_stats(hp=hp, attack=attack, defense=defense)

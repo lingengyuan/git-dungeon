@@ -452,13 +452,13 @@ class EquipmentSystem:
     
     def render_equipment_menu(self, equipment: Equipment, index: int = 0) -> str:
         """Render equipment as a menu item."""
-        lines = []
-        
+        lines: list[str] = []
+
         if index > 0:
-            lines.append(f"  [{index}] ", end="")
+            lines.append(f"  [{index}] ")
         else:
             lines.append("  • ")
-        
+
         lines.append(f"{equipment.rarity_icon}{equipment.type_icon} {equipment.name}")
         lines.append(f"      Lv.{equipment.level_required} | {equipment.rarity.value}")
         

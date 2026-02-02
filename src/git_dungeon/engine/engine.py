@@ -28,14 +28,14 @@ class Engine:
     
     Input: Player action + RNG + current state
     Output: New state + list of GameEvent[]
-    
+
     All rules are deterministic and testable.
     """
-    
-    rng: RNG = None
+
+    rng: RNG
     save_version: int = 2
-    
-    def __post_init__(self):
+
+    def __post_init__(self) -> None:
         if self.rng is None:
             self.rng = DefaultRNG()
         self.combat_rules = CombatRules(rng=self.rng)
@@ -44,10 +44,11 @@ class Engine:
     def apply(
         self,
         state: GameState,
-        action: Action
+        action: Action,
+        rng: Optional[RNG] = None  # type: ignore[assignment]
     ) -> Tuple[GameState, List[GameEvent]]:
         """Apply an action to the game state."""
-        events = []
+        events: List[GameEvent] = []
         
         handler_name = f"_handle_{action.action_type}_action"
         handler = getattr(self, handler_name, self._handle_unknown_action)
@@ -308,7 +309,7 @@ class Engine:
     
     def _execute_enemy_action(self, state: GameState) -> List[GameEvent]:
         """M1: 执行敌人行动"""
-        events = []
+        events: List[GameEvent] = []
         
         enemy = state.current_enemy
         if not enemy or not enemy.is_alive:
@@ -367,7 +368,7 @@ class Engine:
         
         return events
     
-    def _tick_statuses(self, character, is_enemy_turn: bool = True) -> None:
+    def _tick_statuses(self, character: Any, is_enemy_turn: bool = True) -> None:
         """M1: 状态回合结算"""
         statuses = character.statuses
         
@@ -600,14 +601,14 @@ class Engine:
                 data={"shop_id": action.data.get("shop_id", "default")}
             ))
         elif action_name == "buy_item":
-            item = action.data.get("item")
+            item = action.data.get("item")  # type: ignore[assignment]
             price = action.data.get("price", 0)
-            if state.player.gold >= price:
+            if state.player.gold >= price and item:
                 state.player.gold -= price
-                state.player.inventory.append(item)
+                state.player.inventory.append(item)  # type: ignore[arg-type]
                 events.append(GameEvent(
                     type=EventType.ITEM_PURCHASED,
-                    data={"item_id": item.get("id"), "item_name": item.get("name"), "price": price}
+                    data={"item_id": item.get("id"), "item_name": item.get("name"), "price": price}  # type: ignore[union-attr]
                 ))
             else:
                 events.append(GameEvent(type=EventType.ERROR, data={"message": "Not enough gold"}))

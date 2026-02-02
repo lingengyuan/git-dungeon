@@ -73,7 +73,7 @@ class PackLoader:
     
     def load_all_packs(self) -> Dict[str, ContentPack]:
         """加载所有内容包"""
-        packs = {}
+        packs: Dict[str, ContentPack] = {}
         
         if not self.packs_dir.exists():
             return packs

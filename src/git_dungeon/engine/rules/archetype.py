@@ -4,7 +4,7 @@ M1.3 Archetype System - 流派系统
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any, Sequence
 from enum import Enum
 
 from ..rng import RNG
@@ -80,7 +80,7 @@ ARCHETYPE_CONFIGS = {
 class ArchetypeManager:
     """流派管理器 - 管理玩家流派选择和倾向"""
     
-    def __init__(self, rng: RNG = None, content_registry = None):
+    def __init__(self, rng: RNG | None = None, content_registry: Any = None) -> None:
         self.rng = rng
         self.content_registry = content_registry
         self._archetypes: Dict[str, ArchetypeDefinition] = {}
@@ -92,14 +92,14 @@ class ArchetypeManager:
         for arch_id, config in ARCHETYPE_CONFIGS.items():
             self._archetypes[arch_id] = ArchetypeDefinition(
                 id=arch_id,
-                name=config["name"],
-                description=config["description"],
-                tags=config.get("tags", []),
-                starter_cards=config.get("starter_cards", []),
-                starter_relics=config.get("starter_relics", []),
-                strategy_type=config.get("strategy_type", "aggressive"),
-                win_condition=config.get("win_condition", "kill_fast"),
-                key_mechanics=config.get("key_mechanics", [])
+                name=str(config["name"]),
+                description=str(config["description"]),
+                tags=list(config.get("tags", [])),
+                starter_cards=list(config.get("starter_cards", [])),
+                starter_relics=list(config.get("starter_relics", [])),
+                strategy_type=str(config.get("strategy_type", "aggressive")),
+                win_condition=str(config.get("win_condition", "kill_fast")),
+                key_mechanics=list(config.get("key_mechanics", []))
             )
         
         # 尝试从 content registry 加载
@@ -157,7 +157,7 @@ class ArchetypeManager:
 class BiasTracker:
     """倾向追踪器 - 记录玩家选择，更新流派倾向"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         # 各流派权重
         self.debug_weight: float = 0.0
         self.test_weight: float = 0.0
@@ -181,7 +181,7 @@ class BiasTracker:
         # 更新流派权重
         self._update_weights_from_tags(card_tags)
     
-    def record_relic_selection(self, relic_id: str, relic_tags: List[str] = None) -> None:
+    def record_relic_selection(self, relic_id: str, relic_tags: List[str] | None = None) -> None:
         """记录遗物选择"""
         self.relic_selections.append(relic_id)
         
@@ -232,7 +232,7 @@ class BiasTracker:
     def get_dominant_archetype(self) -> str:
         """获取主导流派"""
         weights = self.get_archetype_weights()
-        return max(weights, key=weights.get)
+        return max(weights, key=lambda k: weights.get(k, 0.0))
     
     def get_recommended_cards(self, count: int = 3) -> List[str]:
         """根据倾向推荐卡牌"""
@@ -246,7 +246,7 @@ class BiasTracker:
         else:
             return ["refactor", "risk", "offensive"]
     
-    def to_dict(self) -> Dict[str, any]:
+    def to_dict(self) -> Dict[str, Any]:
         """序列化"""
         return {
             "debug_weight": self.debug_weight,
@@ -258,7 +258,7 @@ class BiasTracker:
         }
     
     @classmethod
-    def from_dict(cls, data: Dict[str, any]) -> "BiasTracker":
+    def from_dict(cls, data: Dict[str, Any]) -> "BiasTracker":
         """反序列化"""
         tracker = cls()
         tracker.debug_weight = data.get("debug_weight", 0)
@@ -270,7 +270,7 @@ class BiasTracker:
         return tracker
 
 
-def create_archetype_manager(rng: RNG = None, content_registry = None) -> ArchetypeManager:
+def create_archetype_manager(rng: RNG | None = None, content_registry: Any = None) -> ArchetypeManager:
     """创建流派管理器"""
     return ArchetypeManager(rng, content_registry)
 

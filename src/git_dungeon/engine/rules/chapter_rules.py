@@ -138,7 +138,7 @@ class Chapter:
     enemies_defeated: int = 0
     gold_earned: int = 0
     exp_earned: int = 0
-    _rng: any = None  # RNG for boss probability
+    _rng: Any = None  # RNG for boss probability
     
     @property
     def name(self) -> str:
@@ -166,7 +166,8 @@ class Chapter:
         # Roll for boss (only if we have an RNG)
         if hasattr(self, '_rng') and self._rng:
             from git_dungeon.engine.rng import roll_chance
-            return roll_chance(self._rng, self.config.boss_chance)
+            will_have_boss: bool = roll_chance(self._rng, self.config.boss_chance)
+            return will_have_boss
         # Default: use boss_chance as threshold
         return self.config.boss_chance > 0
     
@@ -227,7 +228,7 @@ class ChapterSystem:
             indexed_commits.append((i, total_commits, commit))
         
         current_chapter_type = self._get_chapter_type(0, total_commits, commits[0].message.lower() if hasattr(commits[0], 'message') else "")
-        current_chapter_commits = []
+        current_chapter_commits: List[Any] = []
         current_start_index = 0
         
         for i, total, commit in indexed_commits:
@@ -365,7 +366,7 @@ class ChapterSystem:
             return True
         return False
     
-    def complete_current_chapter(self) -> Chapter:
+    def complete_current_chapter(self) -> Optional[Chapter]:
         """Mark current chapter as complete and return it."""
         chapter = self.get_current_chapter()
         if chapter:

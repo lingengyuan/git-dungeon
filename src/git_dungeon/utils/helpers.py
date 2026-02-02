@@ -3,11 +3,28 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, overload
 
 
 # Type variable for generic functions
-T = TypeVar("T")
+T = TypeVar("T", int, float)
+
+
+@overload
+def clamp(value: int, min_value: int, max_value: int) -> int: ...
+
+
+@overload
+def clamp(value: float, min_value: float, max_value: float) -> float: ...
+
+
+@overload
+def clamp(value: T, min_value: T, max_value: T) -> T: ...
+
+
+def clamp(value: T, min_value: T, max_value: T) -> T:
+    """Clamp a value between min and max."""
+    return max(min_value, min(value, max_value))  # type: ignore[arg-type]
 
 
 def setup_logger(name: str = "git-dungeon") -> logging.Logger:
@@ -35,11 +52,6 @@ def setup_logger(name: str = "git-dungeon") -> logging.Logger:
     return logger
 
 
-def clamp(value: T, min_value: T, max_value: T) -> T:
-    """Clamp a value between min and max."""
-    return max(min_value, min(value, max_value))
-
-
 def format_number(n: int) -> str:
     """Format a number with commas."""
     return f"{n:,}"
@@ -57,7 +69,7 @@ def get_project_root() -> Path:
     return Path(__file__).parent.parent.parent
 
 
-def safe_call(func: Callable[..., T], default: T, *args, **kwargs) -> T:
+def safe_call(func: Callable[..., T], default: T, *args: object, **kwargs: object) -> T:
     """Safely call a function, returning default on exception."""
     try:
         return func(*args, **kwargs)

@@ -10,7 +10,7 @@ from typing import Optional
 __version__ = "1.0.0"
 
 
-def _setup_src_path():
+def _setup_src_path() -> None:
     """Ensure imports work from anywhere."""
     try:
         import git_dungeon
@@ -30,13 +30,13 @@ _setup_src_path()
 
 class JsonFileHandler(logging.FileHandler):
     """File handler that writes JSONL format."""
-    
-    def __init__(self, filename, mode='a', encoding=None, delay=False):
+
+    def __init__(self, filename: str, mode: str = 'a', encoding: Optional[str] = None, delay: bool = False) -> None:
         super().__init__(filename, mode, encoding, delay)
         # Create a standard formatter for timestamp formatting
         self._time_formatter = logging.Formatter("%(asctime)s", datefmt="%Y-%m-%dT%H:%M:%S")
-    
-    def emit(self, record: logging.LogRecord):
+
+    def emit(self, record: logging.LogRecord) -> None:
         """Emit a JSON log line."""
         try:
             log_entry = {
@@ -53,8 +53,8 @@ class JsonFileHandler(logging.FileHandler):
                 log_entry["data"] = record.data
             # Add exception info if present
             if record.exc_info:
-                log_entry["exception"] = self.formatException(record.exc_info)
-            
+                log_entry["exception"] = super().formatException(record.exc_info)
+
             self.stream.write(json.dumps(log_entry) + "\n")
             self.flush()
         except Exception:
@@ -111,7 +111,7 @@ def run_cli(
     no_color: bool = False,
     auto: bool = False,
     lang: str = "en"
-):
+) -> int:
     """Run the CLI game."""
     # Add src to path for imports
     src_path = Path(__file__).parent
@@ -140,10 +140,9 @@ def run_cli(
             print(f"Error: {e}", file=sys.stderr)
             print("Run with --verbose for details", file=sys.stderr)
         return 1
-        return 1
 
 
-def main():
+def main() -> int:
     """Main entry point for CLI."""
     import argparse
     

@@ -229,7 +229,7 @@ def award_points(profile: MetaProfile, run: RunSummary) -> int:
 
 def get_available_unlocks(profile: MetaProfile) -> Dict[str, List[Dict[str, Any]]]:
     """获取可解锁内容列表"""
-    available = {}
+    available: Dict[str, List[Dict[str, Any]]] = {}
     
     for category, items in UNLOCK_DEFINITIONS.items():
         available[category] = []
@@ -248,9 +248,9 @@ def can_afford(profile: MetaProfile, category: str, item_id: str) -> bool:
         return False
     if item_id not in UNLOCK_DEFINITIONS[category]:
         return False
-    
-    cost = UNLOCK_DEFINITIONS[category][item_id]["points"]
-    return profile.available_points >= cost
+
+    cost = UNLOCK_DEFINITIONS[category][item_id]["points"]  # type: ignore[union-attr]
+    return profile.available_points >= cost  # type: ignore[operator]
 
 
 def unlock_item(profile: MetaProfile, category: str, item_id: str) -> bool:
@@ -258,12 +258,12 @@ def unlock_item(profile: MetaProfile, category: str, item_id: str) -> bool:
     # 检查是否已解锁
     if item_id in profile.unlocks.get(category, []):
         return False
-    
+
     if not can_afford(profile, category, item_id):
         return False
-    
-    cost = UNLOCK_DEFINITIONS[category][item_id]["points"]
-    profile.available_points -= cost
+
+    cost = UNLOCK_DEFINITIONS[category][item_id]["points"]  # type: ignore[union-attr]
+    profile.available_points -= cost  # type: ignore[operator]
     profile.unlocks.setdefault(category, []).append(item_id)
     return True
 

@@ -4,7 +4,7 @@ Content loader - 加载 content/*.yml 文件到 ContentRegistry。
 
 import yaml
 from pathlib import Path
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any, Union
 from .schema import (
     CardDef, RelicDef, EnemyDef, ArchetypeDef, EventDef, StatusDef,
     CardType, CardRarity, RelicTier, EnemyType, EnemyTier, StatusType,
@@ -25,7 +25,7 @@ class ContentLoader:
         if content_dir is None:
             # 默认路径：项目根目录下的 content/
             root = Path(__file__).parent.parent.parent
-            content_dir = root / "content"
+            content_dir = str(root / "content")
         self.content_dir = Path(content_dir)
         self.errors: List[str] = []
     
@@ -50,16 +50,20 @@ class ContentLoader:
         
         return registry
     
-    def _load_yaml(self, filename: str) -> Optional[Dict]:
+    def _load_yaml(self, filename: str) -> Optional[Dict[str, Any]]:
         """加载单个 YAML 文件"""
         filepath = self.content_dir / filename
         if not filepath.exists():
             self.errors.append(f"File not found: {filepath}")
             return None
-        
+
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f)
+                data = yaml.safe_load(f)
+                # Ensure we return a dict, not None
+                if data is None:
+                    return {}
+                return data  # type: ignore[return-value]
         except Exception as e:
             self.errors.append(f"Error loading {filepath}: {e}")
             return None
@@ -376,7 +380,7 @@ class ContentLoader:
                 continue
             
             # 解析能力列表
-            abilities = []
+            abilities: List[CharacterAbility] = []
             for ability_data in char_data.get("abilities", []):
                 ability = CharacterAbility(
                     id=ability_data.get("id", f"ability_{len(abilities)}"),

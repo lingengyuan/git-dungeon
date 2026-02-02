@@ -211,7 +211,7 @@ class SaveSystem:
         return {
             "version": "1.0.0",
             "metadata": asdict(metadata),
-            "player": self._serialize_entity(player_entity),
+            "player": self._serialize_entity(player_entity) if player_entity else {},
             "inventory": self._serialize_inventory(inventory_comp),
             "defeated_commits": game_state.defeated_commits,
             "current_commit": game_state.current_commit.hash if game_state.current_commit else "",
@@ -224,10 +224,12 @@ class SaveSystem:
         game_state.game_time = metadata_data.get("game_time", 0)
 
         player_data = data.get("player", {})
-        self._deserialize_entity(game_state.player, player_data)
+        if game_state.player:
+            self._deserialize_entity(game_state.player, player_data)
 
         inventory_data = data.get("inventory", {})
-        self._deserialize_inventory(game_state.player, inventory_data)
+        if game_state.player:
+            self._deserialize_inventory(game_state.player, inventory_data)
 
         game_state.defeated_commits = data.get("defeated_commits", [])
         current_commit_hash = data.get("current_commit", "")
@@ -239,51 +241,51 @@ class SaveSystem:
 
     def _serialize_entity(self, entity: Entity) -> dict:
         """Serialize an entity."""
-        char = entity.get_component(CharacterComponent)
+        char = entity.get_component(CharacterComponent)  # type: ignore[assignment]
         if not char:
             return {}
 
         return {
             "name": entity.name,
-            "level": char.level,
-            "experience": char.experience,
-            "total_experience": char._total_exp_gained,
-            "hp": char.current_hp,
-            "mp": char.current_mp,
+            "level": char.level,  # type: ignore[union-attr]
+            "experience": char.experience,  # type: ignore[union-attr]
+            "total_experience": char._total_exp_gained,  # type: ignore[union-attr]
+            "hp": char.current_hp,  # type: ignore[union-attr]
+            "mp": char.current_mp,  # type: ignore[union-attr]
             "stats": {
-                "hp": char.stats.hp.value if char.stats else 0,
-                "mp": char.stats.mp.value if char.stats else 0,
-                "attack": char.stats.attack.value if char.stats else 0,
-                "defense": char.stats.defense.value if char.stats else 0,
-                "speed": char.stats.speed.value if char.stats else 0,
-                "critical": char.stats.critical.value if char.stats else 0,
-                "evasion": char.stats.evasion.value if char.stats else 0,
-                "luck": char.stats.luck.value if char.stats else 0,
+                "hp": char.stats.hp.value if char.stats else 0,  # type: ignore[union-attr]
+                "mp": char.stats.mp.value if char.stats else 0,  # type: ignore[union-attr]
+                "attack": char.stats.attack.value if char.stats else 0,  # type: ignore[union-attr]
+                "defense": char.stats.defense.value if char.stats else 0,  # type: ignore[union-attr]
+                "speed": char.stats.speed.value if char.stats else 0,  # type: ignore[union-attr]
+                "critical": char.stats.critical.value if char.stats else 0,  # type: ignore[union-attr]
+                "evasion": char.stats.evasion.value if char.stats else 0,  # type: ignore[union-attr]
+                "luck": char.stats.luck.value if char.stats else 0,  # type: ignore[union-attr]
             } if char.stats else {},
         }
 
     def _deserialize_entity(self, entity: Entity, data: dict) -> None:
         """Deserialize an entity."""
-        char = entity.get_component(CharacterComponent)
+        char = entity.get_component(CharacterComponent)  # type: ignore[assignment]
         if not char or not data:
             return
 
-        char.level = data.get("level", 1)
-        char.experience = data.get("experience", 0)
-        char._total_exp_gained = data.get("total_experience", 0)
-        char.current_hp = data.get("hp", 100)
-        char.current_mp = data.get("mp", 50)
+        char.level = data.get("level", 1)  # type: ignore[union-attr]
+        char.experience = data.get("experience", 0)  # type: ignore[union-attr]
+        char._total_exp_gained = data.get("total_experience", 0)  # type: ignore[union-attr]
+        char.current_hp = data.get("hp", 100)  # type: ignore[union-attr]
+        char.current_mp = data.get("mp", 50)  # type: ignore[union-attr]
 
         stats_data = data.get("stats", {})
-        if stats_data and char.stats:
-            char.stats.hp.base_value = stats_data.get("hp", 100)
-            char.stats.mp.base_value = stats_data.get("mp", 50)
-            char.stats.attack.base_value = stats_data.get("attack", 10)
-            char.stats.defense.base_value = stats_data.get("defense", 5)
-            char.stats.speed.base_value = stats_data.get("speed", 10)
-            char.stats.critical.base_value = stats_data.get("critical", 10)
-            char.stats.evasion.base_value = stats_data.get("evasion", 5)
-            char.stats.luck.base_value = stats_data.get("luck", 5)
+        if stats_data and char.stats:  # type: ignore[union-attr]
+            char.stats.hp.base_value = stats_data.get("hp", 100)  # type: ignore[union-attr]
+            char.stats.mp.base_value = stats_data.get("mp", 50)  # type: ignore[union-attr]
+            char.stats.attack.base_value = stats_data.get("attack", 10)  # type: ignore[union-attr]
+            char.stats.defense.base_value = stats_data.get("defense", 5)  # type: ignore[union-attr]
+            char.stats.speed.base_value = stats_data.get("speed", 10)  # type: ignore[union-attr]
+            char.stats.critical.base_value = stats_data.get("critical", 10)  # type: ignore[union-attr]
+            char.stats.evasion.base_value = stats_data.get("evasion", 5)  # type: ignore[union-attr]
+            char.stats.luck.base_value = stats_data.get("luck", 5)  # type: ignore[union-attr]
 
     def _serialize_inventory(self, inventory: Optional[InventoryComponent]) -> dict:
         """Serialize inventory."""
@@ -318,12 +320,12 @@ class SaveSystem:
         data: dict,
     ) -> None:
         """Deserialize inventory."""
-        inventory = entity.get_component(InventoryComponent)
+        inventory = entity.get_component(InventoryComponent)  # type: ignore[assignment]
         if not inventory:
             return
 
-        inventory.gold = data.get("gold", 0)
-        inventory.items = [None] * inventory.max_slots
+        inventory.gold = data.get("gold", 0)  # type: ignore[union-attr]
+        inventory.items = [None] * inventory.max_slots  # type: ignore[union-attr]
 
         for item_data in data.get("items", []):
             slot = item_data.get("slot", 0)

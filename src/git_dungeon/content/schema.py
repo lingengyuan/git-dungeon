@@ -100,10 +100,10 @@ class CardDef:
     tags: List[str] = field(default_factory=list)  # e.g., ["offensive", "debug"]
     upgrade_id: Optional[str] = None  # 升级后的卡牌ID
     
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.id)
     
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, CardDef):
             return self.id == other.id
         return False
@@ -118,10 +118,10 @@ class RelicDef:
     tier: RelicTier
     effects: Dict[str, Any] = field(default_factory=dict)  # 遗物效果参数
     
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.id)
     
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, RelicDef):
             return self.id == other.id
         return False
@@ -137,19 +137,19 @@ class StatusDef:
     max_stacks: int = 999  # 最大层数
     duration_type: str = "indefinite"  # "indefinite", "turn", "permanent"
     
-    def on_apply(self, target, value: int) -> None:
+    def on_apply(self, target: Any, value: int) -> None:
         """应用状态时触发"""
         pass
     
-    def on_turn_start(self, target) -> None:
+    def on_turn_start(self, target: Any) -> None:
         """回合开始时触发"""
         pass
     
-    def on_turn_end(self, target) -> None:
+    def on_turn_end(self, target: Any) -> None:
         """回合结束时触发"""
         pass
     
-    def on_take_damage(self, target, damage: int) -> int:
+    def on_take_damage(self, target: Any, damage: int) -> int:
         """受到伤害时触发，返回修正后的伤害"""
         return damage
 
@@ -179,10 +179,10 @@ class EnemyDef:
     gold_multiplier: float = 1.0  # 金币倍率
     exp_multiplier: float = 1.0  # 经验倍率
     
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.id)
     
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, EnemyDef):
             return self.id == other.id
         return False
@@ -268,10 +268,10 @@ class CharacterDef:
     abilities: List[CharacterAbility] = field(default_factory=list)
     stats: CharacterStats = field(default_factory=CharacterStats)
     
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.id)
     
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, CharacterDef):
             return self.id == other.id
         return False
@@ -292,10 +292,10 @@ class ContentPack:
     relics: List[RelicDef] = field(default_factory=list)
     events: List[EventDef] = field(default_factory=list)
     
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.id)
     
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, ContentPack):
             return self.id == other.id
         return False

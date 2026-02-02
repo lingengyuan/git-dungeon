@@ -4,6 +4,7 @@ M1.3 + M2.3 Rewards System - 奖励与流派系统
 M2.3: 添加精英/BOSS 节点奖励
 """
 
+import random
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from enum import Enum
@@ -62,7 +63,7 @@ class ArchetypeBias:
     # 玩家选择的卡牌/遗物 tags
     selected_tags: Dict[str, int] = field(default_factory=dict)  # tag -> count
     
-    def record_choice(self, card_tags: List[str], relic_tags: List[str] = None) -> None:
+    def record_choice(self, card_tags: List[str], relic_tags: List[str] | None = None) -> None:
         """记录玩家选择，更新倾向"""
         for tag in card_tags:
             self.selected_tags[tag] = self.selected_tags.get(tag, 0) + 1
@@ -107,7 +108,7 @@ class ArchetypeBias:
 class RewardsEngine:
     """奖励引擎 - 根据 commit 特征和流派倾向生成奖励"""
     
-    def __init__(self, rng: RNG, content_registry = None):
+    def __init__(self, rng: RNG, content_registry: Any = None) -> None:
         self.rng = rng
         self.content_registry = content_registry
     
@@ -162,9 +163,11 @@ class RewardsEngine:
         # 通过名称或属性判断
         if hasattr(enemy, 'tier'):
             from git_dungeon.content.schema import EnemyTier
-            return enemy.tier == EnemyTier.ELITE
+            tier_is_elite: bool = enemy.tier == EnemyTier.ELITE
+            if tier_is_elite:
+                return True
         # 兼容旧逻辑
-        return enemy.attack > 10 or enemy.max_hp > 60
+        return bool(enemy.attack > 10 or enemy.max_hp > 60)
     
     def _calculate_gold(self, enemy: EnemyState) -> int:
         """计算金币奖励"""
@@ -199,13 +202,14 @@ class RewardsEngine:
             return "power_up"
         
         from git_dungeon.content.schema import RelicTier
-        eligible = []
+        eligible: List[str] = []
         for relic in self.content_registry.relics.values():
             if relic.tier in (RelicTier.UNCOMMON, RelicTier.RARE, RelicTier.BOSS):
                 eligible.append(relic.id)
         
         if eligible:
-            return self.rng.choice(eligible)
+            chosen: str = self.rng.choice(eligible)
+            return chosen
         return None
     
     def _get_boss_relic(self) -> Optional[str]:
@@ -214,13 +218,14 @@ class RewardsEngine:
             return "boss_relic"
         
         from git_dungeon.content.schema import RelicTier
-        eligible = []
+        eligible: List[str] = []
         for relic in self.content_registry.relics.values():
             if relic.tier in (RelicTier.RARE, RelicTier.BOSS):
                 eligible.append(relic.id)
         
         if eligible:
-            return self.rng.choice(eligible)
+            chosen: str = self.rng.choice(eligible)
+            return chosen
         return None
     
     def _select_elite_card_pool(self, state: GameState, enemy: EnemyState) -> List[str]:
@@ -229,7 +234,7 @@ class RewardsEngine:
             return ["debug_strike", "test_guard", "refactor_risk"]
         
         all_cards = list(self.content_registry.cards.values())
-        candidates = []
+        candidates: List[Any] = []
         
         for card in all_cards:
             if card.id in state.player.deck.draw_pile:
@@ -245,7 +250,7 @@ class RewardsEngine:
                     candidates.append(card)
         
         if candidates:
-            choices = self.rng.choices(candidates, k=min(3, len(candidates)))
+            choices = random.sample(candidates, k=min(3, len(candidates)))
             return [c.id for c in choices]
         
         return ["debug_strike", "test_guard", "refactor_risk"]
@@ -256,7 +261,7 @@ class RewardsEngine:
             return ["debug_power", "test_relic", "refactor_power"]
         
         all_cards = list(self.content_registry.cards.values())
-        candidates = []
+        candidates: List[Any] = []
         
         for card in all_cards:
             if card.id in state.player.deck.draw_pile:
@@ -272,7 +277,7 @@ class RewardsEngine:
                     candidates.append(card)
         
         if candidates:
-            choices = self.rng.choices(candidates, k=min(3, len(candidates)))
+            choices = random.sample(candidates, k=min(3, len(candidates)))
             return [c.id for c in choices]
         
         return ["debug_power", "test_relic", "refactor_power"]
@@ -301,7 +306,7 @@ class RewardsEngine:
             return ["strike", "defend", "debug_strike"]
         
         # 筛选候选卡牌
-        candidates = []
+        candidates: List[Any] = []
         
         for card in all_cards:
             # 过滤掉已有卡牌
@@ -326,7 +331,7 @@ class RewardsEngine:
         
         # 随机选择 3 张
         if candidates:
-            choices = self.rng.choices(candidates, k=min(3, len(candidates)))
+            choices = random.sample(candidates, k=min(3, len(candidates)))
             return [c.id for c in choices]
         
         return ["strike", "defend", "debug_strike"]
@@ -362,7 +367,7 @@ class RewardsEngine:
 class ArchetypeEngine:
     """流派引擎 - 管理玩家流派倾向和卡组构建"""
     
-    def __init__(self, rng: RNG, content_registry = None):
+    def __init__(self, rng: RNG, content_registry: Any = None) -> None:
         self.rng = rng
         self.content_registry = content_registry
     
@@ -443,12 +448,12 @@ class ArchetypeEngine:
         return self.rng.choice(choices)
 
 
-def create_rewards_engine(rng: RNG, content_registry = None) -> RewardsEngine:
+def create_rewards_engine(rng: RNG, content_registry: Any = None) -> RewardsEngine:
     """创建奖励引擎"""
     return RewardsEngine(rng, content_registry)
 
 
-def create_archetype_engine(rng: RNG, content_registry = None) -> ArchetypeEngine:
+def create_archetype_engine(rng: RNG, content_registry: Any = None) -> ArchetypeEngine:
     """创建流派引擎"""
     return ArchetypeEngine(rng, content_registry)
 
@@ -458,7 +463,7 @@ def create_archetype_engine(rng: RNG, content_registry = None) -> ArchetypeEngin
 class EliteRewardsEngine:
     """精英和 BOSS 奖励引擎"""
     
-    def __init__(self, rng: RNG = None, content_registry = None):
+    def __init__(self, rng: RNG | None = None, content_registry: Any = None) -> None:
         self.rng = rng or DefaultRNG(seed=0)
         self.content_registry = content_registry
     
@@ -467,7 +472,7 @@ class EliteRewardsEngine:
         if not self.content_registry:
             return ["power_up", "critical_mass"]
         
-        relics = []
+        relics: List[str] = []
         for relic in self.content_registry.relics.values():
             if tier == "boss":
                 if relic.tier.value in ["boss", "rare"]:
@@ -490,7 +495,7 @@ class EliteRewardsEngine:
         all_cards = list(self.content_registry.cards.values())
         
         # 优先选择 rare 和 uncommon 卡牌
-        candidates = []
+        candidates: List[Any] = []
         for card in all_cards:
             if card.id in state.player.deck.draw_pile:
                 continue
@@ -506,7 +511,7 @@ class EliteRewardsEngine:
                     candidates.append(card)
         
         if candidates:
-            choices = self.rng.choices(candidates, k=min(3, len(candidates)))
+            choices = random.sample(candidates, k=min(3, len(candidates)))
             return [c.id for c in choices]
         
         return ["debug_strike", "test_guard", "refactor_risk"]
@@ -519,7 +524,7 @@ class EliteRewardsEngine:
         all_cards = list(self.content_registry.cards.values())
         
         # 优先选择 rare 卡牌
-        candidates = []
+        candidates: List[Any] = []
         for card in all_cards:
             if card.id in state.player.deck.draw_pile:
                 continue
@@ -535,7 +540,7 @@ class EliteRewardsEngine:
                     candidates.append(card)
         
         if candidates:
-            choices = self.rng.choices(candidates, k=min(3, len(candidates)))
+            choices = random.sample(candidates, k=min(3, len(candidates)))
             return [c.id for c in choices]
         
         return ["debug_power", "test_relic", "refactor_power"]
@@ -548,19 +553,20 @@ class EliteRewardsEngine:
         tier_order = ["common", "uncommon", "rare", "boss"]
         min_idx = tier_order.index(min_tier) if min_tier in tier_order else 0
         
-        eligible = []
+        eligible: List[str] = []
         for relic in self.content_registry.relics.values():
             idx = tier_order.index(relic.tier.value) if relic.tier.value in tier_order else 0
             if idx >= min_idx:
                 eligible.append(relic.id)
         
         if eligible:
-            return self.rng.choice(eligible)
+            chosen: str = self.rng.choice(eligible)
+            return chosen
         return None
     
     def calculate_elite_boss_multipliers(self, enemy: EnemyState) -> Dict[str, float]:
         """计算精英/BOSS 的奖励倍率"""
-        multipliers = {
+        multipliers: Dict[str, float] = {
             "gold": 1.0,
             "exp": 1.0,
             "relic_chance": 0.1,
@@ -585,5 +591,7 @@ class EliteRewardsEngine:
         """判断是否为精英敌人"""
         if hasattr(enemy, 'tier'):
             from git_dungeon.content.schema import EnemyTier
-            return enemy.tier == EnemyTier.ELITE
-        return enemy.attack > 10 or enemy.max_hp > 60
+            tier_is_elite: bool = enemy.tier == EnemyTier.ELITE
+            if tier_is_elite:
+                return True
+        return bool(enemy.attack > 10 or enemy.max_hp > 60)

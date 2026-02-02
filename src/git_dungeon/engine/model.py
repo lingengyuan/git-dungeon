@@ -242,7 +242,6 @@ class EnergyState:
         self.current_energy += amount
         self.energy_gained_this_turn += amount
     
-    @property
     def can_afford(self, cost: int) -> bool:
         """是否能支付"""
         return self.current_energy >= cost

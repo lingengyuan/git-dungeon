@@ -200,7 +200,7 @@ class CharacterComponent(Component):
             return 0
 
         # Apply defense
-        actual_damage = max(1, amount - self.stats.defense.value)
+        actual_damage = max(1, amount - (self.stats.defense.value if self.stats else 0))
 
         self.current_hp = max(0, self.current_hp - actual_damage)
 

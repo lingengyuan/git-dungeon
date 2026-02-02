@@ -87,7 +87,7 @@ class CombatRules:
         Returns:
             True if escaped successfully
         """
-        return roll_chance(self.rng, escape_chance * 100)
+        return roll_chance(self.rng, escape_chance * 100)  # type: ignore[no-any-return]
     
     def calculate_combat_result(
         self,

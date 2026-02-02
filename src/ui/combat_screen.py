@@ -60,12 +60,12 @@ class CharacterPanel(Static):
             classes=f"character-panel {'player' if self._is_player else 'enemy'}",
         )
 
-    def update(
+    def update_stats(
         self,
-        hp: int = None,
-        mp: int = None,
-        attack: int = None,
-        defense: int = None,
+        hp: int | None = None,
+        mp: int | None = None,
+        attack: int | None = None,
+        defense: int | None = None,
     ) -> None:
         """Update character stats."""
         if hp is not None:
@@ -246,9 +246,9 @@ class CombatScreen(Static):
     ) -> None:
         """Update player stats display."""
         panel = self.query_one("#player-panel", CharacterPanel)
-        panel.update(hp=hp, mp=mp, attack=attack, defense=defense)
+        panel.update_stats(hp=hp, mp=mp, attack=attack, defense=defense)
 
     def update_enemy_stats(self, hp: int, max_hp: int, attack: int, defense: int) -> None:
         """Update enemy stats display."""
         panel = self.query_one("#enemy-panel", CharacterPanel)
-        panel.update(hp=hp, attack=attack, defense=defense)
+        panel.update_stats(hp=hp, attack=attack, defense=defense)

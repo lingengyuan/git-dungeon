@@ -50,8 +50,8 @@ class ResourceManager:
         memory_info = process.memory_info()
 
         return ResourceStats(
-            memory_mb=memory_info.rss / (1024 * 1024),
-            cpu_percent=process.cpu_percent(),
+            memory_mb=memory_info.rss / (1024 * 1024),  # type: ignore[assignment]
+            cpu_percent=process.cpu_percent(),  # type: ignore[assignment]
             active_operations=len(self._active_operations),
             cached_items=self._operation_counts.get("cache_hits", 0),
             last_gc_time=self._last_gc_time,
@@ -64,7 +64,7 @@ class ResourceManager:
             True if within limits, False if over
         """
         stats = self.stats
-        return stats.memory_mb < self.config.max_memory_mb
+        return bool(stats.memory_mb < self.config.max_memory_mb)
 
     def get_memory_usage(self) -> float:
         """Get current memory usage in MB."""
@@ -123,9 +123,17 @@ class ResourceManager:
             logger.warning(f"Too many git parse operations: {op_count}")
             return False
 
-        return True
+        return True  # type: ignore[return-value]
 
     def record_metric(self, metric: str, value: float) -> None:
+        """Record a performance metric.
+
+        Args:
+            metric: Metric name
+            value: Metric value
+        """
+        # In a full implementation, this would send to a metrics system
+        logger.debug(f"Metric: {metric} = {value}")  # type: ignore[return-value]
         """Record a performance metric.
 
         Args:
@@ -189,7 +197,7 @@ class ChunkedLoader:
         Returns:
             List of processed results
         """
-        results = []
+        results: list = []
         total_items = min(len(data_source), max_items or len(data_source))
 
         if total_items == 0:

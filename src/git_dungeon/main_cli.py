@@ -62,7 +62,7 @@ class GitDungeonCLI:
     def _t(self, text: str) -> str:
         """Translate text based on current language."""
         if self.lang == "zh_CN":
-            return get_translation(text, "zh_CN")  # type: ignore[return-value]
+            return get_translation(text, "zh_CN")  # type: ignore[no-any-return]
         return text
     
     def start(self, repo_input: str) -> bool:
@@ -179,12 +179,12 @@ class GitDungeonCLI:
         
         return True
     
-    def _combat(self, enemy: EnemyState, chapter) -> bool:
+    def _combat(self, enemy: EnemyState, chapter: Any) -> bool:
         """Combat with chapter context."""
         if not self.state:
             return False
-        self.state.in_combat = True  # type: ignore[union-attr]
-        self.state.current_enemy = enemy  # type: ignore[union-attr]
+        self.state.in_combat = True
+        self.state.current_enemy = enemy
         
         print(f"\n{'─'*50}")
         
@@ -198,13 +198,13 @@ class GitDungeonCLI:
         print(f"{'─'*50}")
         
         turn = 0
-        while self.state and self.state.in_combat:  # type: ignore[union-attr]
+        while self.state and self.state.in_combat:
             turn += 1
             
             self._print_combat_status(enemy)
             choice = self._get_combat_choice()
             
-            player = self.state.player.character  # type: ignore[union-attr]
+            player = self.state.player.character
             
             if choice == "1":  # Attack
                 is_crit, mult = self.combat_rules.roll_critical(player.stats.critical.value, 1.5)
@@ -271,7 +271,7 @@ class GitDungeonCLI:
         
         return False
     
-    def _boss_combat(self, chapter) -> bool:
+    def _boss_combat(self, chapter: Any) -> bool:
         """Boss battle."""
         # Create boss
         self.current_boss = self.chapter_system.get_chapter_boss(chapter, self.boss_system)
@@ -286,10 +286,12 @@ class GitDungeonCLI:
         if not self.auto_mode:
             input("\n按回车开始 Boss 战...")
         
-        self.state.in_combat = True  # type: ignore[union-attr]
+        if not self.state:
+            return False
+        self.state.in_combat = True
         turn = 0
         
-        while self.state and self.state.in_combat and boss.is_alive:  # type: ignore[union-attr]
+        while self.state and self.state.in_combat and boss.is_alive:
             turn += 1
             
             # Tick abilities
@@ -299,7 +301,7 @@ class GitDungeonCLI:
             self._print_combat_status_for_boss()
             choice = self._get_combat_choice()
             
-            player = self.state.player.character  # type: ignore[union-attr]
+            player = self.state.player.character
             
             if choice == "1":  # Attack
                 is_crit, mult = self.combat_rules.roll_critical(player.stats.critical.value, 1.5)
@@ -473,10 +475,13 @@ MP: {player.current_mp}/{player.stats.mp.value}
         
         return True
     
-    def _open_shop(self, chapter):
+    def _open_shop(self, chapter: Any) -> None:
         """Open shop for chapter."""
         if self.auto_mode:
             # Auto mode: skip shop
+            return
+        
+        if not self.state:
             return
         
         print(f"\n{self._t('Welcome to the shop')}")
@@ -512,7 +517,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
             except ValueError:
                 print("   ❌ Invalid input")
     
-    def _grant_rewards(self, enemy: EnemyState, chapter) -> None:
+    def _grant_rewards(self, enemy: EnemyState, chapter: Any) -> None:
         """Grant combat rewards with chapter bonuses."""
         # Apply chapter bonuses
         exp = int(enemy.exp_reward * chapter.config.exp_bonus)
@@ -591,10 +596,14 @@ MP: {player.current_mp}/{player.stats.mp.value}
     def _get_current_commit(self) -> Any:
         """Get current commit from parser."""
         if not hasattr(self, '_parser'):
+            if not self.state:
+                return None
             config = GameConfig()
             self._parser = GitParser(config)
             self._parser.load_repository(self.state.repo_path)
         
+        if not self.state:
+            return None
         commits = self._parser.get_commit_history()
         idx = self.state.current_commit_index
         
@@ -604,19 +613,21 @@ MP: {player.current_mp}/{player.stats.mp.value}
     
     def _print_banner(self) -> None:
         """Print banner."""
+        if not self.state:
+            return
         print(f"""
 ╔══════════════════════════════════════════════════════════╗
 ║              G I T   D U N G E O N                     ║
 ║         Battle through your commits!                   ║
 ╚══════════════════════════════════════════════════════════╝
 
-📊 Repository: {self.state.repo_path}  # type: ignore[union-attr]
-📍 Total Commits: {self.state.total_commits}  # type: ignore[union-attr]
+📊 Repository: {self.state.repo_path}
+📍 Total Commits: {self.state.total_commits}
 📖 Chapters: {len(self.chapter_system.chapters)}
 🎯 Objective: Defeat all commits!
 """)
     
-    def _print_chapter_intro(self, chapter) -> None:
+    def _print_chapter_intro(self, chapter: Any) -> None:
         """Print chapter introduction."""
         print(f"""
 {'='*50}
@@ -632,6 +643,8 @@ MP: {player.current_mp}/{player.stats.mp.value}
     
     def _print_combat_status(self, enemy: EnemyState) -> None:
         """Print combat status."""
+        if not self.state:
+            return
         player = self.state.player.character
         p_bar = self._render_hp_bar(player.current_hp, player.stats.hp.value)
         e_bar = self._render_hp_bar(enemy.current_hp, enemy.max_hp)
@@ -672,7 +685,9 @@ MP: {player.current_mp}/{player.stats.mp.value}
     
     def _print_victory(self) -> None:
         """Print victory."""
-        player = self.state.player.character  # type: ignore[union-attr]
+        if not self.state:
+            return
+        player = self.state.player.character
         print(f"""
 {'='*60}
 🏆 VICTORY! All commits defeated!
@@ -681,8 +696,8 @@ MP: {player.current_mp}/{player.stats.mp.value}
 📊 FINAL STATISTICS
    Level: {player.level}
    EXP: {player.experience}
-   Enemies: {len(self.state.enemies_defeated)}  # type: ignore[union-attr]
-   Gold: {self.state.player.gold}  # type: ignore[union-attr]
+   Enemies: {len(self.state.enemies_defeated)}
+   Gold: {self.state.player.gold}
    Items: {len(self.inventory.items)}
 {'='*60}
 🎉 Congratulations!
@@ -690,13 +705,15 @@ MP: {player.current_mp}/{player.stats.mp.value}
     
     def _print_defeat(self) -> None:
         """Print defeat."""
+        if not self.state:
+            return
         print(f"""
 {'='*60}
 💀 GAME OVER
 {'='*60}
-   Level: {self.state.player.character.level}  # type: ignore[union-attr]
-   Enemies: {len(self.state.enemies_defeated)}  # type: ignore[union-attr]
-   HP: {self.state.player.character.current_hp}  # type: ignore[union-attr]
+   Level: {self.state.player.character.level}
+   Enemies: {len(self.state.enemies_defeated)}
+   HP: {self.state.player.character.current_hp}
 {'='*60}
 💡 Tip: Use Defend to reduce damage!
 """)
@@ -737,7 +754,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
         return None
 
 
-def main():
+def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser(
         description="Git Dungeon - Battle through your commits!",

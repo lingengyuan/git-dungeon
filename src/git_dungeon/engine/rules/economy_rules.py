@@ -374,7 +374,7 @@ class ShopSystem:
         self,
         inventory: PlayerInventory,
         item_id: str,
-        player_state
+        player_state: Any
     ) -> tuple:
         """
         Use an item from inventory.

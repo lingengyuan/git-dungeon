@@ -210,7 +210,7 @@ class OptimizedCharacter:
             return 0
         
         # Calculate actual damage (consider defense)
-        actual_damage = max(1, damage - self.stats.defense.value // 2)
+        actual_damage = max(1, damage - (self.stats.defense.value // 2 if self.stats else 0))
         actual_damage = min(actual_damage, self.current_hp)
         
         self.current_hp -= actual_damage
