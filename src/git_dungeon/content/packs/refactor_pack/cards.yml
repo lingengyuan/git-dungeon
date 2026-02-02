@@ -1,0 +1,120 @@
+# Refactor Pack - M3.3 Content Pack
+# Refactor 流派专属卡牌包
+
+pack_info:
+  id: refactor_pack
+  name: "Refactor Pack"
+  description: "高风险高回报卡牌扩展包"
+  rarity: uncommon
+  archetype: refactor_risk
+  points_cost: 150
+
+cards:
+  # Refactor 专属强力卡
+  - id: legacy_crash
+    name_key: "card.legacy_crash.name"
+    desc_key: "card.legacy_crash.desc"
+    type: attack
+    cost: 2
+    rarity: rare
+    effects:
+      - type: damage
+        value: 25
+      - type: status
+        value: tech_debt
+        value: 2
+    tags: ["refactor", "offensive", "risk"]
+    
+  - id: debt_collector
+    name_key: "card.debt_collector.name"
+    desc_key: "card.debt_collector.desc"
+    type: attack
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 10
+      - type: damage
+        value: tech_debt
+        target: player
+    tags: ["refactor", "offensive"]
+    
+  - id: api_breach
+    name_key: "card.api_breach.name"
+    desc_key: "card.api_breach.desc"
+    type: attack
+    cost: 3
+    rarity: rare  # Changed from epic
+    effects:
+      - type: damage
+        value: 35  # Reduced from 40
+      - type: status
+        value: tech_debt
+        value: 2
+    tags: ["refactor", "offensive", "risk"]
+    
+  - id: spaghetti_whip
+    name_key: "card.spaghetti_whip.name"
+    desc_key: "card.spaghetti_whip.desc"
+    type: attack
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 8
+      - type: damage
+        value: 8
+        value: 2
+    tags: ["refactor", "offensive"]
+    
+  - id: monolith_crash
+    name_key: "card.monolith_crash.name"
+    desc_key: "card.monolith_crash.desc"
+    type: power
+    cost: 2
+    rarity: rare
+    effects:
+      - type: status
+        value: tech_debt
+        value: 3
+    tags: ["refactor", "power"]
+
+relics:
+  # Refactor 专属遗物
+  - id: spaghetti_monitor
+    name_key: "relic.spaghetti_monitor.name"
+    desc_key: "relic.spaghetti_monitor.desc"
+    tier: rare
+    effects:
+      damage_per_tech_debt: 2
+      tech_debt_bonus: 0.5
+      
+  - id: deprecation_notice
+    name_key: "relic.deprecation_notice.name"
+    desc_key: "relic.deprecation_notice.desc"
+    tier: uncommon
+    effects:
+      sacrifice_hp: 5
+      bonus_damage: 10
+
+events:
+  # Refactor 专属事件
+  - id: refactor_chaos
+    name_key: "event.refactor_chaos.name"
+    desc_key: "event.refactor_chaos.desc"
+    choices:
+      - id: embrace
+        text_key: "event.refactor_chaos.choice.embrace"
+        effects:
+          - opcode: add_card
+            value: legacy_crash
+          - opcode: take_damage
+            value: 25
+          - opcode: apply_status
+            value: tech_debt
+            value: 2
+      - id: safe
+        text_key: "event.refactor_chaos.choice.safe"
+        effects:
+          - opcode: heal
+            value: 15

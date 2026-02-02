@@ -409,6 +409,9 @@ class GameState:
     # Player
     player: PlayerState = field(default_factory=PlayerState)
     
+    # M3: 角色系统
+    character_id: str = "developer"  # 当前选择的角色
+    
     # Chapter
     current_chapter: Optional[ChapterState] = None
     current_commit_index: int = 0

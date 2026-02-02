@@ -9,7 +9,7 @@ from typing import Optional, List, Dict, Any
 from .schema import (
     CardDef, RelicDef, EnemyDef, ArchetypeDef, EventDef, StatusDef,
     CardType, CardRarity, RelicTier, EnemyType, EnemyTier, IntentType, StatusType,
-    ContentRegistry, Effect, EventChoice, EventEffect
+    ContentRegistry, Effect, EventChoice, EventEffect, CharacterAbility, CharacterStats, CharacterDef
 )
 
 
@@ -47,6 +47,7 @@ class ContentLoader:
         self._load_archetypes(registry)
         self._load_events(registry)
         self._load_statuses(registry)
+        self._load_characters(registry)  # M3
         
         return registry
     
@@ -356,6 +357,60 @@ class ContentLoader:
                 self.errors.append(f"[status] Duplicate ID: {status_id}")
             else:
                 registry.statuses[status_id] = status
+    
+    def _load_characters(self, registry: ContentRegistry) -> None:
+        """加载角色定义 (M3)"""
+        data = self._load_yaml("defaults/characters.yml")
+        if data is None:
+            return
+        
+        if "characters" not in data:
+            self.errors.append("[characters] No 'characters' key found")
+            return
+        
+        for i, char_data in enumerate(data.get("characters", [])):
+            char_id = char_data.get("id", f"character_{i}")
+            
+            if not self._validate_required_fields(
+                char_data, ["id", "name_key", "desc_key"], char_id, "character"
+            ):
+                continue
+            
+            # 解析能力列表
+            abilities = []
+            for ability_data in char_data.get("abilities", []):
+                ability = CharacterAbility(
+                    id=ability_data.get("id", f"ability_{len(abilities)}"),
+                    name_key=ability_data.get("name_key", ""),
+                    desc_key=ability_data.get("desc_key", ""),
+                    trigger=ability_data.get("trigger", ""),
+                    effect=ability_data.get("effect", ""),
+                    value=ability_data.get("value", 0)
+                )
+                abilities.append(ability)
+            
+            # 解析角色属性
+            stats_data = char_data.get("stats", {})
+            char_stats = CharacterStats(
+                hp=stats_data.get("hp", 100),
+                energy=stats_data.get("energy", 3),
+                start_relics=stats_data.get("start_relics", 1)
+            )
+            
+            character = CharacterDef(
+                id=char_id,
+                name_key=char_data["name_key"],
+                desc_key=char_data["desc_key"],
+                starter_cards=char_data.get("starter_cards", []),
+                starter_relics=char_data.get("starter_relics", []),
+                abilities=abilities,
+                stats=char_stats
+            )
+            
+            if char_id in registry.characters:
+                self.errors.append(f"[character] Duplicate ID: {char_id}")
+            else:
+                registry.characters[char_id] = character
     
     def validate_i18n_keys(
         self,

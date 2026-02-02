@@ -1,0 +1,113 @@
+# Debug Pack - M3.3 Content Pack
+# Debug 流派专属卡牌包
+
+pack_info:
+  id: debug_pack
+  name: "Debug Pack"
+  description: "爆发流卡牌扩展包"
+  rarity: uncommon
+  archetype: debug_beatdown
+  points_cost: 150
+
+cards:
+  # Debug 专属强力卡
+  - id: panic_mode
+    name_key: "card.panic_mode.name"
+    desc_key: "card.panic_mode.desc"
+    type: skill
+    cost: 1
+    rarity: rare
+    effects:
+      - type: draw
+        value: 3
+    tags: ["debug", "draw"]
+    upgrade_id: panic_mode_plus
+    
+  - id: debug_burst
+    name_key: "card.debug_burst.name"
+    desc_key: "card.debug_burst.desc"
+    type: attack
+    cost: 2
+    rarity: rare
+    effects:
+      - type: damage
+        value: 20
+    tags: ["debug", "offensive"]
+    
+  - id: breakpoint_trap
+    name_key: "card.breakpoint_trap.name"
+    desc_key: "card.breakpoint_trap.desc"
+    type: skill
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: block
+        value: 5
+      - type: status
+        value: vulnerable
+        target: enemy
+    tags: ["debug", "defensive"]
+    
+  - id: stack_trace
+    name_key: "card.stack_trace.name"
+    desc_key: "card.stack_trace.desc"
+    type: attack
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 12
+      - type: status
+        value: vulnerable
+        value: 2
+        target: enemy
+    tags: ["debug", "offensive"]
+    
+  - id: console_log
+    name_key: "card.console_log.name"
+    desc_key: "card.console_log.desc"
+    type: skill
+    cost: 0
+    rarity: common
+    effects:
+      - type: draw
+        value: 1
+      - type: damage
+        value: 3
+    tags: ["debug", "utility"]
+
+relics:
+  # Debug 专属遗物
+  - id: debugger_pro
+    name_key: "relic.debugger_pro.name"
+    desc_key: "relic.debugger_pro.desc"
+    tier: rare
+    effects:
+      bonus_damage: 5
+      critical_chance: 0.2
+      
+  - id: breakpoint_totem
+    name_key: "relic.breakpoint_totem.name"
+    desc_key: "relic.breakpoint_totem.desc"
+    tier: uncommon
+    effects:
+      focus_chance: 0.3
+
+events:
+  # Debug 专属事件
+  - id: debug_frenzy
+    name_key: "event.debug_frenzy.name"
+    desc_key: "event.debug_frenzy.desc"
+    choices:
+      - id: embrace
+        text_key: "event.debug_frenzy.choice.embrace"
+        effects:
+          - opcode: add_card
+            value: debug_burst
+          - opcode: take_damage
+            value: 15
+      - id: resist
+        text_key: "event.debug_frenzy.choice.resist"
+        effects:
+          - opcode: heal
+            value: 20

@@ -21,6 +21,7 @@ class CardRarity(Enum):
     COMMON = "common"
     UNCOMMON = "uncommon"
     RARE = "rare"
+    EPIC = "epic"
     LEGENDARY = "legendary"
 
 
@@ -239,6 +240,69 @@ class EventDef:
 
 
 @dataclass
+class CharacterAbility:
+    """角色能力定义"""
+    id: str
+    name_key: str
+    desc_key: str
+    trigger: str  # on_turn_start, on_turn_end, on_damage_taken, etc.
+    effect: str  # clear_negative_status, add_energy_or_draw, etc.
+    value: int = 0
+
+
+@dataclass
+class CharacterStats:
+    """角色基础属性"""
+    hp: int = 100
+    energy: int = 3
+    start_relics: int = 1
+
+
+@dataclass
+class CharacterDef:
+    """角色定义"""
+    id: str
+    name_key: str
+    desc_key: str
+    starter_cards: List[str] = field(default_factory=list)
+    starter_relics: List[str] = field(default_factory=list)
+    abilities: List[CharacterAbility] = field(default_factory=list)
+    stats: CharacterStats = field(default_factory=CharacterStats)
+    
+    def __hash__(self):
+        return hash(self.id)
+    
+    def __eq__(self, other):
+        if isinstance(other, CharacterDef):
+            return self.id == other.id
+        return False
+
+
+@dataclass
+class ContentPack:
+    """内容包定义 (M3.3)"""
+    id: str
+    name_key: str
+    desc_key: str
+    archetype: str  # 关联流派
+    rarity: str  # uncommon/rare/epic
+    points_cost: int = 150
+    
+    # 内容
+    cards: List[CardDef] = field(default_factory=list)
+    relics: List[RelicDef] = field(default_factory=list)
+    events: List[EventDef] = field(default_factory=list)
+    
+    def __hash__(self):
+        return hash(self.id)
+    
+    def __eq__(self, other):
+        if isinstance(other, ContentPack):
+            return self.id == other.id
+        return False
+
+
+@dataclass
 class ContentRegistry:
     """内容注册表 - 聚合所有内容定义"""
     cards: Dict[str, CardDef] = field(default_factory=dict)
@@ -247,6 +311,8 @@ class ContentRegistry:
     enemies: Dict[str, EnemyDef] = field(default_factory=dict)
     archetypes: Dict[str, ArchetypeDef] = field(default_factory=dict)
     events: Dict[str, EventDef] = field(default_factory=dict)
+    characters: Dict[str, CharacterDef] = field(default_factory=dict)  # M3
+    packs: Dict[str, ContentPack] = field(default_factory=dict)  # M3.3
     
     def get_card(self, card_id: str) -> Optional[CardDef]:
         return self.cards.get(card_id)
@@ -259,6 +325,15 @@ class ContentRegistry:
     
     def get_archetype(self, archetype_id: str) -> Optional[ArchetypeDef]:
         return self.archetypes.get(archetype_id)
+    
+    def get_character(self, character_id: str) -> Optional[CharacterDef]:
+        return self.characters.get(character_id)
+    
+    def get_pack(self, pack_id: str) -> Optional[ContentPack]:
+        return self.packs.get(pack_id)
+    
+    def get_packs_by_archetype(self, archetype: str) -> List[ContentPack]:
+        return [p for p in self.packs.values() if p.archetype == archetype]
     
     def get_cards_by_tag(self, tag: str) -> List[CardDef]:
         return [c for c in self.cards.values() if tag in c.tags]

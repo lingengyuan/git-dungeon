@@ -1,0 +1,89 @@
+# 角色定义 - Git Dungeon M3
+# 3 个角色，差异大、可玩性高
+
+characters:
+  # ============ Developer (均衡型) ============
+  - id: developer
+    name_key: "character.developer.name"
+    desc_key: "character.developer.desc"
+    starter_cards:
+      - strike
+      - strike
+      - strike
+      - defend
+      - defend
+      - defend
+    starter_relics:
+      - git_init
+    abilities: []
+    stats:
+      hp: 100
+      energy: 3
+      start_relics: 1
+  
+  # ============ Reviewer (净化/防御型) ============
+  - id: reviewer
+    name_key: "character.reviewer.name"
+    desc_key: "character.reviewer.desc"
+    starter_cards:
+      - test_guard
+      - test_guard
+      - test_guard
+      - defend
+      - defend
+      - defend
+      - debug_strike
+    starter_relics:
+      - test_framework
+    abilities:
+      - id: purify_negative
+        trigger: on_turn_start
+        effect: clear_negative_status
+        name_key: "ability.purify.name"
+        desc_key: "ability.purify.desc"
+        value: 1
+    stats:
+      hp: 110
+      energy: 3
+      start_relics: 1
+  
+  # ============ DevOps (管道流) ============
+  - id: devops
+    name_key: "character.devops.name"
+    desc_key: "character.devops.desc"
+    starter_cards:
+      - debug_strike
+      - debug_strike
+      - test_guard
+      - ci_pipeline
+      - staging_deploy
+    starter_relics:
+      - ci_badge
+    abilities:
+      - id: pipeline_gen
+        trigger: on_turn_end
+        effect: add_energy_or_draw
+        name_key: "ability.pipeline.name"
+        desc_key: "ability.pipeline.desc"
+        value: 1
+    stats:
+      hp: 90
+      energy: 3
+      start_relics: 1
+
+# 起始遗物定义扩展
+relics_extended:
+  clean_code:
+    name_key: "relic.clean_code.name"
+    desc_key: "relic.clean_code.desc"
+    tier: uncommon
+    effects:
+      passive_status_clear: true
+  
+  ci_passed:
+    name_key: "relic.ci_passed.name"
+    desc_key: "relic.ci_passed.desc"
+    tier: rare
+    effects:
+      on_turn_end_energy: 1
+      on_turn_end_draw: 1

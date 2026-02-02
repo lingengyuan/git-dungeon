@@ -5,8 +5,49 @@
 > 🎮 在提交历史中战斗，让理解项目演进变得有趣！
 
 [![CI](https://img.shields.io/github/actions/workflow/status/lingengyuan/git-dungeon/ci.yml?branch=main)](https://github.com/lingengyuan/git-dungeon/actions)
-[![Tests](https://img.shields.io/badge/tests-38%2F38-blue)](https://github.com/lingengyuan/git-dungeon/actions)
+[![Tests](https://img.shields.io/badge/tests-63%2F63-blue)](https://github.com/lingengyuan/git-dungeon/actions)
 [![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org)
+
+## 🎯 M3 更新：Meta 进度 + 角色系统 + 内容包
+
+M3 版本在 M2 基础上增加了元进度系统、多角色系统、可解锁内容包。
+
+### M3 功能特性
+
+| 模块 | 功能 | 描述 |
+|------|------|------|
+| **M3.1 Meta 进度** | 玩家档案 | 点数累计、解锁系统、单局总结、存档 |
+| **M3.2 角色系统** | 3 角色 | Developer/Reviewer/DevOps，各有特色 |
+| **M3.3 内容包** | 可解锁包 | Debug/Test/Refactor 流派专属扩展包 |
+
+### M3 内容统计
+
+| 内容类型 | M2 | M3 | 变化 |
+|---------|----|----|------|
+| 角色 | 0 | 3 | +3 (Developer/Reviewer/DevOps) |
+| 内容包 | 0 | 3 | +3 (debug/test/refactor pack) |
+| 包内卡牌 | 0 | 14 | +14 |
+| 包内遗物 | 0 | 6 | +6 |
+| 包内事件 | 0 | 3 | +3 |
+
+### M3 测试结果
+
+```
+63 passed, 5 warnings
+
+测试套件:
+├── i18n tests              6/6  ✅
+├── CLI tests               3/3  ✅
+├── golden tests            4/4  ✅
+├── M2 route tests          6/6  ✅
+├── M2 event effect tests  13/6  ✅
+├── M2 elite/boss tests     6/6  ✅
+├── M3 meta tests          10/10 ✅
+├── M3 character tests      8/8  ✅
+└── M3 pack tests           7/7  ✅
+```
+
+---
 
 ## 🎯 M2 更新：路径系统 + 事件扩展
 
@@ -30,6 +71,22 @@ M2 版本在 M1 基础上增加了章节路径系统、事件效果引擎、精�
 | 状态 | 9 | 9 | - |
 | 流派 | 3 | 3 | - |
 | 事件 | 6 | 17 | +11 事件 |
+
+### M3 角色系统
+
+| 角色 | HP | 能量 | 起始卡 | 起始遗物 | 特殊能力 |
+|------|-----|------|--------|---------|---------|
+| **Developer** | 100 | 3 | 6 (Strike/Defend) | git_init | 无 |
+| **Reviewer** | 110 | 3 | 7 (Test Guard/Defend) | test_framework | 回合开始净化 |
+| **DevOps** | 90 | 3 | 5 (Debug/CI Pipeline) | ci_badge | 回合结束资源生成 |
+
+### M3 内容包系统
+
+| 内容包 | 流派 | 卡牌 | 遗物 | 事件 | 点数成本 |
+|-------|------|------|------|------|---------|
+| **debug_pack** | Debug 爆发流 | 5 | 2 | 1 | 150 |
+| **test_pack** | Test 护盾流 | 5 | 2 | 1 | 150 |
+| **refactor_pack** | Refactor 代价流 | 4 | 2 | 1 | 150 |
 
 ### M2 测试结果
 
@@ -189,6 +246,21 @@ PYTHONPATH=src python3 -m pytest tests/test_m2_event_effects.py -v
 
 # 运行 M2 精英/BOSS 测试
 PYTHONPATH=src python3 -m pytest tests/test_m2_elite_boss.py -v
+
+# 运行 M3 元进度系统测试
+PYTHONPATH=src python3 -m pytest tests/test_m3_meta.py -v
+
+# 运行 M3 角色系统测试
+PYTHONPATH=src python3 -m pytest tests/test_m3_characters.py -v
+
+# 运行 M3 内容包测试
+PYTHONPATH=src python3 -m pytest tests/test_m3_packs.py -v
+
+# 运行 M3 完整自动化测试
+PYTHONPATH=src python3 tests/test_m3_full_automation.py
+
+# 运行所有测试
+PYTHONPATH=src python3 -m pytest tests/ -v
 ```
 
 ## 项目结构
@@ -196,22 +268,29 @@ PYTHONPATH=src python3 -m pytest tests/test_m2_elite_boss.py -v
 ```
 git-dungeon/
 ├── src/git_dungeon/
-│   ├── content/              # 内容系统 (M1+M2)
-│   │   ├── schema.py         # 数据模型定义
+│   ├── content/              # 内容系统 (M1+M2+M3)
+│   │   ├── schema.py         # 数据模型定义 (M3: ContentPack)
 │   │   ├── loader.py         # YAML 加载器
-│   │   └── defaults/         # 默认内容
-│   │       ├── cards.yml     # 54 张卡牌
-│   │       ├── enemies.yml   # 33 个敌人 (M2: +9 elite/boss)
-│   │       ├── relics.yml    # 16 个遗物
-│   │       ├── statuses.yml  # 9 个状态
-│   │       ├── archetypes.yml # 3 个流派
-│   │       └── events.yml    # 17 个事件 (M2: +11)
+│   │   ├── packs.py          # 内容包加载器 (M3)
+│   │   ├── defaults/         # 默认内容
+│   │   │   ├── cards.yml     # 54 张卡牌
+│   │   │   ├── enemies.yml   # 33 个敌人 (M2: +9 elite/boss)
+│   │   │   ├── relics.yml    # 16 个遗物
+│   │   │   ├── statuses.yml  # 9 个状态
+│   │   │   ├── archetypes.yml # 3 个流派
+│   │   │   ├── events.yml    # 17 个事件 (M2: +11)
+│   │   │   └── characters.yml # 3 角色 (M3)
+│   │   └── packs/            # 可解锁内容包 (M3)
+│   │       ├── debug_pack/   # Debug 爆发包 (5 卡, 2 遗物)
+│   │       ├── test_pack/    # Test 护盾包 (5 卡, 2 遗物)
+│   │       └── refactor_pack/ # Refactor 代价包 (4 卡, 2 遗物)
 │   ├── engine/
-│   │   ├── model.py          # 数据模型 (M1+M2)
-│   │   ├── engine.py         # 游戏引擎 (M1+M2)
+│   │   ├── model.py          # 数据模型 (M1+M2+M3: MetaProfile/RunSummary)
+│   │   ├── engine.py         # 游戏引擎 (M1+M2+M3)
 │   │   ├── events.py         # 事件系统 (M1+M2: 效果引擎)
 │   │   ├── rng.py            # 随机数生成
 │   │   ├── route.py          # 路径系统 (M2)
+│   │   ├── meta.py           # 元进度系统 (M3)
 │   │   └── rules/
 │   │       ├── rewards.py    # 奖励系统 (M1+M2: elite/boss)
 │   │       └── archetype.py  # 流派系统 (M1)
@@ -226,7 +305,11 @@ git-dungeon/
 │   ├── test_cli.py           # CLI 测试
 │   ├── test_m2_route.py      # M2 路径系统测试
 │   ├── test_m2_event_effects.py # M2 事件效果测试
-│   └── test_m2_elite_boss.py # M2 精英/BOSS 测试
+│   ├── test_m2_elite_boss.py # M2 精英/BOSS 测试
+│   ├── test_m3_meta.py       # M3 元进度系统测试
+│   ├── test_m3_characters.py # M3 角色系统测试
+│   ├── test_m3_packs.py      # M3 内容包测试
+│   └── test_m3_full_automation.py # M3 完整自动化测试
 ├── docs/                     # 文档
 └── pyproject.toml            # 项目配置
 ```
@@ -276,15 +359,39 @@ git-dungeon/
 | Elite | 2x | 1.5x | 30% |
 | BOSS | 3x | 2.0x | 100% |
 
+### M3 Meta 进度系统
+
+| 功能 | 描述 |
+|------|------|
+| MetaProfile | 玩家档案，存储累计点数、解锁、统计 |
+| RunSummary | 单局总结，包含击杀、章节、奖励等 |
+| award_points | 根据表现奖励点数 (击杀+章节+胜利) |
+| 解锁系统 | 角色(100/150/200) / 内容包(150) / 成就 |
+| 存档 | JSON 格式，默认 ~/.git-dungeon/profiles/ |
+
+### M3 内容包合并逻辑
+
+```python
+# 合并基础内容和已解锁包
+merged = merge_content_with_packs(
+    base_registry,      # 基础内容
+    "packs/",           # 包目录
+    ["debug_pack", "test_pack"]  # 已解锁包
+)
+
+# ID 冲突检测 (warn 但继续)
+# 按 archetype 筛选: get_packs_by_archetype("debug_beatdown")
+```
+
 ## 路线图
 
-| 版本 | 里程碑 | 目标 |
-|------|--------|------|
-| v0.5 | M2 | 路径系统 + 事件扩展 ✅ |
-| v0.6 | M3 | Meta 进度 + 角色系统 |
-| v0.7 | M4 | 难度曲线 + 平衡工具 |
-| v0.8 | M5 | 成就挑战系统 |
-| v0.9 | M6 | AI 文案（可选） |
+| 版本 | 里程碑 | 目标 | 状态 |
+|------|--------|------|------|
+| v0.5 | M2 | 路径系统 + 事件扩展 | ✅ |
+| v0.6 | M3 | Meta 进度 + 角色系统 | ✅ |
+| v0.7 | M4 | 难度曲线 + 平衡工具 | ⏳ |
+| v0.8 | M5 | 成就挑战系统 | ⏳ |
+| v0.9 | M6 | AI 文案（可选） | ⏳ |
 
 详见 [docs/PLAN_M2-M6.md](docs/PLAN_M2-M6.md)
 

@@ -1,0 +1,118 @@
+# Test Pack - M3.3 Content Pack
+# Test 流派专属卡牌包
+
+pack_info:
+  id: test_pack
+  name: "Test Pack"
+  description: "防御流卡牌扩展包"
+  rarity: uncommon
+  archetype: test_shrine
+  points_cost: 150
+
+cards:
+  # Test 专属强力卡
+  - id: test_coverage
+    name_key: "card.test_coverage.name"
+    desc_key: "card.test_coverage.desc"
+    type: skill
+    cost: 2
+    rarity: rare
+    effects:
+      - type: block
+        value: 15
+      - type: status
+        value: block
+        value: 5
+    tags: ["test", "defensive"]
+    
+  - id: regression_stop
+    name_key: "card.regression_stop.name"
+    desc_key: "card.regression_stop.desc"
+    type: skill
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: block
+        value: 8
+      - type: status
+        value: clear_negative
+        target: player
+    tags: ["test", "defensive"]
+    
+  - id: integration_wall
+    name_key: "card.integration_wall.name"
+    desc_key: "card.integration_wall.desc"
+    type: skill
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: block
+        value: 12
+      - type: status
+        value: focus
+        value: 2
+    tags: ["test", "defensive"]
+    
+  - id: e2e_barrier
+    name_key: "card.e2e_barrier.name"
+    desc_key: "card.e2e_barrier.desc"
+    type: skill
+    cost: 2
+    rarity: rare
+    effects:
+      - type: block
+        value: 18
+      - type: status
+        value: block
+        value: 10
+    tags: ["test", "defensive"]
+    
+  - id: unit_bastion
+    name_key: "card.unit_bastion.name"
+    desc_key: "card.unit_bastion.desc"
+    type: skill
+    cost: 1
+    rarity: common
+    effects:
+      - type: block
+        value: 6
+      - type: status
+        value: thorn
+        value: 2
+    tags: ["test", "defensive"]
+
+relics:
+  # Test 专属遗物
+  - id: test_framework_pro
+    name_key: "relic.test_framework_pro.name"
+    desc_key: "relic.test_framework_pro.desc"
+    tier: rare
+    effects:
+      block_bonus: 10
+      status_resist: 0.3
+      
+  - id: mock_shield
+    name_key: "relic.mock_shield.name"
+    desc_key: "relic.mock_shield.desc"
+    tier: uncommon
+    effects:
+      first_hit_reduction: 0.5
+
+events:
+  # Test 专属事件
+  - id: test_fortress
+    name_key: "event.test_fortress.name"
+    desc_key: "event.test_fortress.desc"
+    choices:
+      - id: fortify
+        text_key: "event.test_fortress.choice.fortify"
+        effects:
+          - opcode: add_card
+            value: test_coverage
+          - opcode: lose_gold
+            value: 30
+      - id: study
+        text_key: "event.test_fortress.choice.study"
+        effects:
+          - opcode: heal
+            value: 25
