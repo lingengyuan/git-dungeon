@@ -5,8 +5,89 @@
 > 🎮 在提交历史中战斗，让理解项目演进变得有趣！
 
 [![CI](https://img.shields.io/github/actions/workflow/status/lingengyuan/git-dungeon/ci.yml?branch=main)](https://github.com/lingengyuan/git-dungeon/actions)
-[![Tests](https://img.shields.io/badge/tests-63%2F63-blue)](https://github.com/lingengyuan/git-dungeon/actions)
+[![Tests](https://img.shields.io/badge/tests-372%2F372-blue)](https://github.com/lingengyuan/git-dungeon/actions)
 [![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org)
+
+## 🎯 M5 更新：成就挑战系统
+
+M5 版本在 M4 基础上增加了成就系统，为玩家提供目标感和挑战。
+
+### M5 功能特性
+
+| 模块 | 功能 | 描述 |
+|------|------|------|
+| **成就定义** | 20 个成就 | combat/exploration/collection/special 四类 |
+| **成就条件** | 多种类型 | enemy_kills、chapters_completed、unique_cards 等 |
+| **稀有度** | 4 等级 | common/rare/epic/legendary |
+| **隐藏成就** | 1 个 | 需要解锁后才显示 |
+| **点数奖励** | 总计 1000+ | 成就点数可累计 |
+
+### M5 成就统计
+
+| 类别 | 数量 | 示例 |
+|------|------|------|
+| **战斗** | 8 | First Blood、Elite Hunter、Boss Slayer |
+| **探索** | 4 | Chapter Victor、Explorer、Event Master |
+| **收集** | 3 | Card Collector、Relic Hoarder、Deck Builder |
+| **特殊** | 5 | Tech Debt Survivor、Hard Mode Victory |
+
+### M5 测试结果
+
+```
+29 passed, 0 warnings
+
+测试套件:
+├── AchievementDef tests     5/5  ✅
+├── AchievementProgress tests 2/2  ✅
+├── AchievementManager tests 11/11 ✅
+├── AchievementFileIO tests  3/3  ✅
+├── AchievementDisplay tests 4/4  ✅
+└── AchievementDefs tests    4/4  ✅
+```
+
+---
+
+## 🎯 M4 更新：难度曲线与平衡
+
+M4 版本在 M3 基础上增加了难度曲线系统和平衡模拟工具。
+
+### M4 功能特性
+
+| 模块 | 功能 | 描述 |
+|------|------|------|
+| **难度参数** | 2 档难度 | Normal (默认) / Hard |
+| **章节缩放** | 5 章递增 | enemy_hp/damage 随章节增长 |
+| **难度叠加** | 难度×章节 | Hard 难度下增益/减益倍率叠加 |
+| **模拟工具** | 本地工具 | 批量跑 auto-play 验证平衡 |
+
+### M4 难度参数
+
+| 参数 | Normal | Hard | 章节增长 |
+|------|--------|------|---------|
+| 敌人 HP | 1.0x | 1.5x | +20%/章 |
+| 敌人伤害 | 1.0x | 1.3x | +10%/章 |
+| 精英概率 | 20% | 35% | +5%/章 |
+| 奖励倍率 | 1.0x | 0.8x | -5%/章 |
+
+### M4 工具
+
+| 工具 | 用途 |
+|------|------|
+| `simulate.py` | 批量模拟多 seed/难度/角色的通关率 |
+| `health_check.py` | 预推送验证脚本 (lint/mypy/tests) |
+
+### M4 测试结果
+
+```
+12 passed, 0 warnings
+
+测试套件:
+├── DifficultyConfig tests    4/4  ✅
+├── DifficultyScaler tests   5/5  ✅
+└── Difficulty application   3/3  ✅
+```
+
+---
 
 ## 🎯 M3 更新：Meta 进度 + 角色系统 + 内容包
 
@@ -33,7 +114,7 @@ M3 版本在 M2 基础上增加了元进度系统、多角色系统、可解锁�
 ### M3 测试结果
 
 ```
-63 passed, 5 warnings
+372 passed, 2 skipped, 2 warnings (total)
 
 测试套件:
 ├── i18n tests              6/6  ✅
@@ -44,7 +125,9 @@ M3 版本在 M2 基础上增加了元进度系统、多角色系统、可解锁�
 ├── M2 elite/boss tests     6/6  ✅
 ├── M3 meta tests          10/10 ✅
 ├── M3 character tests      8/8  ✅
-└── M3 pack tests           7/7  ✅
+├── M3 pack tests           7/7  ✅
+├── M4 difficulty tests    12/12 ✅
+└── M5 achievement tests   29/29 ✅
 ```
 
 ---
@@ -87,6 +170,8 @@ M2 版本在 M1 基础上增加了章节路径系统、事件效果引擎、精�
 | **debug_pack** | Debug 爆发流 | 5 | 2 | 1 | 150 |
 | **test_pack** | Test 护盾流 | 5 | 2 | 1 | 150 |
 | **refactor_pack** | Refactor 代价流 | 4 | 2 | 1 | 150 |
+
+---
 
 ### M2 测试结果
 
@@ -285,13 +370,15 @@ git-dungeon/
 │   │       ├── test_pack/    # Test 护盾包 (5 卡, 2 遗物)
 │   │       └── refactor_pack/ # Refactor 代价包 (4 卡, 2 遗物)
 │   ├── engine/
-│   │   ├── model.py          # 数据模型 (M1+M2+M3: MetaProfile/RunSummary)
-│   │   ├── engine.py         # 游戏引擎 (M1+M2+M3)
+│   │   ├── model.py          # 数据模型 (M1-M5: MetaProfile/RunSummary)
+│   │   ├── engine.py         # 游戏引擎 (M1-M5)
 │   │   ├── events.py         # 事件系统 (M1+M2: 效果引擎)
 │   │   ├── rng.py            # 随机数生成
 │   │   ├── route.py          # 路径系统 (M2)
 │   │   ├── meta.py           # 元进度系统 (M3)
+│   │   ├── achievements.py   # 成就系统 (M5) ⭐ 新增
 │   │   └── rules/
+│   │       ├── difficulty.py # 难度曲线 (M4) ⭐ 新增
 │   │       ├── rewards.py    # 奖励系统 (M1+M2: elite/boss)
 │   │       └── archetype.py  # 流派系统 (M1)
 │   ├── core/
@@ -303,13 +390,15 @@ git-dungeon/
 │   ├── golden_test.py        # 确定性测试
 │   ├── test_i18n.py          # i18n 测试
 │   ├── test_cli.py           # CLI 测试
-│   ├── test_m2_route.py      # M2 路径系统测试
-│   ├── test_m2_event_effects.py # M2 事件效果测试
-│   ├── test_m2_elite_boss.py # M2 精英/BOSS 测试
-│   ├── test_m3_meta.py       # M3 元进度系统测试
-│   ├── test_m3_characters.py # M3 角色系统测试
-│   ├── test_m3_packs.py      # M3 内容包测试
-│   └── test_m3_full_automation.py # M3 完整自动化测试
+│   ├── test_m2_route.py           # M2 路径系统测试
+│   ├── test_m2_event_effects.py    # M2 事件效果测试
+│   ├── test_m2_elite_boss.py       # M2 精英/BOSS 测试
+│   ├── test_m3_meta.py             # M3 元进度系统测试
+│   ├── test_m3_characters.py       # M3 角色系统测试
+│   ├── test_m3_packs.py            # M3 内容包测试
+│   ├── test_m3_full_automation.py  # M3 完整自动化测试
+│   ├── test_m4_difficulty.py       # M4 难度曲线测试 ⭐ 新增
+│   └── test_m5_achievements.py     # M5 成就系统测试 ⭐ 新增
 ├── docs/                     # 文档
 └── pyproject.toml            # 项目配置
 ```
@@ -387,10 +476,8 @@ merged = merge_content_with_packs(
 
 | 版本 | 里程碑 | 目标 | 状态 |
 |------|--------|------|------|
-| v0.5 | M2 | 路径系统 + 事件扩展 | ✅ |
-| v0.6 | M3 | Meta 进度 + 角色系统 | ✅ |
-| v0.7 | M4 | 难度曲线 + 平衡工具 | ⏳ |
-| v0.8 | M5 | 成就挑战系统 | ⏳ |
+| v0.7 | M4 | 难度曲线 + 平衡工具 | ✅ |
+| v0.8 | M5 | 成就挑战系统 | ✅ |
 | v0.9 | M6 | AI 文案（可选） | ⏳ |
 
 详见 [docs/PLAN_M2-M6.md](docs/PLAN_M2-M6.md)
