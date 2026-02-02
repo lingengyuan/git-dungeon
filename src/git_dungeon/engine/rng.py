@@ -1,7 +1,7 @@
 # rng.py - Reproducible RNG system with seed support
 
 import random
-from typing import Any, Dict, List, Optional, Protocol, TypeVar, cast
+from typing import Any, Dict, List, Optional, Protocol, TypeVar
 
 T = TypeVar("T")
 
