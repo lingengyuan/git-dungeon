@@ -12,6 +12,7 @@ M3 完整自动化测试 - 覆盖所有功能点
 """
 
 import sys
+import pytest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -57,6 +58,7 @@ class TestResult:
 
 # ==================== M3.1 元进度系统测试 ====================
 
+@pytest.mark.slow
 def test_m3_1_meta_profile(results: TestResult):
     """M3.1 测试: 元进度档案"""
     print("\n" + "=" * 50)
@@ -76,6 +78,7 @@ def test_m3_1_meta_profile(results: TestResult):
     results.add_pass("点数初始化为 0")
 
 
+@pytest.mark.slow
 def test_m3_1_run_summary(results: TestResult):
     """M3.1 测试: 单局总结"""
     print("\n" + "=" * 50)
@@ -109,6 +112,7 @@ def test_m3_1_run_summary(results: TestResult):
     results.add_pass("单局总结序列化")
 
 
+@pytest.mark.slow
 def test_m3_1_award_points(results: TestResult):
     """M3.1 测试: 点数奖励"""
     print("\n" + "=" * 50)
@@ -137,6 +141,7 @@ def test_m3_1_award_points(results: TestResult):
     results.add_pass("统计更新")
 
 
+@pytest.mark.slow
 def test_m3_1_unlock_system(results: TestResult):
     """M3.1 测试: 解锁系统"""
     print("\n" + "=" * 50)
@@ -167,6 +172,7 @@ def test_m3_1_unlock_system(results: TestResult):
     results.add_pass("钱不够时解锁失败")
 
 
+@pytest.mark.slow
 def test_m3_1_save_load(results: TestResult):
     """M3.1 测试: 存档保存/加载"""
     print("\n" + "=" * 50)
@@ -196,6 +202,7 @@ def test_m3_1_save_load(results: TestResult):
 
 # ==================== M3.2 角色系统测试 ====================
 
+@pytest.mark.slow
 def test_m3_2_character_stats(results: TestResult):
     """M3.2 测试: 角色属性差异"""
     print("\n" + "=" * 50)
@@ -218,6 +225,7 @@ def test_m3_2_character_stats(results: TestResult):
     results.add_pass("DevOps HP=90")
 
 
+@pytest.mark.slow
 def test_m3_2_starter_deck(results: TestResult):
     """M3.2 测试: 起始套牌"""
     print("\n" + "=" * 50)
@@ -243,6 +251,7 @@ def test_m3_2_starter_deck(results: TestResult):
     results.add_pass("DevOps 起始套牌")
 
 
+@pytest.mark.slow
 def test_m3_2_starter_relics(results: TestResult):
     """M3.2 测试: 起始遗物"""
     print("\n" + "=" * 50)
@@ -265,6 +274,7 @@ def test_m3_2_starter_relics(results: TestResult):
     results.add_pass("DevOps 遗物=ci_badge")
 
 
+@pytest.mark.slow
 def test_m3_2_character_abilities(results: TestResult):
     """M3.2 测试: 角色能力"""
     print("\n" + "=" * 50)
@@ -288,6 +298,7 @@ def test_m3_2_character_abilities(results: TestResult):
     results.add_pass("DevOps 回合结束生成")
 
 
+@pytest.mark.slow
 def test_m3_2_character_init(results: TestResult):
     """M3.2 测试: 角色初始化"""
     print("\n" + "=" * 50)
@@ -319,6 +330,7 @@ def test_m3_2_character_init(results: TestResult):
 
 # ==================== M3.3 内容包测试 ====================
 
+@pytest.mark.slow
 def test_m3_3_pack_loader(results: TestResult):
     """M3.3 测试: 内容包加载"""
     print("\n" + "=" * 50)
@@ -333,6 +345,7 @@ def test_m3_3_pack_loader(results: TestResult):
     results.add_pass(f"加载 {len(packs)} 个内容包")
 
 
+@pytest.mark.slow
 def test_m3_3_pack_info(results: TestResult):
     """M3.3 测试: 包信息"""
     print("\n" + "=" * 50)
@@ -354,6 +367,7 @@ def test_m3_3_pack_info(results: TestResult):
     results.add_pass("Refactor Pack 信息")
 
 
+@pytest.mark.slow
 def test_m3_3_merge_packs(results: TestResult):
     """M3.3 测试: 合并内容包"""
     print("\n" + "=" * 50)
@@ -378,6 +392,7 @@ def test_m3_3_merge_packs(results: TestResult):
     results.add_pass("Pack 对象存在")
 
 
+@pytest.mark.slow
 def test_m3_3_archetype_filter(results: TestResult):
     """M3.3 测试: 流派筛选"""
     print("\n" + "=" * 50)
@@ -403,6 +418,7 @@ def test_m3_3_archetype_filter(results: TestResult):
 
 # ==================== M3 完整流程测试 ====================
 
+@pytest.mark.slow
 def test_m3_full_gameplay(results: TestResult):
     """M3 完整游戏流程测试"""
     print("\n" + "=" * 50)
@@ -480,6 +496,7 @@ def test_m3_full_gameplay(results: TestResult):
 
 # ==================== M3 内容验证 ====================
 
+@pytest.mark.slow
 def test_m3_content_verification(results: TestResult):
     """M3 内容验证"""
     print("\n" + "=" * 50)

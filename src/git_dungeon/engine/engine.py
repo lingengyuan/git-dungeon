@@ -17,6 +17,7 @@ from .events import (
 from .rng import RNG, DefaultRNG
 from .rules.combat_rules import CombatRules
 from .rules.progression_rules import ProgressionRules
+from .rules.difficulty import get_difficulty, DifficultyLevel
 
 
 @dataclass
@@ -544,13 +545,31 @@ class Engine:
         
         if action_name == "start_chapter":
             chapter_data = action.data
+            chapter_index = chapter_data.get("chapter_index", 0)
+            
+            # M4: Get difficulty parameters
+            difficulty_level = DifficultyLevel(state.difficulty)
+            diff_params = get_difficulty(chapter_index, difficulty_level)
+            
             chapter = ChapterState(
                 chapter_id=chapter_data.get("chapter_id", "default"),
                 chapter_name=chapter_data.get("chapter_name", "Unknown"),
-                chapter_index=chapter_data.get("chapter_index", 0),
-                enemies_in_chapter=chapter_data.get("enemies_in_chapter", 10),
+                chapter_index=chapter_index,
+                enemies_in_chapter=chapter_data.get("enemies_in_chapter", diff_params.node_count),
             )
             state.current_chapter = chapter
+            
+            # Store difficulty params in state for later use
+            state.route_state = state.route_state or {}
+            state.route_state["difficulty_params"] = {
+                "enemy_scaling": {
+                    "hp_multiplier": diff_params.enemy_scaling.hp_multiplier,
+                    "damage_multiplier": diff_params.enemy_scaling.damage_multiplier,
+                },
+                "elite_chance": diff_params.elite_chance,
+                "boss_chance": diff_params.boss_chance,
+            }
+            
             events.append(GameEvent(
                 type=EventType.CHAPTER_STARTED,
                 data={"chapter_id": chapter.chapter_id, "chapter_name": chapter.chapter_name}

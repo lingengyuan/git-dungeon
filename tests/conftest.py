@@ -38,9 +38,7 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "performance: marks tests as performance tests"
     )
-
-
-@pytest.fixture
-def results():
-    """Fixture providing TestResult for M3 automation tests."""
-    return TestResult()
+    # Mark test_m3_full_automation tests as slow
+    config.addinivalue_line(
+        "markers", "m3: marks M3 automation tests"
+    )
