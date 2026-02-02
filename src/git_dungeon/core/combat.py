@@ -178,7 +178,7 @@ class CombatSystem:
         # Apply damage
         if action.damage > 0:
             target_char = get_character(action.target)
-            actual_damage = target_char.take_damage(action.damage)
+            target_char.take_damage(action.damage)
 
         # Apply healing
         if action.healing > 0:

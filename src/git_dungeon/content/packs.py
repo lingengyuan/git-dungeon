@@ -4,8 +4,7 @@ M3.3 内容包系统
 支持 packs/ 目录加载、按解锁过滤、冲突检测
 """
 
-import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 import yaml

@@ -6,7 +6,6 @@ Content schema definitions for Git Dungeon.
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from enum import Enum
-import uuid
 
 
 class CardType(Enum):

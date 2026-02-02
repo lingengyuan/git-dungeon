@@ -8,7 +8,6 @@ from typing import List, Dict, Optional
 from enum import Enum
 
 from ..rng import RNG
-from ..model import GameState
 
 
 class Archetype(Enum):

@@ -189,7 +189,6 @@ class RewardsEngine:
         multiplier = type_bonus.get(enemy.enemy_type, 1.0)
         
         # 添加随机波动 (±20%)
-        import random
         fluctuation = 0.8 + self.rng.random() * 0.4
         
         return int(base_gold * multiplier * fluctuation)

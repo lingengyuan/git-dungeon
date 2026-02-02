@@ -347,7 +347,6 @@ def apply_event_choice(
     Returns:
         执行结果 {"success": bool, "effects_applied": [...], "messages": [...], "state_changes": {...}}
     """
-    from git_dungeon.engine.model import GameState
     
     result = {
         "success": True,

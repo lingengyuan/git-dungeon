@@ -1,12 +1,12 @@
 # engine.py - Core game engine (M1: 战斗状态机 + 敌人意图)
 
 from dataclasses import dataclass
-from typing import List, Tuple, Optional, Dict, Any
+from typing import List, Tuple, Optional
 from datetime import datetime
 
 from .model import (
     GameState, EnemyState, ChapterState, Action,
-    IntentType, EnemyIntent, CardInstance
+    IntentType, EnemyIntent
 )
 from .events import (
     GameEvent, EventType,

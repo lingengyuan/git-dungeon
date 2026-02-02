@@ -7,17 +7,23 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from .character import CharacterComponent
 from .entity import Entity
-from .inventory import InventoryComponent, Item
+from .inventory import InventoryComponent, Item, ItemType, ItemRarity, ItemStats
+from git_dungeon.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
+
+# Import GameState only for type checking (avoid circular import)
+if TYPE_CHECKING:
+    from .game_engine import GameState
 
 
 def _config_to_dict(config: Any) -> dict:
     """Convert config to dict, handling enums and Pydantic models."""
     if hasattr(config, 'model_dump'):
-        # Pydantic model - need to convert enums to values manually
         result = {}
         for key, value in config.model_dump().items():
             if isinstance(value, Enum):
@@ -54,7 +60,7 @@ class GameSaveData:
     metadata: SaveMetadata
     player_entity: dict[str, Any]
     inventory: dict[str, Any]
-    defeated_commits: list[str]  # List of defeated commit hashes
+    defeated_commits: list[str]
     current_commit_hash: str
     settings: dict[str, Any]
 
@@ -69,7 +75,6 @@ class SaveSystem:
             save_dir: Directory for save files (Path or str)
         """
         if save_dir is None:
-            # Default to user's home directory
             save_dir = Path.home() / ".local" / "share" / "git-dungeon"
         elif isinstance(save_dir, str):
             save_dir = Path(save_dir)
@@ -105,10 +110,7 @@ class SaveSystem:
             True if save was successful
         """
         try:
-            # Collect save data
             save_data = self._collect_save_data(game_state)
-
-            # Write to file
             save_path = self.get_save_path(slot)
             with open(save_path, "w", encoding="utf-8") as f:
                 json.dump(save_data, f, indent=2, ensure_ascii=False, default=str)
@@ -128,7 +130,7 @@ class SaveSystem:
         """Load game state from a slot.
 
         Args:
-            game_state: Game state to load into (must have loaded repository first)
+            game_state: Game state to load into
             slot: Save slot number
 
         Returns:
@@ -144,7 +146,6 @@ class SaveSystem:
             with open(save_path, "r", encoding="utf-8") as f:
                 save_data = json.load(f)
 
-            # Restore game state
             self._restore_save_data(game_state, save_data)
 
             logger.info(f"Loaded game from slot {slot}")
@@ -158,11 +159,8 @@ class SaveSystem:
     def load_game(cls, save_path: Path | str) -> Optional["GameState"]:
         """Load a complete game state from a save file.
 
-        This method creates a new GameState and loads the repository
-        automatically, making it easier to restore games.
-
         Args:
-            save_path: Path to the save file (not the save directory)
+            save_path: Path to the save file
 
         Returns:
             Loaded GameState or None if failed
@@ -177,20 +175,16 @@ class SaveSystem:
             with open(save_path, "r", encoding="utf-8") as f:
                 save_data = json.load(f)
 
-            # Get settings from save or use defaults
             settings_data = save_data.get("settings", {})
             config = GameConfig(**settings_data) if settings_data else GameConfig()
 
-            # Create new game state
             game = GameState(config=config)
 
-            # Load the repository from settings
             repo_path = config.repo_path
             if repo_path and repo_path != "./":
                 game.load_repository(repo_path)
 
-            # Restore save data
-            save_system = cls()  # Create a temp SaveSystem instance
+            save_system = cls()
             save_system._restore_save_data(game, save_data)
 
             logger.info(f"Loaded game from {save_path}")
@@ -202,14 +196,10 @@ class SaveSystem:
 
     def _collect_save_data(self, game_state: "GameState") -> dict:
         """Collect all data needed for saving."""
-        # Get player data
         player_entity = game_state.player
         player_char = player_entity.get_component(CharacterComponent)
-
-        # Get inventory data
         inventory_comp = player_entity.get_component(InventoryComponent)
 
-        # Create metadata
         metadata = SaveMetadata.create()
         if player_char:
             metadata.player_level = player_char.level
@@ -230,23 +220,18 @@ class SaveSystem:
 
     def _restore_save_data(self, game_state: "GameState", data: dict) -> None:
         """Restore game state from save data."""
-        # Restore metadata
         metadata_data = data.get("metadata", {})
         game_state.game_time = metadata_data.get("game_time", 0)
 
-        # Restore player
         player_data = data.get("player", {})
         self._deserialize_entity(game_state.player, player_data)
 
-        # Restore inventory
         inventory_data = data.get("inventory", {})
         self._deserialize_inventory(game_state.player, inventory_data)
 
-        # Restore progress
         game_state.defeated_commits = data.get("defeated_commits", [])
         current_commit_hash = data.get("current_commit", "")
 
-        # Find current commit
         if current_commit_hash and game_state.parser:
             game_state.current_commit = game_state.parser.get_commit_by_hash(
                 current_commit_hash[:8]
@@ -338,11 +323,8 @@ class SaveSystem:
             return
 
         inventory.gold = data.get("gold", 0)
-
-        # Clear existing items
         inventory.items = [None] * inventory.max_slots
 
-        # Load items
         for item_data in data.get("items", []):
             slot = item_data.get("slot", 0)
             if 0 <= slot < inventory.max_slots:
@@ -404,9 +386,3 @@ class SaveSystem:
         except Exception as e:
             logger.error(f"Failed to delete save: {e}")
             return False
-
-
-# Import logger at module level
-from git_dungeon.utils.logger import setup_logger
-
-logger = setup_logger(__name__)

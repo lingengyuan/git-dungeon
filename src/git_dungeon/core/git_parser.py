@@ -213,7 +213,7 @@ class GitParser:
             try:
                 if cls._repo_cache[path].head.is_valid():
                     return cls._repo_cache[path]
-            except:
+            except Exception:
                 del cls._repo_cache[path]
         
         repo = Repo(path, search_parent_directories=True)

@@ -5,9 +5,8 @@
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Literal
+from typing import List, Dict, Optional
 from enum import Enum
-from pathlib import Path
 
 from git_dungeon.engine.rng import RNG, DefaultRNG
 

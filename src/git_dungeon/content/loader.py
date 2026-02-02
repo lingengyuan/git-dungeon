@@ -2,14 +2,13 @@
 Content loader - 加载 content/*.yml 文件到 ContentRegistry。
 """
 
-import os
 import yaml
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
 from .schema import (
     CardDef, RelicDef, EnemyDef, ArchetypeDef, EventDef, StatusDef,
-    CardType, CardRarity, RelicTier, EnemyType, EnemyTier, IntentType, StatusType,
-    ContentRegistry, Effect, EventChoice, EventEffect, CharacterAbility, CharacterStats, CharacterDef
+    CardType, CardRarity, RelicTier, EnemyType, EnemyTier, StatusType,
+    ContentRegistry, Effect, EventChoice, CharacterAbility, CharacterStats, CharacterDef
 )
 
 
@@ -414,31 +413,33 @@ class ContentLoader:
     
     def validate_i18n_keys(
         self,
+        registry: ContentRegistry,
         i18n_keys: Dict[str, str]
     ) -> List[str]:
         """
         验证所有内容定义的 i18n key 是否存在
-        
+
         Args:
+            registry: Content registry to validate
             i18n_keys: 已加载的翻译 key 字典
-            
+
         Returns:
             缺失的 key 列表
         """
         missing_keys = []
-        
+
         for card in registry.cards.values():
             if card.name_key not in i18n_keys:
                 missing_keys.append(f"card.{card.id}.name")
             if card.desc_key not in i18n_keys:
                 missing_keys.append(f"card.{card.id}.desc")
-        
+
         for relic in registry.relics.values():
             if relic.name_key not in i18n_keys:
                 missing_keys.append(f"relic.{relic.id}.name")
             if relic.desc_key not in i18n_keys:
                 missing_keys.append(f"relic.{relic.id}.desc")
-        
+
         return missing_keys
     
     def get_errors(self) -> List[str]:
