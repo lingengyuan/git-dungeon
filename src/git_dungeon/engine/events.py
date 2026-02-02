@@ -121,7 +121,7 @@ def battle_started(enemy_id: str, enemy_name: str, hp: int, max_hp: int) -> Game
     )
 
 
-def battle_ended(result: str, details: Dict = None) -> GameEvent:
+def battle_ended(result: str, details: Dict[str, Any] | None = None) -> GameEvent:
     return GameEvent(
         type=EventType.BATTLE_ENDED,
         data={
@@ -137,7 +137,7 @@ def damage_dealt(
     amount: int,
     is_critical: bool = False,
     is_evaded: bool = False,
-    status: str = None
+    status: str | None = None
 ) -> GameEvent:
     return GameEvent(
         type=EventType.DAMAGE_DEALT,
@@ -169,7 +169,7 @@ def exp_gained(amount: int, reason: str, total_exp: int, exp_to_next: int) -> Ga
 def level_up(
     new_level: int, old_level: int,
     hp_gain: int, mp_gain: int, atk_gain: int, def_gain: int,
-    unlocked_skills: List[str] = None
+    unlocked_skills: List[str] | None = None
 ) -> GameEvent:
     return GameEvent(
         type=EventType.LEVEL_UP,
@@ -188,7 +188,7 @@ def level_up(
 def enemy_defeated(
     enemy_id: str, enemy_name: str, enemy_type: str,
     exp_reward: int = 0, gold_reward: int = 0,
-    drops: List[Dict] = None
+    drops: List[Dict[str, Any]] | None = None
 ) -> GameEvent:
     return GameEvent(
         type=EventType.ENEMY_DEFEATED,
@@ -206,7 +206,7 @@ def enemy_defeated(
 def chapter_completed(
     chapter_id: str, chapter_name: str,
     enemies_defeated: int, gold_reward: int, exp_reward: int,
-    next_chapter_id: str = None
+    next_chapter_id: str | None = None
 ) -> GameEvent:
     return GameEvent(
         type=EventType.CHAPTER_COMPLETED,
@@ -265,7 +265,7 @@ def error(error_type: str, message: str, recoverable: bool = False) -> GameEvent
     )
 
 
-def player_action(action: str, details: Dict = None) -> GameEvent:
+def player_action(action: str, details: Dict[str, Any] | None = None) -> GameEvent:
     return GameEvent(
         type=EventType.PLAYER_ACTION,
         data={
@@ -352,7 +352,7 @@ def apply_event_choice(
         执行结果 {"success": bool, "effects_applied": [...], "messages": [...], "state_changes": {...}}
     """
     
-    result = {
+    result: Dict[str, Any] = {
         "success": True,
         "effects_applied": [],
         "messages": [],

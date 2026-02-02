@@ -1,7 +1,7 @@
 # rng.py - Reproducible RNG system with seed support
 
 import random
-from typing import Any, Dict, List, Optional, Protocol, TypeVar
+from typing import Any, Dict, List, Optional, Protocol, TypeVar, cast
 
 
 class RNG(Protocol):
@@ -15,15 +15,15 @@ class RNG(Protocol):
         """Return random int in [low, high]"""
         ...
     
-    def choice(self, seq: List[Any]) -> Any:
+    def choice(self, seq: List[T]) -> T:
         """Return random choice from sequence"""
         ...
     
-    def shuffle(self, seq: List[Any]) -> None:
+    def shuffle(self, seq: List[T]) -> None:
         """Shuffle sequence in place"""
         ...
     
-    def choices(self, seq: List[Any], weights: List[float], k: int = 1) -> List[Any]:
+    def choices(self, seq: List[T], weights: List[float], k: int = 1) -> List[T]:
         """Return k choices with weights"""
         ...
     
@@ -41,7 +41,7 @@ class RNG(Protocol):
         ...
 
 
-T = TypeVar("T", bound=RNG)
+T = TypeVar("T")
 
 
 class DefaultRNG:
@@ -104,7 +104,7 @@ class RNGContext:
         self.saved_state = self.rng.get_state()
         return self.rng
     
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Optional[type], exc_val: Optional[BaseException], exc_tb: Optional[BaseException]) -> None:
         if self.saved_state is not None:
             # Restore RNG state
             if hasattr(self.rng, 'from_state'):
@@ -196,7 +196,7 @@ DEFAULT_LOOT_TABLE = {
 }
 
 
-def random_rarity(rng: RNG, table: Dict[str, float] = None) -> str:
+def random_rarity(rng: RNG, table: Dict[str, float] | None = None) -> str:
     """Roll for loot rarity"""
     if table is None:
         table = DEFAULT_LOOT_TABLE

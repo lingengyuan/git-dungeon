@@ -111,7 +111,7 @@ class Skill:
             return True
         return False
     
-    def tick(self):
+    def tick(self) -> None:
         """Reduce cooldown."""
         if self.current_cooldown > 0:
             self.current_cooldown -= 1
@@ -452,10 +452,12 @@ class SkillSystem:
     
     def get_skills_by_type(self, skill_type: SkillType) -> List[Skill]:
         """Get all skills of a type."""
-        skills = []
+        skills: List[Skill] = []
         for template in self.SKILL_TEMPLATES.values():
             if template.skill_type == skill_type:
-                skills.append(self.get_skill(template.skill_id))
+                skill = self.get_skill(template.skill_id)
+                if skill is not None:
+                    skills.append(skill)
         return skills
     
     def get_skill_tree(self) -> SkillTree:
@@ -545,7 +547,7 @@ class SkillSystem:
         self,
         skill: Skill,
         attacker_stats: Dict[str, int],
-        defender_stats: Dict[str, int] = None
+        defender_stats: Dict[str, int] | None = None
     ) -> Dict[str, Any]:
         """
         Execute a skill and return results.
@@ -560,7 +562,7 @@ class SkillSystem:
         multiplier = skill.mastery_bonus
         
         # Calculate effects
-        results = {
+        results: Dict[str, Any] = {
             "skill_id": skill.skill_id,
             "skill_name": skill.name,
             "success": True,
@@ -587,7 +589,7 @@ class SkillSystem:
         self,
         effect: SkillEffect,
         attacker_stats: Dict[str, int],
-        defender_stats: Dict[str, int],
+        defender_stats: Dict[str, int] | None,
         multiplier: float
     ) -> Dict[str, Any]:
         """Apply a single effect."""
@@ -699,7 +701,7 @@ class SkillSystem:
         
         return "\n".join(lines)
     
-    def tick_all_cooldowns(self, skills: List[Skill]):
+    def tick_all_cooldowns(self, skills: List[Skill]) -> None:
         """Reduce cooldown for all skills."""
         for skill in skills:
             skill.tick()

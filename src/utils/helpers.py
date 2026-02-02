@@ -3,7 +3,7 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, cast
 
 
 # Type variable for generic functions
@@ -57,9 +57,9 @@ def get_project_root() -> Path:
     return Path(__file__).parent.parent.parent
 
 
-def safe_call(func: Callable[..., T], default: T, *args, **kwargs) -> T:
+def safe_call(func: Callable[..., T], default: T, *args: object, **kwargs: object) -> T:
     """Safely call a function, returning default on exception."""
     try:
-        return func(*args, **kwargs)
+        return cast(T, func(*args, **kwargs))
     except Exception:
         return default

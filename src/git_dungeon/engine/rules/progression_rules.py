@@ -1,7 +1,7 @@
 # progression_rules.py - Progression/leveling rules (pure logic, testable)
 
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 from git_dungeon.engine.rng import RNG, random_stat_bonus
 
@@ -26,7 +26,7 @@ class ProgressionRules:
     BASE_CHAPTER_GOLD: int = 50
     GOLD_GROWTH_FACTOR: float = 1.2
     BASE_CHAPTER_EXP: int = 200
-    EXP_GROWTH_FACTOR: float = 1.3
+    CHAPTER_EXP_GROWTH_FACTOR: float = 1.3
     
     def calculate_exp_to_next_level(self, current_level: int) -> int:
         """
@@ -153,7 +153,7 @@ class ProgressionRules:
         Returns:
             Modified stat value
         """
-        return random_stat_bonus(self.rng, base, variance)
+        return cast(int, random_stat_bonus(self.rng, base, variance))
     
     def get_total_stats_for_level(self, level: int) -> Dict[str, int]:
         """

@@ -11,7 +11,7 @@ Features:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, cast
 from enum import Enum
 
 from git_dungeon.engine.rng import RNG, roll_chance
@@ -62,7 +62,7 @@ class BossAbility:
             return True
         return False
     
-    def tick(self):
+    def tick(self) -> None:
         """Reduce cooldown."""
         if self.current_cooldown > 0:
             self.current_cooldown -= 1
@@ -167,7 +167,7 @@ class BossState:
         
         return actual
     
-    def _check_phase_transition(self):
+    def _check_phase_transition(self) -> None:
         """Check and handle phase transitions."""
         hp_percent = self.current_hp / self.max_hp if self.max_hp > 0 else 0
         
@@ -178,7 +178,7 @@ class BossState:
         elif hp_percent <= 0.75 and self.current_phase_index == 0:
             self._transition_to_phase(BossPhase.PHASE_2)
     
-    def _transition_to_phase(self, new_phase: BossPhase):
+    def _transition_to_phase(self, new_phase: BossPhase) -> None:
         """Transition to a new phase."""
         self.phase = new_phase
         self.current_phase_index += 1
@@ -196,7 +196,7 @@ class BossState:
                 return p
         return None
     
-    def tick_abilities(self):
+    def tick_abilities(self) -> None:
         """Tick all ability cooldowns."""
         for ability in self.abilities:
             ability.tick()
@@ -227,8 +227,9 @@ class BossState:
         """Aggressive AI - always attack, use abilities when available."""
         available = self.get_available_abilities()
         if available and roll_chance(rng, 0.3):  # 30% chance to use ability
-            ability = rng.choice(available)
-            return ability.ability_id
+            ability = cast(BossAbility, rng.choice(available))
+            if ability is not None:
+                return ability.ability_id
         return "attack"
     
     def _tactical_ai(self, rng: RNG, player_hp_percent: float) -> str:
@@ -257,15 +258,21 @@ class BossState:
         if self.phase == BossPhase.ENRAGED:
             # Enraged: use abilities more often
             if available and roll_chance(rng, 0.6):
-                return rng.choice(available).ability_id
+                ability = cast(BossAbility, rng.choice(available))
+                if ability is not None:
+                    return ability.ability_id
         elif self.phase == BossPhase.PHASE_2:
             # Phase 2: tactical ability use
             if available and roll_chance(rng, 0.4):
-                return rng.choice(available).ability_id
+                ability = cast(BossAbility, rng.choice(available))
+                if ability is not None:
+                    return ability.ability_id
         else:
             # Phase 1: mostly attacks
             if available and roll_chance(rng, 0.2):
-                return rng.choice(available).ability_id
+                ability = cast(BossAbility, rng.choice(available))
+                if ability is not None:
+                    return ability.ability_id
         
         return "attack"
     
@@ -500,7 +507,11 @@ class BossSystem:
         """Get a random boss for the chapter."""
         boss_ids = list(self.BOSS_TEMPLATES.keys())
         boss_id = self.rng.choice(boss_ids)
-        return self.create_boss(boss_id, chapter_index)
+        boss = self.create_boss(boss_id, chapter_index)
+        if boss is None:
+            msg = f"Failed to create boss: {boss_id}"
+            raise ValueError(msg)
+        return boss
     
     def get_boss_for_chapter_type(self, chapter_type: str, chapter_index: int) -> Optional[BossState]:
         """Get appropriate boss for chapter type."""
@@ -595,7 +606,7 @@ class BossSystem:
         
         return base_damage
     
-    def get_boss_rewards(self, boss: BossState) -> Dict[str, int]:
+    def get_boss_rewards(self, boss: BossState) -> Dict[str, Any]:
         """Get rewards for defeating a boss."""
         return {
             "gold": boss.template.bonus_gold,

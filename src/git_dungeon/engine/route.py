@@ -41,10 +41,10 @@ class RouteNode:
     tags: List[NodeTag] = field(default_factory=list)
     meta: Dict = field(default_factory=dict)  # 额外数据 (enemy_id, event_id 等)
     
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.node_id)
     
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, RouteNode):
             return self.node_id == other.node_id
         return False
@@ -58,7 +58,7 @@ class RouteGraph:
     edges: Dict[str, List[str]]  # node_id -> [next_node_ids]
     seed: int
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # 构建节点索引
         self._node_index: Dict[str, RouteNode] = {}
         for node in self.nodes:
@@ -147,7 +147,7 @@ def build_route(
         """根据权重选择节点类型"""
         total = sum(weights.values())
         r = rng.random() * total
-        cumsum = 0
+        cumsum = 0.0
         for kind, weight in weights.items():
             cumsum += weight
             if r <= cumsum:

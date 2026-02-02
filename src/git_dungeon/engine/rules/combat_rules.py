@@ -45,7 +45,7 @@ class CombatRules:
         # Minimum 1 damage
         return max(1, damage)
     
-    def roll_critical(self, crit_chance: float, multiplier: float = None) -> tuple:
+    def roll_critical(self, crit_chance: float, multiplier: float | None = None) -> tuple:
         """
         Roll for critical hit.
         
