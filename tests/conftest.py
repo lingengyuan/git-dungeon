@@ -3,8 +3,6 @@
 import sys
 from pathlib import Path
 
-import pytest
-
 # Add src directory to path
 src_path = Path(__file__).parent.parent
 sys.path.insert(0, str(src_path))

@@ -16,7 +16,6 @@ from typing import Any, Dict, List, Optional
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from git_dungeon.engine import Action, DefaultRNG
 from git_dungeon.engine.rules.difficulty import DifficultyLevel, get_difficulty
 from git_dungeon.content.loader import load_content
 
@@ -71,16 +70,13 @@ class BalanceSimulator:
         result = SimulationResult(seed, character_id)
         result.difficulty = difficulty
         
-        rng = DefaultRNG(seed=seed)
-        
         # Load content to get character stats
         from git_dungeon.content.loader import load_content
         content = load_content("src/git_dungeon/content")
         
         # Create game state
-        from git_dungeon.engine.model import GameState, PlayerState, Action
+        from git_dungeon.engine.model import GameState
         from git_dungeon.engine.route import build_route, NodeKind
-        from git_dungeon.engine.rules.difficulty import DifficultyLevel, get_difficulty
         
         state = GameState(seed=seed)
         state.difficulty = difficulty

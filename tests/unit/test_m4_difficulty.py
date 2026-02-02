@@ -1,6 +1,5 @@
 """Tests for M4 difficulty scaling system."""
 
-import pytest
 from git_dungeon.engine.rules.difficulty import (
     DifficultyLevel,
     get_difficulty,

@@ -95,7 +95,7 @@ class TestCharacterPanel:
             attack=10,
             defense=5,
         )
-        panel.update(hp=80, attack=12)
+        panel.update_stats(hp=80, attack=12)
         assert panel._hp == 80
         assert panel._attack == 12
 
