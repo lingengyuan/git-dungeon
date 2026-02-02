@@ -1,0 +1,737 @@
+# 卡牌定义 - Git Dungeon
+# M1 Build 引擎：Debug 爆发流 / 测试护盾流 / 重构代价流
+
+cards:
+  # ============ Debug 爆发流 (Offensive) ============
+  - id: debug_strike
+    name_key: "card.debug_strike.name"
+    desc_key: "card.debug_strike.desc"
+    type: attack
+    cost: 1
+    rarity: common
+    effects:
+      - type: damage
+        value: 6
+    tags: ["offensive", "debug"]
+    
+  - id: debug_blast
+    name_key: "card.debug_blast.name"
+    desc_key: "card.debug_blast.desc"
+    type: attack
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 12
+    tags: ["offensive", "debug"]
+    
+  - id: stack_trace
+    name_key: "card.stack_trace.name"
+    desc_key: "card.stack_trace.desc"
+    type: attack
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 5
+      - type: status
+        status: vulnerable
+        value: 2
+    tags: ["offensive", "debug"]
+    
+  - id: breakpoint
+    name_key: "card.breakpoint.name"
+    desc_key: "card.breakpoint.desc"
+    type: skill
+    cost: 1
+    rarity: common
+    effects:
+      - type: status
+        status: focus
+        value: 1
+      - type: draw
+        value: 1
+    tags: ["utility", "debug"]
+    
+  - id: assert_fail
+    name_key: "card.assert_fail.name"
+    desc_key: "card.assert_fail.desc"
+    type: attack
+    cost: 0
+    rarity: rare
+    effects:
+      - type: damage
+        value: 8
+    tags: ["offensive", "debug"]
+    conditions:
+      - target.vulnerable > 0
+      
+  - id: null_check
+    name_key: "card.null_check.name"
+    desc_key: "card.null_check.desc"
+    type: skill
+    cost: 1
+    rarity: common
+    effects:
+      - type: damage
+        value: 4
+      - type: status
+        status: weak
+        value: 1
+    tags: ["offensive", "debug"]
+    
+  - id: hot_fix
+    name_key: "card.hot_fix.name"
+    desc_key: "card.hot_fix.desc"
+    type: attack
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 14
+      - type: status
+        status: burn
+        value: 2
+    tags: ["offensive", "debug"]
+    
+  - id: console_log
+    name_key: "card.console_log.name"
+    desc_key: "card.console_log.desc"
+    type: skill
+    cost: 0
+    rarity: common
+    effects:
+      - type: draw
+        value: 2
+    tags: ["utility", "debug"]
+    
+  - id: memory_leak
+    name_key: "card.memory_leak.name"
+    desc_key: "card.memory_leak.desc"
+    type: attack
+    cost: 2
+    rarity: rare
+    effects:
+      - type: damage
+        value: 8
+      - type: status
+        status: burn
+        value: 4
+    tags: ["offensive", "debug"]
+      
+  - id: deploy_force
+    name_key: "card.deploy_force.name"
+    desc_key: "card.deploy_force.desc"
+    type: attack
+    cost: 3
+    rarity: legendary
+    effects:
+      - type: damage
+        value: 25
+    tags: ["offensive", "debug"]
+  
+  # ============ Debug 流派扩展卡牌 ============
+  - id: git_blame
+    name_key: "card.git_blame.name"
+    desc_key: "card.git_blame.desc"
+    type: attack
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 7
+      - type: status
+        status: vulnerable
+        value: 1
+    tags: ["offensive", "debug"]
+    
+  - id: code_review
+    name_key: "card.code_review.name"
+    desc_key: "card.code_review.desc"
+    type: skill
+    cost: 1
+    rarity: common
+    effects:
+      - type: draw
+        value: 1
+      - type: damage
+        value: 3
+    tags: ["utility", "debug"]
+    
+  - id: release_candidate
+    name_key: "card.release_candidate.name"
+    desc_key: "card.release_candidate.desc"
+    type: attack
+    cost: 2
+    rarity: rare
+    effects:
+      - type: damage
+        value: 16
+      - type: status
+        status: burn
+        value: 1
+    tags: ["offensive", "debug"]
+    
+  - id: panic_button
+    name_key: "card.panic_button.name"
+    desc_key: "card.panic_button.desc"
+    type: skill
+    cost: 0
+    rarity: rare
+    effects:
+      - type: energy
+        value: 2
+    tags: ["utility", "debug"]
+    conditions:
+      - hp < 30
+    
+  - id: production_hotfix
+    name_key: "card.production_hotfix.name"
+    desc_key: "card.production_hotfix.desc"
+    type: attack
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 10
+      - type: status
+        status: tech_debt
+        value: 1
+    tags: ["offensive", "debug"]
+    
+  # ============ 测试护盾流 (Defensive) ============
+  - id: test_guard
+    name_key: "card.test_guard.name"
+    desc_key: "card.test_guard.desc"
+    type: skill
+    cost: 1
+    rarity: common
+    effects:
+      - type: block
+        value: 5
+    tags: ["defensive", "test"]
+    
+  - id: mock_shield
+    name_key: "card.mock_shield.name"
+    desc_key: "card.mock_shield.desc"
+    type: skill
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: block
+        value: 12
+    tags: ["defensive", "test"]
+    
+  - id: integration_wall
+    name_key: "card.integration_wall.name"
+    desc_key: "card.integration_wall.desc"
+    type: skill
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: block
+        value: 8
+      - type: status
+        status: thorns
+        value: 2
+    tags: ["defensive", "test"]
+    
+  - id: test_coverage
+    name_key: "card.test_coverage.name"
+    desc_key: "card.test_coverage.desc"
+    type: skill
+    cost: 1
+    rarity: rare
+    effects:
+      - type: block
+        value: 6
+      - type: draw
+        value: 1
+    tags: ["defensive", "test"]
+    
+  - id: regression_stop
+    name_key: "card.regression_stop.name"
+    desc_key: "card.regression_stop.desc"
+    type: skill
+    cost: 1
+    rarity: common
+    effects:
+      - type: block
+        value: 7
+    tags: ["defensive", "test"]
+    
+  - id: ci_fortress
+    name_key: "card.ci_fortress.name"
+    desc_key: "card.ci_fortress.desc"
+    type: skill
+    cost: 3
+    rarity: rare
+    effects:
+      - type: block
+        value: 20
+    tags: ["defensive", "test"]
+    
+  - id: e2e_barrier
+    name_key: "card.e2e_barrier.name"
+    desc_key: "card.e2e_barrier.desc"
+    type: skill
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: block
+        value: 10
+      - type: status
+        status: focus
+        value: 1
+    tags: ["defensive", "test"]
+    
+  - id: unit_bastion
+    name_key: "card.unit_bastion.name"
+    desc_key: "card.unit_bastion.desc"
+    type: skill
+    cost: 1
+    rarity: common
+    effects:
+      - type: block
+        value: 5
+      - type: status
+        status: charge
+        value: 1
+    tags: ["defensive", "test"]
+    
+  - id: bug_catcher
+    name_key: "card.bug_catcher.name"
+    desc_key: "card.bug_catcher.desc"
+    type: skill
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: status
+        status: weak
+        value: 2
+      - type: block
+        value: 4
+    tags: ["defensive", "test"]
+    
+  - id: stress_test
+    name_key: "card.stress_test.name"
+    desc_key: "card.stress_test.desc"
+    type: power
+    cost: 2
+    rarity: legendary
+    effects:
+      - type: status
+        status: thorns
+        value: 5
+    tags: ["defensive", "test"]
+  
+  # ============ 测试流派扩展卡牌 ============
+  - id: unit_test
+    name_key: "card.unit_test.name"
+    desc_key: "card.unit_test.desc"
+    type: skill
+    cost: 1
+    rarity: common
+    effects:
+      - type: block
+        value: 5
+      - type: draw
+        value: 1
+    tags: ["defensive", "test"]
+    
+  - id: mock_server
+    name_key: "card.mock_server.name"
+    desc_key: "card.mock_server.desc"
+    type: skill
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: block
+        value: 8
+      - type: status
+        status: focus
+        value: 1
+    tags: ["defensive", "test"]
+    
+  - id: ci_pipeline
+    name_key: "card.ci_pipeline.name"
+    desc_key: "card.ci_pipeline.desc"
+    type: skill
+    cost: 2
+    rarity: rare
+    effects:
+      - type: block
+        value: 12
+      - type: status
+        status: thorns
+        value: 1
+    tags: ["defensive", "test"]
+    
+  - id: smoke_test
+    name_key: "card.smoke_test.name"
+    desc_key: "card.smoke_test.desc"
+    type: skill
+    cost: 0
+    rarity: common
+    effects:
+      - type: block
+        value: 3
+      - type: damage
+        value: 2
+    tags: ["defensive", "test"]
+    
+  - id: regression_test
+    name_key: "card.regression_test.name"
+    desc_key: "card.regression_test.desc"
+    type: skill
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: block
+        value: 10
+      - type: status
+        status: charge
+        value: 1
+    tags: ["defensive", "test"]
+    
+  - id: coverage_report
+    name_key: "card.coverage_report.name"
+    desc_key: "card.coverage_report.desc"
+    type: skill
+    cost: 1
+    rarity: rare
+    effects:
+      - type: block
+        value: 6
+      - type: energy
+        value: 1
+    tags: ["defensive", "test"]
+    
+  - id: staging_deploy
+    name_key: "card.staging_deploy.name"
+    desc_key: "card.staging_deploy.desc"
+    type: skill
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: block
+        value: 15
+      - type: status
+        status: tech_debt
+        value: -1
+    tags: ["defensive", "test"]
+  
+  # ============ 重构代价流 (High Risk/High Reward) ============
+  - id: refactor_strike
+    name_key: "card.refactor_strike.name"
+    desc_key: "card.refactor_strike.desc"
+    type: attack
+    cost: 1
+    rarity: common
+    effects:
+      - type: damage
+        value: 7
+      - type: status
+        status: tech_debt
+        value: 1
+    tags: ["offensive", "refactor"]
+    
+  - id: legacy_crash
+    name_key: "card.legacy_crash.name"
+    desc_key: "card.legacy_crash.desc"
+    type: attack
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 18
+      - type: status
+        status: tech_debt
+        value: 2
+    tags: ["offensive", "refactor"]
+    
+  - id: debt_collector
+    name_key: "card.debt_collector.name"
+    desc_key: "card.debt_collector.desc"
+    type: attack
+    cost: 2
+    rarity: rare
+    effects:
+      - type: damage
+        value: 10
+      - type: status
+        status: tech_debt
+        value: 3
+    tags: ["offensive", "refactor"]
+    
+  - id: api_breach
+    name_key: "card.api_breach.name"
+    desc_key: "card.api_breach.desc"
+    type: attack
+    cost: 3
+    rarity: rare
+    effects:
+      - type: damage
+        value: 25
+      - type: status
+        status: bug
+        value: 2
+    tags: ["offensive", "refactor"]
+    
+  - id: deprecation_dive
+    name_key: "card.deprecation_dive.name"
+    desc_key: "card.deprecation_dive.desc"
+    type: attack
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 9
+      - type: status
+        status: vulnerable
+        value: 2
+      - type: status
+        status: bug
+        value: 1
+    tags: ["offensive", "refactor"]
+    
+  - id: technical_split
+    name_key: "card.technical_split.name"
+    desc_key: "card.technical_split.desc"
+    type: attack
+    cost: 2
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 12
+      - type: status
+        status: tech_debt
+        value: 1
+      - type: status
+        status: charge
+        value: 1
+    tags: ["offensive", "refactor"]
+    
+  - id: spaghetti_whip
+    name_key: "card.spaghetti_whip.name"
+    desc_key: "card.spaghetti_whip.desc"
+    type: attack
+    cost: 0
+    rarity: common
+    effects:
+      - type: damage
+        value: 4
+      - type: status
+        status: bug
+        value: 1
+    tags: ["offensive", "refactor"]
+    
+  - id: monolith_crash
+    name_key: "card.monolith_crash.name"
+    desc_key: "card.monolith_crash.desc"
+    type: attack
+    cost: 3
+    rarity: legendary
+    effects:
+      - type: damage
+        value: 35
+      - type: status
+        status: tech_debt
+        value: 3
+    tags: ["offensive", "refactor"]
+    
+  - id: quick_patch
+    name_key: "card.quick_patch.name"
+    desc_key: "card.quick_patch.desc"
+    type: skill
+    cost: 0
+    rarity: common
+    effects:
+      - type: status
+        status: charge
+        value: 1
+      - type: energy
+        value: 1
+    tags: ["utility", "refactor"]
+    
+  - id: rewrite_blitz
+    name_key: "card.rewrite_blitz.name"
+    desc_key: "card.rewrite_blitz.desc"
+    type: attack
+    cost: 2
+    rarity: rare
+    effects:
+      - type: damage
+        value: 15
+      - type: draw
+        value: 2
+      - type: status
+        status: tech_debt
+        value: 1
+    tags: ["offensive", "refactor"]
+  
+  # ============ 重构流派扩展卡牌 ============
+  - id: git_reset
+    name_key: "card.git_reset.name"
+    desc_key: "card.git_reset.desc"
+    type: attack
+    cost: 0
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 5
+      - type: status
+        status: tech_debt
+        value: 2
+    tags: ["offensive", "refactor"]
+    
+  - id: dependency_hell
+    name_key: "card.dependency_hell.name"
+    desc_key: "card.dependency_hell.desc"
+    type: attack
+    cost: 2
+    rarity: rare
+    effects:
+      - type: damage
+        value: 12
+      - type: status
+        status: bug
+        value: 3
+    tags: ["offensive", "refactor"]
+    
+  - id: legacy_fallback
+    name_key: "card.legacy_fallback.name"
+    desc_key: "card.legacy_fallback.desc"
+    type: skill
+    cost: 1
+    rarity: common
+    effects:
+      - type: damage
+        value: 4
+      - type: block
+        value: 4
+    tags: ["defensive", "refactor"]
+    
+  - id: deprecated_warning
+    name_key: "card.deprecated_warning.name"
+    desc_key: "card.deprecated_warning.desc"
+    type: skill
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: status
+        status: vulnerable
+        value: 2
+      - type: status
+        status: weak
+        value: 1
+    tags: ["offensive", "refactor"]
+    
+  - id: monolith_split
+    name_key: "card.monolith_split.name"
+    desc_key: "card.monolith_split.desc"
+    type: attack
+    cost: 3
+    rarity: rare
+    effects:
+      - type: damage
+        value: 30
+      - type: status
+        status: tech_debt
+        value: 2
+    tags: ["offensive", "refactor"]
+    
+  - id: technical_interview
+    name_key: "card.technical_interview.name"
+    desc_key: "card.technical_interview.desc"
+    type: skill
+    cost: 0
+    rarity: rare
+    effects:
+      - type: energy
+        value: 1
+      - type: status
+        status: focus
+        value: 1
+    tags: ["utility", "refactor"]
+    
+  - id: code_smell
+    name_key: "card.code_smell.name"
+    desc_key: "card.code_smell.desc"
+    type: attack
+    cost: 1
+    rarity: common
+    effects:
+      - type: damage
+        value: 8
+      - type: status
+        status: burn
+        value: 1
+    tags: ["offensive", "refactor"]
+    
+  - id: dead_code
+    name_key: "card.dead_code.name"
+    desc_key: "card.dead_code.desc"
+    type: attack
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: damage
+        value: 6
+      - type: status
+        status: bug
+        value: 2
+    tags: ["offensive", "refactor"]
+    
+  - id: hot_reload
+    name_key: "card.hot_reload.name"
+    desc_key: "card.hot_reload.desc"
+    type: skill
+    cost: 0
+    rarity: uncommon
+    effects:
+      - type: draw
+        value: 1
+      - type: energy
+        value: 1
+    tags: ["utility", "refactor"]
+    
+  - id: legacy_ball
+    name_key: "card.legacy_ball.name"
+    desc_key: "card.legacy_ball.desc"
+    type: attack
+    cost: 2
+    rarity: rare
+    effects:
+      - type: damage
+        value: 20
+      - type: status
+        status: tech_debt
+        value: 1
+      - type: status
+        status: burn
+        value: 1
+    tags: ["offensive", "refactor"]
+  
+  # ============ 基础卡牌 (保留少量) ============
+  - id: strike
+    name_key: "card.strike.name"
+    desc_key: "card.strike.desc"
+    type: attack
+    cost: 1
+    rarity: common
+    effects:
+      - type: damage
+        value: 6
+    tags: ["basic"]
+    
+  - id: defend
+    name_key: "card.defend.name"
+    desc_key: "card.defend.desc"
+    type: skill
+    cost: 1
+    rarity: common
+    effects:
+      - type: block
+        value: 5
+    tags: ["basic"]

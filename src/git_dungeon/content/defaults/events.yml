@@ -1,0 +1,109 @@
+# 事件定义 - Git Dungeon
+# M0/M1 阶段：事件骨架，后续丰富内容
+
+events:
+  # ============ 基础事件 ============
+  - id: rest_site
+    name_key: "event.rest_site.name"
+    desc_key: "event.rest_site.desc"
+    choices:
+      - id: rest
+        desc_key: "event.rest_site.choice.rest"
+        effects:
+          - type: heal
+            value: 30
+      - id: upgrade
+        desc_key: "event.rest_site.choice.upgrade"
+        effects:
+          - type: card_upgrade
+            value: 1
+    conditions: {}
+    weights:
+      default: 10
+      
+  - id: merchant
+    name_key: "event.merchant.name"
+    desc_key: "event.merchant.desc"
+    choices:
+      - id: buy_card
+        desc_key: "event.merchant.choice.buy_card"
+        effects:
+          - type: card_choice
+            count: 3
+            rarity: uncommon
+      - id: buy_relic
+        desc_key: "event.merchant.choice.buy_relic"
+        effects:
+          - type: relic_choice
+            count: 1
+    conditions: {}
+    weights:
+      default: 5
+      
+  - id: treasure
+    name_key: "event.treasure.name"
+    desc_key: "event.treasure.desc"
+    choices:
+      - id: take
+        desc_key: "event.treasure.choice.take"
+        effects:
+          - type: relic
+            id: random
+    conditions: {}
+    weights:
+      default: 3
+      
+  # ============ Debug 流派事件 ============
+  - id: bug_hunt
+    name_key: "event.bug_hunt.name"
+    desc_key: "event.bug_hunt.desc"
+    choices:
+      - id: hunt
+        desc_key: "event.bug_hunt.choice.hunt"
+        effects:
+          - type: card_choice
+            count: 3
+            tags: ["debug"]
+          - type: gold
+            value: -20
+    conditions:
+      tags_contains: debug
+    weights:
+      debug: 10
+      
+  # ============ 测试流派事件 ============
+  - id: test_lab
+    name_key: "event.test_lab.name"
+    desc_key: "event.test_lab.desc"
+    choices:
+      - id: train
+        desc_key: "event.test_lab.choice.train"
+        effects:
+          - type: relic_choice
+            count: 1
+            tier: uncommon
+          - type: gold
+            value: -30
+    conditions:
+      tags_contains: test
+    weights:
+      test: 10
+      
+  # ============ 重构流派事件 ============
+  - id: legacy_code
+    name_key: "event.legacy_code.name"
+    desc_key: "event.legacy_code.desc"
+    choices:
+      - id: embrace
+        desc_key: "event.legacy_code.choice.embrace"
+        effects:
+          - type: card_choice
+            count: 3
+            tags: ["refactor"]
+          - type: status
+            status: tech_debt
+            value: 2
+    conditions:
+      tags_contains: refactor
+    weights:
+      refactor: 10

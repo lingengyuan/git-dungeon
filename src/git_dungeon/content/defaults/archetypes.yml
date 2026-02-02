@@ -1,0 +1,54 @@
+# 流派定义 - Git Dungeon
+# M1 Build 引擎：3 个核心流派
+
+archetypes:
+  # ============ Debug 爆发流 ============
+  - id: debug_beatdown
+    name_key: "archetype.debug_beatdown.name"
+    desc_key: "archetype.debug_beatdown.desc"
+    tags:
+      - debug
+      - offensive
+    starter_cards:
+      - debug_strike
+      - stack_trace
+      - console_log
+      - strike
+      - defend
+    starter_relics:
+      - git_init
+      - debugger
+      
+  # ============ 测试护盾流 ============
+  - id: test_shrine
+    name_key: "archetype.test_shrine.name"
+    desc_key: "archetype.test_shrine.desc"
+    tags:
+      - test
+      - defensive
+    starter_cards:
+      - test_guard
+      - integration_wall
+      - unit_bastion
+      - strike
+      - defend
+    starter_relics:
+      - git_init
+      - test_framework
+      
+  # ============ 重构代价流 ============
+  - id: refactor_risk
+    name_key: "archetype.refactor_risk.name"
+    desc_key: "archetype.refactor_risk.desc"
+    tags:
+      - refactor
+      - offensive
+    starter_cards:
+      - refactor_strike
+      - quick_patch
+      - spaghetti_whip
+      - strike
+      - defend
+    starter_relics:
+      - git_init
+      - legacy_code

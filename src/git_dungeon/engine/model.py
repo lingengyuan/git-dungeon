@@ -1,11 +1,52 @@
-# model.py - Core data models for the game state
+# model.py - Core data models for the game state (M1: Deck/Energy/Status)
 
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
 from datetime import datetime
 from enum import Enum
 import uuid
 
+
+# ==================== M1 新增枚举 ====================
+
+class CardType(Enum):
+    """卡牌类型"""
+    ATTACK = "attack"
+    SKILL = "skill"
+    POWER = "power"
+
+
+class StatusType(Enum):
+    """状态效果类型"""
+    # 进攻类
+    VULNERABLE = "vulnerable"  # 易伤
+    BURN = "burn"  # 灼烧
+    WEAK = "weak"  # 虚弱
+    
+    # 防御类
+    BLOCK = "block"  # 护甲
+    THORNS = "thorns"  # 反伤
+    
+    # 资源类
+    CHARGE = "charge"  # 充能
+    FOCUS = "focus"  # 专注
+    
+    # 负面类
+    TECH_DEBT = "tech_debt"  # 技术债
+    BUG = "bug"  # Bug
+
+
+class IntentType(Enum):
+    """敌人意图类型"""
+    ATTACK = "attack"
+    DEFEND = "defend"
+    BUFF = "buff"
+    DEBUFF = "debuff"
+    CHARGE = "charge"
+    ESCAPE = "escape"
+
+
+# ==================== 原有枚举 (保留兼容性) ====================
 
 class EntityType(Enum):
     """Entity types in the game"""
@@ -66,6 +107,164 @@ class Stats:
     luck: Stat = field(default_factory=lambda: Stat(5))      # 0-100
 
 
+# ==================== M1 数据类 (在 CharacterState 之前定义) ====================
+
+@dataclass
+class StatusStack:
+    """状态堆叠 (M1)"""
+    status_type: str
+    stacks: int = 1
+    max_stacks: int = 999
+    duration: int = -1  # -1 表示永久
+    
+    def add(self, amount: int = 1) -> None:
+        """添加层数"""
+        self.stacks = min(self.stacks + amount, self.max_stacks)
+    
+    def remove(self, amount: int = 1) -> None:
+        """移除层数"""
+        self.stacks = max(self.stacks - amount, 0)
+    
+    @property
+    def is_active(self) -> bool:
+        """是否激活"""
+        return self.stacks > 0 and (self.duration == -1 or self.duration > 0)
+    
+    def tick(self) -> bool:
+        """回合结算，返回是否应移除"""
+        if self.duration > 0:
+            self.duration -= 1
+        return self.duration == 0
+
+
+@dataclass
+class CardInstance:
+    """卡牌实例（运行时）"""
+    card_id: str
+    upgrade_level: int = 0
+    is_exhausted: bool = False
+    is_discarded: bool = False
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "card_id": self.card_id,
+            "upgrade_level": self.upgrade_level,
+            "is_exhausted": self.is_exhausted,
+            "is_discarded": self.is_discarded
+        }
+
+
+@dataclass
+class DeckState:
+    """套牌状态"""
+    hand: List[CardInstance] = field(default_factory=list)
+    draw_pile: List[CardInstance] = field(default_factory=list)
+    discard_pile: List[CardInstance] = field(default_factory=list)
+    exhaust_pile: List[CardInstance] = field(default_factory=list)
+    
+    def draw(self, count: int = 1) -> Tuple[List[CardInstance], List[CardInstance]]:
+        """抽牌，返回 (drawn, remaining_draw)"""
+        drawn = []
+        for _ in range(count):
+            if not self.draw_pile:
+                if not self.discard_pile:
+                    break  # 无牌可抽
+                # 洗弃牌堆到抽牌堆
+                self.draw_pile = self.discard_pile.copy()
+                self.discard_pile = []
+            
+            if self.draw_pile:
+                card = self.draw_pile.pop(0)
+                self.hand.append(card)
+                drawn.append(card)
+        
+        return drawn, self.draw_pile
+    
+    def play_card(self, card_index: int) -> Optional[CardInstance]:
+        """出牌，返回打出的卡牌"""
+        if 0 <= card_index < len(self.hand):
+            card = self.hand.pop(card_index)
+            card.is_discarded = True
+            self.discard_pile.append(card)
+            return card
+        return None
+    
+    def exhaust_card(self, card_index: int) -> Optional[CardInstance]:
+        """消耗牌"""
+        if 0 <= card_index < len(self.hand):
+            card = self.hand.pop(card_index)
+            card.is_exhausted = True
+            self.exhaust_pile.append(card)
+            return card
+        return None
+    
+    def discard_hand(self) -> List[CardInstance]:
+        """弃置所有手牌"""
+        discarded = self.hand.copy()
+        for card in discarded:
+            card.is_discarded = True
+        self.discard_pile.extend(discarded)
+        self.hand.clear()
+        return discarded
+    
+    def reshuffle_discard(self) -> None:
+        """洗混弃牌堆到抽牌堆"""
+        self.draw_pile.extend(self.discard_pile)
+        self.discard_pile.clear()
+    
+    @property
+    def total_cards(self) -> int:
+        """总牌数"""
+        return len(self.draw_pile) + len(self.discard_pile) + len(self.hand) + len(self.exhaust_pile)
+
+
+@dataclass
+class EnergyState:
+    """能量状态"""
+    max_energy: int = 3
+    current_energy: int = 3
+    energy_gained_this_turn: int = 0
+    
+    def start_turn(self) -> None:
+        """回合开始，重置能量"""
+        self.current_energy = self.max_energy
+        self.energy_gained_this_turn = 0
+    
+    def consume(self, amount: int) -> bool:
+        """消耗能量"""
+        if self.current_energy >= amount:
+            self.current_energy -= amount
+            return True
+        return False
+    
+    def gain(self, amount: int) -> None:
+        """获得能量"""
+        self.current_energy += amount
+        self.energy_gained_this_turn += amount
+    
+    @property
+    def can_afford(self, cost: int) -> bool:
+        """是否能支付"""
+        return self.current_energy >= cost
+
+
+@dataclass
+class EnemyIntent:
+    """敌人意图"""
+    intent_type: IntentType
+    value: int = 0  # 伤害值或护甲值
+    status: Optional[str] = None
+    status_value: int = 0
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "intent_type": self.intent_type.value,
+            "value": self.value,
+            "status": self.status,
+            "status_value": self.status_value
+        }
+
+
 @dataclass
 class CharacterState:
     """Base state for any character (player or enemy)"""
@@ -79,10 +278,20 @@ class CharacterState:
     experience: int = 0
     experience_to_next: int = 100
     is_alive: bool = True
+    # M1: 状态系统
+    statuses: Dict[str, int] = field(default_factory=dict)  # status_type -> stacks
     
     def take_damage(self, amount: int) -> int:
-        """Take damage, return actual damage taken"""
-        actual = max(1, amount - self.stats.defense.value)
+        """Take damage, return actual damage taken (M1: 易伤 + 护甲)"""
+        # M1: 护甲减免先
+        block = self.statuses.get("block", 0)
+        after_block = max(0, amount - block)
+        
+        # M1: 易伤效果 - 受伤+25%每层
+        vulnerable_stacks = self.statuses.get("vulnerable", 0)
+        damage_multiplier = 1.0 + (vulnerable_stacks * 0.25)
+        actual = max(1, int(after_block * damage_multiplier))
+        
         self.current_hp = max(0, self.current_hp - actual)
         if self.current_hp <= 0:
             self.is_alive = False
@@ -117,7 +326,7 @@ class CharacterState:
 
 @dataclass
 class PlayerState:
-    """Player game state"""
+    """Player game state (M1: 添加 Deck/Energy 系统)"""
     character: CharacterState = field(default_factory=lambda: CharacterState(
         entity_id="player",
         entity_type=EntityType.PLAYER,
@@ -129,11 +338,15 @@ class PlayerState:
     equipped_armor: Optional[Dict[str, Any]] = None
     skills: List[str] = field(default_factory=list)  # Skill IDs
     achievements: List[str] = field(default_factory=list)
+    # M1: Deck 系统
+    deck: DeckState = field(default_factory=DeckState)  # 套牌状态
+    energy: EnergyState = field(default_factory=EnergyState)  # 能量状态
+    relics: List[str] = field(default_factory=list)  # 持有的遗物 ID 列表
 
 
 @dataclass
 class EnemyState:
-    """Enemy game state"""
+    """Enemy game state (M1: 添加 Intent 系统)"""
     entity_id: str
     name: str
     enemy_type: str  # "feature", "bug", "merge", etc.
@@ -148,10 +361,17 @@ class EnemyState:
     drops: List[Dict[str, Any]] = field(default_factory=list)
     is_alive: bool = True
     is_boss: bool = False
+    # M1: Intent 系统
+    intent: Optional[EnemyIntent] = None  # 下回合意图
+    statuses: Dict[str, int] = field(default_factory=dict)  # 状态效果
+    block: int = 0  # 当前护甲
     
     def take_damage(self, amount: int) -> int:
         """Take damage, return actual damage taken"""
-        actual = max(1, amount - self.defense)
+        # M1: 护甲减免
+        actual_base = max(1, amount - self.defense)
+        actual = max(0, actual_base - self.block)
+        
         self.current_hp = max(0, self.current_hp - actual)
         if self.current_hp <= 0:
             self.is_alive = False
@@ -197,6 +417,10 @@ class GameState:
     # Combat
     current_enemy: Optional[EnemyState] = None
     in_combat: bool = False
+    # M1: 战斗状态机
+    turn_number: int = 0
+    turn_phase: str = "player"  # "player", "enemy", "resolution"
+    cards_drawn_this_turn: int = 0
     
     # Progress
     enemies_defeated: List[str] = field(default_factory=list)  # List of commit hashes
@@ -206,6 +430,8 @@ class GameState:
     
     # Settings
     difficulty: str = "normal"
+    # M1: 流派倾向
+    archetype_tags: List[str] = field(default_factory=list)  # 玩家选择的流派标签
     
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to dict"""

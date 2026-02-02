@@ -1,0 +1,353 @@
+# 敌人定义 - Git Dungeon
+# M1 Build 引擎：每种 commit 类型至少 2 个模板
+
+enemies:
+  # ============ feat (新功能) ============
+  - id: feature_request
+    name_key: "enemy.feature_request.name"
+    type: feat
+    base_hp: 25
+    base_damage: 6
+    ai_pattern: aggressive
+    status_vulnerable:
+      - vulnerable
+    intent_preference:
+      - attack
+      
+  - id: new_feature
+    name_key: "enemy.new_feature.name"
+    type: feat
+    base_hp: 35
+    base_damage: 5
+    ai_pattern: cycle
+    status_resist:
+      - weak
+    intent_preference:
+      - attack
+      - buff
+      
+  # ============ fix (Bug 修复) ============
+  - id: bug_report
+    name_key: "enemy.bug_report.name"
+    type: fix
+    base_hp: 20
+    base_damage: 8
+    ai_pattern: aggressive
+    status_vulnerable:
+      - burn
+    intent_preference:
+      - attack
+      - debuff
+      
+  - id: bug_fix
+    name_key: "enemy.bug_fix.name"
+    type: fix
+    base_hp: 30
+    base_damage: 6
+    ai_pattern: defensive
+    status_resist:
+      - bug
+    intent_preference:
+      - defend
+      - attack
+      
+  # ============ docs (文档) ============
+  - id: typo_fix
+    name_key: "enemy.typo_fix.name"
+    type: docs
+    base_hp: 15
+    base_damage: 4
+    ai_pattern: basic
+    status_vulnerable:
+      - vulnerable
+    intent_preference:
+      - attack
+      
+  - id: documentation
+    name_key: "enemy.documentation.name"
+    type: docs
+    base_hp: 25
+    base_damage: 3
+    ai_pattern: defensive
+    status_resist:
+      - weak
+    intent_preference:
+      - defend
+      
+  # ============ refactor (重构) ============
+  - id: code_smell
+    name_key: "enemy.code_smell.name"
+    type: refactor
+    base_hp: 40
+    base_damage: 4
+    ai_pattern: cycle
+    status_resist:
+      - tech_debt
+    intent_preference:
+      - attack
+      - buff
+      
+  - id: refactoring
+    name_key: "enemy.refactoring.name"
+    type: refactor
+    base_hp: 35
+    base_damage: 7
+    ai_pattern: aggressive
+    status_vulnerable:
+      - tech_debt
+    intent_preference:
+      - attack
+      - debuff
+      
+  # ============ merge (合并) ============
+  - id: merge_conflict
+    name_key: "enemy.merge_conflict.name"
+    type: merge
+    base_hp: 60
+    base_damage: 8
+    base_block: 5
+    ai_pattern: cycle
+    status_resist:
+      - vulnerable
+      - weak
+    intent_preference:
+      - attack
+      - defend
+      - buff
+      
+  - id: merge_request
+    name_key: "enemy.merge_request.name"
+    type: merge
+    base_hp: 50
+    base_damage: 10
+    ai_pattern: aggressive
+    status_vulnerable:
+      - burn
+    intent_preference:
+      - attack
+      - charge
+      
+  # ============ chore (杂项) ============
+  - id: dependency_update
+    name_key: "enemy.dependency_update.name"
+    type: chore
+    base_hp: 30
+    base_damage: 5
+    ai_pattern: basic
+    status_vulnerable:
+      - focus
+    intent_preference:
+      - attack
+      
+  - id: config_change
+    name_key: "enemy.config_change.name"
+    type: chore
+    base_hp: 25
+    base_damage: 6
+    ai_pattern: defensive
+    status_resist:
+      - charge
+    intent_preference:
+      - defend
+      - attack
+      
+  # ============ test (测试) ============
+  - id: unit_test
+    name_key: "enemy.unit_test.name"
+    type: test
+    base_hp: 20
+    base_damage: 7
+    ai_pattern: defensive
+    status_vulnerable:
+      - thorns
+    intent_preference:
+      - defend
+      
+  - id: integration_test
+    name_key: "enemy.integration_test.name"
+    type: test
+    base_hp: 35
+    base_damage: 5
+    ai_pattern: cycle
+    status_resist:
+      - burn
+    intent_preference:
+      - attack
+      - defend
+      
+  # ============ style (格式) ============
+  - id: lint_error
+    name_key: "enemy.lint_error.name"
+    type: style
+    base_hp: 18
+    base_damage: 5
+    ai_pattern: basic
+    status_vulnerable:
+      - weak
+    intent_preference:
+      - attack
+      
+  - id: formatting_fix
+    name_key: "enemy.formatting_fix.name"
+    type: style
+    base_hp: 22
+    base_damage: 4
+    ai_pattern: defensive
+    status_resist:
+      - vulnerable
+    intent_preference:
+      - defend
+      
+  # ============ perf (性能) ============
+  - id: performance_issue
+    name_key: "enemy.performance_issue.name"
+    type: perf
+    base_hp: 40
+    base_damage: 4
+    ai_pattern: cycle
+    status_vulnerable:
+      - tech_debt
+    intent_preference:
+      - buff
+      - attack
+      
+  - id: optimization
+    name_key: "enemy.optimization.name"
+    type: perf
+    base_hp: 30
+    base_damage: 8
+    ai_pattern: aggressive
+    status_vulnerable:
+      - focus
+    intent_preference:
+      - attack
+      - charge
+      
+  # ============ revert (回滚) ============
+  - id: revert_commit
+    name_key: "enemy.revert_commit.name"
+    type: revert
+    base_hp: 25
+    base_damage: 9
+    ai_pattern: aggressive
+    status_vulnerable:
+      - bug
+    intent_preference:
+      - attack
+      
+  - id: rollback
+    name_key: "enemy.rollback.name"
+    type: revert
+    base_hp: 45
+    base_damage: 6
+    base_block: 8
+    ai_pattern: defensive
+    status_resist:
+      - burn
+      - vulnerable
+    intent_preference:
+      - defend
+      - buff
+  
+  # ============ 精英敌人 (Elite) ============
+  - id: legacy_monolith
+    name_key: "enemy.legacy_monolith.name"
+    type: feat
+    base_hp: 80
+    base_damage: 10
+    base_block: 5
+    ai_pattern: cycle
+    status_resist:
+      - vulnerable
+      - weak
+    is_boss: false
+    intent_preference:
+      - attack
+      - defend
+      - buff
+      
+  - id: production_outage
+    name_key: "enemy.production_outage.name"
+    type: fix
+    base_hp: 60
+    base_damage: 12
+    ai_pattern: aggressive
+    status_resist:
+      - burn
+      - bug
+    is_boss: false
+    intent_preference:
+      - attack
+      - debuff
+      
+  - id: memory_leak
+    name_key: "enemy.memory_leak.name"
+    type: perf
+    base_hp: 50
+    base_damage: 8
+    ai_pattern: cycle
+    status_resist:
+      - tech_debt
+    is_boss: false
+    intent_preference:
+      - attack
+      - charge
+      - buff
+      
+  - id: circular_dependency
+    name_key: "enemy.circular_dependency.name"
+    type: chore
+    base_hp: 55
+    base_damage: 7
+    ai_pattern: defensive
+    status_resist:
+      - focus
+      - charge
+    is_boss: false
+    intent_preference:
+      - defend
+      - buff
+      
+  - id: security_vulnerability
+    name_key: "enemy.security_vulnerability.name"
+    type: fix
+    base_hp: 70
+    base_damage: 9
+    ai_pattern: aggressive
+    status_vulnerable:
+      - vulnerable
+      - weak
+    is_boss: false
+    intent_preference:
+      - attack
+      - debuff
+      - charge
+      
+  - id: infinite_loop
+    name_key: "enemy.infinite_loop.name"
+    type: perf
+    base_hp: 45
+    base_damage: 15
+    ai_pattern: aggressive
+    status_resist:
+      - burn
+    is_boss: false
+    intent_preference:
+      - attack
+      - charge
+      
+  - id: api_deprecation
+    name_key: "enemy.api_deprecation.name"
+    type: refactor
+    base_hp: 65
+    base_damage: 8
+    ai_pattern: cycle
+    status_resist:
+      - bug
+      - tech_debt
+    is_boss: false
+    intent_preference:
+      - attack
+      - debuff
+      - buff
+      - buff

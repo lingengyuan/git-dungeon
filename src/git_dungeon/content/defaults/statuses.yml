@@ -1,0 +1,70 @@
+# 状态定义 - Git Dungeon
+# M1 Build 引擎：8+ 个状态效果
+
+statuses:
+  # ============ 进攻类 ============
+  - id: vulnerable
+    name_key: "status.vulnerable.name"
+    desc_key: "status.vulnerable.desc"
+    type: vulnerable
+    max_stacks: 999
+    duration_type: turn
+    
+  - id: burn
+    name_key: "status.burn.name"
+    desc_key: "status.burn.desc"
+    type: burn
+    max_stacks: 10
+    duration_type: turn
+    
+  - id: weak
+    name_key: "status.weak.name"
+    desc_key: "status.weak.desc"
+    type: weak
+    max_stacks: 999
+    duration_type: turn
+    
+  # ============ 防御类 ============
+  - id: block
+    name_key: "status.block.name"
+    desc_key: "status.block.desc"
+    type: block
+    max_stacks: 999
+    duration_type: turn
+    
+  - id: thorns
+    name_key: "status.thorns.name"
+    desc_key: "status.thorns.desc"
+    type: thorns
+    max_stacks: 999
+    duration_type: turn
+    
+  # ============ 资源类 ============
+  - id: charge
+    name_key: "status.charge.name"
+    desc_key: "status.charge.desc"
+    type: charge
+    max_stacks: 5
+    duration_type: turn
+    
+  - id: focus
+    name_key: "status.focus.name"
+    desc_key: "status.focus.desc"
+    type: focus
+    max_stacks: 5
+    duration_type: turn
+    
+  # ============ 负面类 ============
+  - id: tech_debt
+    name_key: "status.tech_debt.name"
+    desc_key: "status.tech_debt.desc"
+    type: tech_debt
+    max_stacks: 10
+    duration_type: indefinite
+    
+  - id: bug
+    name_key: "status.bug.name"
+    desc_key: "status.bug.desc"
+    type: bug
+    max_stacks: 10
+    duration_type: turn

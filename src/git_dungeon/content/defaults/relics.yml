@@ -1,0 +1,124 @@
+# 遗物定义 - Git Dungeon
+# M1 Build 引擎配套遗物
+
+relics:
+  # ============ 初始遗物 (Starter) ============
+  - id: git_init
+    name_key: "relic.git_init.name"
+    desc_key: "relic.git_init.desc"
+    tier: starter
+    effects:
+      start_energy: 3
+      
+  - id: first_commit
+    name_key: "relic.first_commit.name"
+    desc_key: "relic.first_commit.desc"
+    tier: starter
+    effects:
+      energy_discount: 0
+      
+  # ============ Debug 流派遗物 ============
+  - id: debugger
+    name_key: "relic.debugger.name"
+    desc_key: "relic.debugger.desc"
+    tier: uncommon
+    effects:
+      bonus_damage_vs_vulnerable: 3
+      
+  - id: stack_trace_amulet
+    name_key: "relic.stack_trace_amulet.name"
+    desc_key: "relic.stack_trace_amulet.desc"
+    tier: rare
+    effects:
+      vulnerable_multiplier: 0.2
+      
+  - id: breakpoint_totem
+    name_key: "relic.breakpoint_totem.name"
+    desc_key: "relic.breakpoint_totem.desc"
+    tier: uncommon
+    effects:
+      focus_chance: 0.3
+      
+  - id: production_logs
+    name_key: "relic.production_logs.name"
+    desc_key: "relic.production_logs.desc"
+    tier: rare
+    effects:
+      energy_on_crit: 1
+      
+  # ============ 测试流派遗物 ============
+  - id: test_framework
+    name_key: "relic.test_framework.name"
+    desc_key: "relic.test_framework.desc"
+    tier: uncommon
+    effects:
+      bonus_block: 3
+      
+  - id: mock_server
+    name_key: "relic.mock_server.name"
+    desc_key: "relic.mock_server.desc"
+    tier: rare
+    effects:
+      thorns_bonus: 2
+      
+  - id: ci_badge
+    name_key: "relic.ci_badge.name"
+    desc_key: "relic.ci_badge.desc"
+    tier: uncommon
+    effects:
+      draw_at_turn_start: 1
+      
+  - id: coverage_report
+    name_key: "relic.coverage_report.name"
+    desc_key: "relic.coverage_report.desc"
+    tier: rare
+    effects:
+      block_at_turn_start: 5
+      
+  # ============ 重构流派遗物 ============
+  - id: legacy_code
+    name_key: "relic.legacy_code.name"
+    desc_key: "relic.legacy_code.desc"
+    tier: uncommon
+    effects:
+      tech_debt_bonus_damage: 5
+      
+  - id: deprecation_notice
+    name_key: "relic.deprecation_notice.name"
+    desc_key: "relic.deprecation_notice.desc"
+    tier: rare
+    effects:
+      bug_damage_bonus: 4
+      
+  - id: spaghetti_monitor
+    name_key: "relic.spaghetti_monitor.name"
+    desc_key: "relic.spaghetti_monitor.desc"
+    tier: uncommon
+    effects:
+      charge_bonus: 1
+      
+  - id: refactoring_tool
+    name_key: "relic.refactoring_tool.name"
+    desc_key: "relic.refactoring_tool.desc"
+    tier: rare
+    effects:
+      cost_reduction: 1
+      conditions:
+        - target.tags contains "refactor"
+        
+  # ============ BOSS 遗物 ============
+  - id: main_branch
+    name_key: "relic.main_branch.name"
+    desc_key: "relic.main_branch.desc"
+    tier: boss
+    effects:
+      max_energy_bonus: 1
+      bonus_all_stats: 2
+      
+  - id: production_crash
+    name_key: "relic.production_crash.name"
+    desc_key: "relic.production_crash.desc"
+    tier: boss
+    effects:
+      all_damage_bonus: 0.5
+      self_damage: 2

@@ -8,7 +8,7 @@ import uuid
 
 
 class EventType(Enum):
-    """Event types for game events"""
+    """Event types for game events (M1: 添加战斗状态机事件)"""
     # Lifecycle
     GAME_STARTED = "game_started"
     GAME_SAVED = "game_saved"
@@ -25,6 +25,12 @@ class EventType(Enum):
     STATUS_REMOVED = "status_removed"
     CRITICAL_HIT = "critical_hit"
     EVADED = "evaded"
+    # M1: 战斗状态机事件
+    TURN_STARTED = "turn_started"
+    TURN_ENDED = "turn_ended"
+    CARDS_DRAWN = "cards_drawn"
+    CARD_PLAYED = "card_played"
+    ENEMY_INTENT_REVEALED = "enemy_intent_revealed"
     
     # Progression
     EXP_GAINED = "exp_gained"
