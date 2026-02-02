@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from git_dungeon.engine.route import (
-    build_route, get_route_stats, NodeKind, NodeTag, RouteGraph
+    build_route, get_route_stats, NodeKind, RouteGraph
 )
 
 
@@ -66,7 +66,7 @@ def test_route_determinism():
     seq2 = route2.get_node_sequence()
     
     assert seq1 == seq2, "同种子应生成相同路径"
-    print(f"✅ 确定性验证通过")
+    print("✅ 确定性验证通过")
     print(f"   节点序列: {seq1}")
     
 
@@ -84,7 +84,7 @@ def test_route_stats():
     route = build_route(commits, seed=54321, chapter_index=0, node_count=14)
     stats = get_route_stats(route)
     
-    print(f"✅ 路径统计:")
+    print("✅ 路径统计:")
     print(f"   总节点: {stats['total_nodes']}")
     print(f"   战斗: {stats['battles']}")
     print(f"   事件: {stats['events']}")
@@ -117,7 +117,7 @@ def test_route_fork_points():
     start_node = route.get_start_node()
     next_options = route.get_next_nodes(start_node.node_id)
     
-    print(f"✅ 起始分叉:")
+    print("✅ 起始分叉:")
     print(f"   起始节点: {start_node.kind.value}")
     print(f"   可选分支: {len(next_options)} 个")
     
@@ -172,7 +172,7 @@ def test_route_golden():
     route = build_route(commits, seed=77777, chapter_index=1, node_count=10)
     node_sequence = route.get_node_sequence()
     
-    print(f"✅ 固定 seed (77777) 节点序列:")
+    print("✅ 固定 seed (77777) 节点序列:")
     print(f"   {node_sequence}")
     
     # 验证序列长度
@@ -180,7 +180,7 @@ def test_route_golden():
     
     # 验证最后一个是 BOSS
     assert node_sequence[-1] == NodeKind.BOSS, "最后一个节点应该是 BOSS"
-    print(f"   ✅ 最后一个节点是 BOSS")
+    print("   ✅ 最后一个节点是 BOSS")
     
     return node_sequence
 

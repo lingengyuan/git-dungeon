@@ -9,11 +9,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from git_dungeon.engine.model import (
-    GameState, PlayerState, CharacterState, DeckState, EnergyState, CardInstance
+    GameState, CardInstance
 )
-from git_dungeon.engine.rng import DefaultRNG
 from git_dungeon.content.loader import load_content
-from git_dungeon.content.schema import CharacterDef, CharacterStats
 
 
 def test_character_stats():
@@ -43,7 +41,7 @@ def test_character_stats():
     assert devops.stats.hp == 90, f"DevOps HP 期望 90, 实际 {devops.stats.hp}"
     assert len(devops.abilities) == 1  # 有能力
     
-    print(f"✅ 角色属性差异:")
+    print("✅ 角色属性差异:")
     print(f"   Developer: HP={developer.stats.hp}, Energy={developer.stats.energy}")
     print(f"   Reviewer: HP={reviewer.stats.hp}, Energy={reviewer.stats.energy}, Abilities={len(reviewer.abilities)}")
     print(f"   DevOps: HP={devops.stats.hp}, Energy={devops.stats.energy}, Abilities={len(devops.abilities)}")
@@ -74,7 +72,7 @@ def test_starter_deck():
     # DevOps 起始卡 (管道流)
     assert len(devops.starter_cards) >= 5, f"DevOps 起始卡应 >= 5, 实际 {len(devops.starter_cards)}"
     
-    print(f"✅ 起始套牌:")
+    print("✅ 起始套牌:")
     print(f"   Developer: {len(developer.starter_cards)} 卡 - {developer.starter_cards}")
     print(f"   Reviewer: {len(reviewer.starter_cards)} 卡 - {reviewer.starter_cards}")
     print(f"   DevOps: {len(devops.starter_cards)} 卡 - {devops.starter_cards}")
@@ -101,7 +99,7 @@ def test_starter_relics():
     # 起始遗物应该不同
     assert developer.starter_relics[0] != reviewer.starter_relics[0], "起始遗物应该不同"
     
-    print(f"✅ 起始遗物:")
+    print("✅ 起始遗物:")
     print(f"   Developer: {developer.starter_relics}")
     print(f"   Reviewer: {reviewer.starter_relics}")
     print(f"   DevOps: {devops.starter_relics}")
@@ -135,8 +133,8 @@ def test_character_abilities():
     assert pipeline.trigger == "on_turn_end", "DevOps 应该是回合结束触发"
     assert "add_energy" in pipeline.effect or "draw" in pipeline.effect
     
-    print(f"✅ 角色能力:")
-    print(f"   Developer: 无 (被动)")
+    print("✅ 角色能力:")
+    print("   Developer: 无 (被动)")
     print(f"   Reviewer: {reviewer.abilities[0].effect} ({reviewer.abilities[0].trigger})")
     print(f"   DevOps: {devops.abilities[0].effect} ({devops.abilities[0].trigger})")
 
@@ -187,7 +185,7 @@ def test_character_initialization():
     assert ops_state.player.character.current_hp == 90, f"DevOps HP 错误: {ops_state.player.character.current_hp}"
     assert "ci_badge" in ops_state.player.relics
     
-    print(f"✅ 角色初始化正确:")
+    print("✅ 角色初始化正确:")
     print(f"   Developer: HP={dev_state.player.character.current_hp}, 卡={len(dev_state.player.deck.draw_pile)}")
     print(f"   Reviewer: HP={rev_state.player.character.current_hp}, 卡={len(rev_state.player.deck.draw_pile)}")
     print(f"   DevOps: HP={ops_state.player.character.current_hp}, 卡={len(ops_state.player.deck.draw_pile)}")
@@ -223,7 +221,7 @@ def test_character_determinism():
     assert len(state1.player.deck.draw_pile) == len(state2.player.deck.draw_pile)
     assert state1.player.relics == state2.player.relics
     
-    print(f"✅ 角色选择确定性验证通过")
+    print("✅ 角色选择确定性验证通过")
 
 
 def test_character_content_integrity():
@@ -252,7 +250,7 @@ def test_character_content_integrity():
             relic = content.get_relic(relic_id)
             assert relic is not None, f"角色 {char_id} 的遗物 {relic_id} 不存在"
     
-    print(f"✅ 内容完整性验证通过")
+    print("✅ 内容完整性验证通过")
     print(f"   角色: {len(content.characters)}")
     for char_id, char in content.characters.items():
         print(f"      {char_id}: {len(char.starter_cards)} 卡, {len(char.starter_relics)} 遗物")
@@ -279,7 +277,7 @@ def test_all_characters_defined():
         assert len(char.starter_cards) >= 5, f"角色 {char_id} 起始卡不足"
         assert len(char.starter_relics) >= 1, f"角色 {char_id} 起始遗物不足"
     
-    print(f"✅ 所有角色正确定义:")
+    print("✅ 所有角色正确定义:")
     for char_id in expected_characters:
         char = content.characters[char_id]
         print(f"   {char_id}: {char.name_key}")

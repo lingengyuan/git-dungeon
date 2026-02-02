@@ -9,11 +9,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from git_dungeon.engine.events import (
-    apply_event_choice, EventEffectOpcode
+    apply_event_choice
 )
 from git_dungeon.engine.model import (
-    GameState, PlayerState, CharacterState, DeckState, EnergyState,
-    CardInstance, EntityType
+    GameState, CardInstance
 )
 from git_dungeon.engine.rng import DefaultRNG
 
@@ -33,7 +32,7 @@ def test_event_effect_gain_gold():
     assert result["success"], "执行应该成功"
     assert state.player.gold == 80, f"期望 80, 实际 {state.player.gold}"
     assert "gain_gold:30" in result["effects_applied"]
-    print(f"✅ 金币: 50 -> 80")
+    print("✅ 金币: 50 -> 80")
 
 
 def test_event_effect_lose_gold():
@@ -51,7 +50,7 @@ def test_event_effect_lose_gold():
     assert result["success"], "执行应该成功"
     assert state.player.gold == 0, f"期望 0, 实际 {state.player.gold}"
     assert "lose_gold:50" in result["effects_applied"]
-    print(f"✅ 金币: 20 -> 0 (不小于0)")
+    print("✅ 金币: 20 -> 0 (不小于0)")
 
 
 def test_event_effect_heal():
@@ -89,7 +88,7 @@ def test_event_effect_take_damage():
     
     assert result["success"], "执行应该成功"
     assert state.player.character.current_hp == 75, f"期望 75, 实际 {state.player.character.current_hp}"
-    print(f"✅ HP: 100 -> 75")
+    print("✅ HP: 100 -> 75")
 
 
 def test_event_effect_add_card():
@@ -217,9 +216,9 @@ def test_event_effect_multiple():
     assert state.player.gold == 75, f"期望 75, 实际 {state.player.gold}"
     assert state.player.character.current_hp == 90, f"期望 90, 实际 {state.player.character.current_hp}"
     assert state.player.deck.total_cards == initial_cards + 1
-    print(f"✅ 组合效果:")
-    print(f"   金币: 50 -> 75")
-    print(f"   HP: 80 -> 90")
+    print("✅ 组合效果:")
+    print("   金币: 50 -> 75")
+    print("   HP: 80 -> 90")
     print(f"   卡牌: {initial_cards} -> {state.player.deck.total_cards}")
 
 

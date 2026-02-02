@@ -1,11 +1,9 @@
 """Unit tests for git_parser module."""
 
 import pytest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 
 from src.core.git_parser import GitParser, CommitInfo, FileChange
-from src.core.character import CharacterComponent, CharacterType
 
 
 class TestCommitInfo:

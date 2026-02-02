@@ -17,16 +17,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from git_dungeon.engine import Engine, GameState, Action, DefaultRNG
 from git_dungeon.engine.meta import (
-    MetaProfile, RunSummary, load_meta, save_meta, award_points,
-    get_available_unlocks, can_afford, unlock_item, create_default_profile
+    RunSummary, load_meta, save_meta, award_points,
+    can_afford, unlock_item, create_default_profile
 )
 from git_dungeon.engine.route import build_route, NodeKind
-from git_dungeon.engine.events import apply_event_choice
 from git_dungeon.content.loader import load_content
 from git_dungeon.content.packs import (
     PackLoader, merge_content_with_packs, get_pack_info
 )
-from git_dungeon.content.schema import CharacterDef
 
 
 # ==================== 测试结果收集 ====================
@@ -118,7 +116,6 @@ def test_m3_1_award_points(results: TestResult):
     print("=" * 50)
     
     profile = create_default_profile("PointsTest")
-    initial = profile.total_points
     
     run = RunSummary(
         character_id="developer",
@@ -477,7 +474,7 @@ def test_m3_full_gameplay(results: TestResult):
     results.add_pass(f"生成单局总结 (+{points} 点数)")
     
     # 6. 解锁检查
-    can = can_afford(profile, "characters", "test_pack")
+    can_afford(profile, "characters", "test_pack")
     results.add_pass("解锁检查")
 
 

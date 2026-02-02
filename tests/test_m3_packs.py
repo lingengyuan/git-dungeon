@@ -5,15 +5,12 @@ M3.3 内容包测试
 """
 
 import sys
-import tempfile
-import os
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from git_dungeon.content.packs import (
     PackLoader, merge_content_with_packs, get_pack_info
 )
-from git_dungeon.content.schema import ContentRegistry, ContentPack
 from git_dungeon.content.loader import load_content
 
 
@@ -37,7 +34,7 @@ def test_pack_loader():
         assert len(pack.cards) >= 3, f"包 {pack_id} 卡牌不足"
         assert pack.archetype in ["debug_beatdown", "test_shrine", "refactor_risk"]
     
-    print(f"✅ 内容包加载成功:")
+    print("✅ 内容包加载成功:")
     print(f"   总包数: {len(packs)}")
     for pack_id, pack in packs.items():
         print(f"   - {pack_id}: {len(pack.cards)} 卡, {len(pack.relics)} 遗物, {len(pack.events)} 事件")
@@ -59,7 +56,7 @@ def test_pack_info():
     assert debug_info["archetype"] == "debug_beatdown"
     assert debug_info["points_cost"] == 150
     
-    print(f"✅ 包信息获取成功:")
+    print("✅ 包信息获取成功:")
     for pack_id, pack_info in info.items():
         print(f"   {pack_id}: {pack_info['archetype']} ({pack_info['points_cost']} pts)")
 
@@ -91,7 +88,7 @@ def test_merge_packs():
     for card in debug_pack.cards:
         assert card.id in merged.cards, f"卡牌 {card.id} 应该存在"
     
-    print(f"✅ 内容合并成功:")
+    print("✅ 内容合并成功:")
     print(f"   基础卡牌: {initial_card_count}")
     print(f"   合并后: {len(merged.cards)}")
     print(f"   debug_pack 卡: {len(debug_pack.cards)}")
@@ -125,7 +122,7 @@ def test_merge_multiple_packs():
     assert len(test_packs) >= 1, "应该有 test 包"
     assert len(refactor_packs) >= 1, "应该有 refactor 包"
     
-    print(f"✅ 多包合并成功:")
+    print("✅ 多包合并成功:")
     print(f"   Debug 包: {len(debug_packs)}")
     print(f"   Test 包: {len(test_packs)}")
     print(f"   Refactor 包: {len(refactor_packs)}")
@@ -150,7 +147,7 @@ def test_get_packs_by_archetype():
     assert len(test_packs) == 1, f"应该有 1 个 test 包, 实际 {len(test_packs)}"
     assert len(refactor_packs) == 1, f"应该有 1 个 refactor 包, 实际 {len(refactor_packs)}"
     
-    print(f"✅ 流派筛选正确:")
+    print("✅ 流派筛选正确:")
     print(f"   Debug: {debug_packs[0].id}")
     print(f"   Test: {test_packs[0].id}")
     print(f"   Refactor: {refactor_packs[0].id}")
@@ -185,7 +182,7 @@ def test_pack_content_integrity():
             assert event.id, f"事件缺少 ID: {pack_id}"
             assert len(event.choices) >= 1, f"事件 {event.id} 缺少 choices"
     
-    print(f"✅ 内容完整性验证通过")
+    print("✅ 内容完整性验证通过")
     for pack_id, pack in packs.items():
         print(f"   {pack_id}: {len(pack.cards)} 卡, {len(pack.relics)} 遗物, {len(pack.events)} 事件")
 
@@ -218,7 +215,7 @@ def test_content_verification():
     total_relics = sum(len(p.relics) for p in packs.values())
     total_events = sum(len(p.events) for p in packs.values())
     
-    print(f"✅ M3.3 内容验证通过:")
+    print("✅ M3.3 内容验证通过:")
     print(f"   包数量: {len(packs)}")
     print(f"   总卡牌: {total_cards}")
     print(f"   总遗物: {total_relics}")

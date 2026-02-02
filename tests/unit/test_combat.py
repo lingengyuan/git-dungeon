@@ -1,18 +1,13 @@
 """Unit tests for combat module."""
 
-import pytest
-from unittest.mock import MagicMock
 
 from src.core.combat import (
     CombatSystem,
-    CombatEncounter,
     CombatAction,
-    DamageType,
     CombatResult,
 )
 from src.core.character import CharacterComponent, CharacterType
 from src.core.entity import Entity
-from src.core.character import CharacterStats, StatType
 
 
 class TestCombatSystem:
@@ -204,7 +199,7 @@ class TestCombatEncounter:
         encounter = combat_system.start_combat(player, enemy)
         encounter.turn_phase = "enemy"  # Skip player turn
 
-        result = encounter.enemy_turn()
+        encounter.enemy_turn()
 
         # Enemy attack 10, player defense 10
         # Actual damage = max(1, 10 - 10) = 1

@@ -1,6 +1,5 @@
 """Unit tests for inventory module."""
 
-import pytest
 from src.core.inventory import (
     InventoryComponent,
     Item,

@@ -14,7 +14,6 @@ M3 功能测试集 - 内容包系统 (使用 Snapshots)
 
 import sys
 import yaml
-import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))

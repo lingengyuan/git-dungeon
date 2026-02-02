@@ -7,7 +7,6 @@ from src.core.skills import (
     SkillType,
     TargetType,
     SkillEffect,
-    SKILLS,
     get_skill,
     get_all_skills,
     get_skills_by_type,

@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from git_dungeon.engine.meta import (
     MetaProfile, RunSummary, load_meta, save_meta, award_points,
     get_available_unlocks, can_afford, unlock_item,
-    create_default_profile, UNLOCK_DEFINITIONS
+    create_default_profile
 )
 from git_dungeon.content.loader import load_content
 
@@ -62,7 +62,7 @@ def test_meta_serialization():
     assert restored.total_points == 150
     assert restored.stats["total_runs"] == 5
     
-    print(f"✅ 序列化/反序列化成功")
+    print("✅ 序列化/反序列化成功")
     print(f"   原始点数: {profile.total_points}")
     print(f"   恢复点数: {restored.total_points}")
 
@@ -91,7 +91,7 @@ def test_meta_save_load():
         assert loaded is not None, "加载返回 None"
         assert loaded.player_name == "FileTest"
         assert loaded.total_points == 300
-        print(f"✅ 加载成功")
+        print("✅ 加载成功")
         print(f"   玩家: {loaded.player_name}")
         print(f"   点数: {loaded.total_points}")
     finally:
@@ -203,7 +203,7 @@ def test_unlocks_system():
     cannot_unlock = can_afford(profile, "characters", "devops")
     assert not cannot_unlock, "不应该可以解锁 DevOps"
     
-    print(f"✅ 解锁系统工作正常")
+    print("✅ 解锁系统工作正常")
     print(f"   已解锁: {profile.unlocks['characters']}")
     print(f"   剩余点数: {profile.available_points}")
 
@@ -234,7 +234,7 @@ def test_character_loading():
     assert "ci_pipeline" in devops.starter_cards, "DevOps 有 ci_pipeline 卡"
     assert "staging_deploy" in devops.starter_cards, "DevOps 有 staging_deploy 卡"
     
-    print(f"✅ 角色加载成功:")
+    print("✅ 角色加载成功:")
     print(f"   Developer: {len(developer.starter_cards)} 起始卡")
     print(f"   Reviewer: {len(reviewer.starter_cards)} 起始卡, {len(reviewer.abilities)} 能力")
     print(f"   DevOps: {len(devops.starter_cards)} 起始卡")
@@ -271,7 +271,7 @@ def test_run_summary():
     assert restored.character_id == "reviewer"
     assert restored.archetype == "test_shrine"
     
-    print(f"✅ 单局总结序列化成功")
+    print("✅ 单局总结序列化成功")
     print(f"   角色: {run.character_id}")
     print(f"   流派: {run.archetype}")
     print(f"   章节: {run.chapter_reached}")
@@ -297,7 +297,7 @@ def test_achievement_unlocked():
     award_points(profile, run)
     
     assert "boss_slayer" in profile.unlocks["achievements"]
-    print(f"✅ 成就解锁: boss_slayer")
+    print("✅ 成就解锁: boss_slayer")
     print(f"   已解锁成就: {profile.unlocks['achievements']}")
 
 
@@ -318,7 +318,7 @@ def test_content_verification():
         assert len(char.starter_cards) >= 5, f"{char_id} 起始卡不足"
         assert len(char.starter_relics) >= 1, f"{char_id} 起始遗物不足"
     
-    print(f"✅ 内容验证通过:")
+    print("✅ 内容验证通过:")
     print(f"   角色: {len(content.characters)}")
     for char_id, char in content.characters.items():
         print(f"      {char_id}: {len(char.starter_cards)} 卡, {len(char.starter_relics)} 遗物")

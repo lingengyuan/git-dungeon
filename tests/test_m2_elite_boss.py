@@ -49,7 +49,7 @@ def test_elite_rewards():
     
     assert isinstance(rewards, RewardBundle), "返回类型错误"
     assert rewards.gold_delta >= 10, f"金币应 >= 10, 实际 {rewards.gold_delta}"
-    print(f"✅ 精英奖励:")
+    print("✅ 精英奖励:")
     print(f"   金币: {rewards.gold_delta}")
     print(f"   卡牌: {rewards.card_choices}")
     print(f"   遗物: {rewards.relic_drop}")
@@ -92,7 +92,7 @@ def test_boss_rewards():
     assert rewards.remove_card, "BOSS 应可移除卡牌"
     assert rewards.upgrade_card, "BOSS 应可升级卡牌"
     
-    print(f"✅ BOSS 奖励:")
+    print("✅ BOSS 奖励:")
     print(f"   金币: {rewards.gold_delta}")
     print(f"   卡牌 (3选1): {rewards.card_choices}")
     print(f"   遗物: {rewards.relic_drop}")
@@ -166,7 +166,7 @@ def test_elite_multipliers():
     elite_mult = engine.calculate_elite_boss_multipliers(elite)
     boss_mult = engine.calculate_elite_boss_multipliers(boss)
     
-    print(f"✅ 倍率计算:")
+    print("✅ 倍率计算:")
     print(f"   普通: gold={normal_mult['gold']}, exp={normal_mult['exp']}")
     print(f"   精英: gold={elite_mult['gold']}, exp={elite_mult['exp']}, relic={elite_mult['relic_chance']}")
     print(f"   BOSS: gold={boss_mult['gold']}, exp={boss_mult['exp']}, relic={boss_mult['relic_chance']}")
@@ -174,7 +174,7 @@ def test_elite_multipliers():
     assert normal_mult['gold'] == 1.0
     assert elite_mult['gold'] == 2.0
     assert boss_mult['gold'] == 3.0
-    print(f"✅ 倍率正确")
+    print("✅ 倍率正确")
 
 
 def test_enemy_tier_parsing():
@@ -202,7 +202,7 @@ def test_enemy_tier_parsing():
         elif enemy.tier == EnemyTier.BOSS:
             boss_count += 1
     
-    print(f"✅ 敌人 tier 分布:")
+    print("✅ 敌人 tier 分布:")
     print(f"   Normal: {normal_count}")
     print(f"   Elite: {elite_count}")
     print(f"   BOSS: {boss_count}")
@@ -210,7 +210,7 @@ def test_enemy_tier_parsing():
     assert normal_count >= 20, f"Normal 敌人应 >= 20, 实际 {normal_count}"
     assert elite_count >= 6, f"Elite 敌人应 >= 6, 实际 {elite_count}"
     assert boss_count >= 3, f"BOSS 敌人应 >= 3, 实际 {boss_count}"
-    print(f"✅ 分布符合要求")
+    print("✅ 分布符合要求")
 
 
 def test_elite_relic_drops():
@@ -230,7 +230,7 @@ def test_elite_relic_drops():
     
     assert len(elite_relics) >= 2, f"精英遗物应 >= 2, 实际 {len(elite_relics)}"
     assert len(boss_relics) >= 2, f"BOSS 遗物应 >= 2, 实际 {len(boss_relics)}"
-    print(f"✅ 遗物池有内容")
+    print("✅ 遗物池有内容")
     
     # 测试随机获取
     relic = engine._get_random_relic("uncommon")
@@ -282,7 +282,7 @@ def test_is_elite_detection():
     
     assert not engine._is_elite(normal), "普通敌人不应被检测为精英"
     assert engine._is_elite(elite), "精英敌人应被检测为精英"
-    print(f"✅ 精英检测正确")
+    print("✅ 精英检测正确")
 
 
 def main():

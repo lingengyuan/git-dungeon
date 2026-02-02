@@ -1,8 +1,5 @@
 """Tests for main.py UI components."""
 
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 
 import pytest
 

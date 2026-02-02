@@ -10,8 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from git_dungeon.core.game_engine import GameState
 from git_dungeon.core.character import CharacterComponent, CharacterType
-from git_dungeon.core.combat import CombatSystem, CombatAction, CombatResult
-from git_dungeon.core.git_parser import GitParser
+from git_dungeon.core.combat import CombatSystem
 
 
 def create_test_repo(path):
@@ -49,7 +48,7 @@ def test_full_game_flow():
         result = state.load_repository(repo_path)
         print(f"  Loaded commits: {len(state.commits)}")
         
-        assert result == True, "Should load repository"
+        assert result, "Should load repository"
         assert len(state.commits) > 0, "Should have commits"
         
         # Check player exists
@@ -72,7 +71,7 @@ def test_full_game_flow():
             # Start combat
             result = state.start_combat()
             if not result:
-                print(f"  Combat already in progress or no commit")
+                print("  Combat already in progress or no commit")
                 break
             
             # Get enemy from combat
@@ -117,7 +116,7 @@ def test_full_game_flow():
                 info = char.get_level_info()
                 print(f"  Level info: Lv{info['level']}, {info['experience']}/{info['experience_to_next']} XP")
         
-        print(f"\n  === Game Summary ===")
+        print("\n  === Game Summary ===")
         print(f"  Total enemies defeated: {total_kills}")
         print(f"  Final level: {char.level}")
         print(f"  Final HP: {char.current_hp}/{char.stats.hp.value}")
@@ -145,8 +144,6 @@ def test_save_and_load_game():
         
         # Get initial player stats
         char = state.player.get_component(CharacterComponent)
-        initial_level = char.level
-        initial_exp = char._total_exp_gained
         
         # Gain some experience
         char.gain_experience(150)
@@ -155,13 +152,13 @@ def test_save_and_load_game():
         # Save
         result = state.save_game(0)
         print(f"  Save result: {result}")
-        assert result == True, "Save should succeed"
+        assert result, "Save should succeed"
         
         # Load into new state
         new_state = GameState()
         result = new_state.load_game(0)
         print(f"  Load result: {result}")
-        assert result == True, "Load should succeed"
+        assert result, "Load should succeed"
         
         new_char = new_state.player.get_component(CharacterComponent)
         print(f"  After load: Level {new_char.level}, Exp {new_char._total_exp_gained}")
@@ -206,7 +203,7 @@ def test_combat_edge_cases():
             break
     
     print(f"  High defense vs weak: {encounter.ended}")
-    assert encounter.ended == True, "Combat should end"
+    assert encounter.ended, "Combat should end"
     assert enemy_char.current_hp <= 0, "Enemy should be dead"
     
     # Test very low damage (minimum 1)

@@ -4,7 +4,6 @@ Scenario Harness - Functional test scenarios for Git Dungeon
 Provides standardized scenario definition, execution, and result collection.
 """
 
-import json
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -13,11 +12,9 @@ from enum import Enum
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from git_dungeon.engine import Engine, GameState, Action, DefaultRNG
-from git_dungeon.engine.route import build_route, RouteGraph, NodeKind
-from git_dungeon.engine.meta import MetaProfile, RunSummary, create_default_profile
+from git_dungeon.engine import Engine, GameState, DefaultRNG
+from git_dungeon.engine.route import build_route, NodeKind
 from git_dungeon.content.loader import load_content
-from git_dungeon.content.packs import merge_content_with_packs
 
 
 class StepResult(Enum):

@@ -56,7 +56,7 @@ def test_golden_combat_seed_12345():
     for e in all_events:
         event_counts[e.type.value] = event_counts.get(e.type.value, 0) + 1
     
-    print(f"\n📊 Event Summary:")
+    print("\n📊 Event Summary:")
     for event_type, count in sorted(event_counts.items()):
         print(f"   {event_type}: {count}")
     
@@ -101,7 +101,7 @@ def test_golden_multiple_battles_seed_99999():
         if not state.player.character.is_alive:
             break
     
-    print(f"\n📊 Results:")
+    print("\n📊 Results:")
     print(f"   Battles fought: {min(battle_num + 1, 10)}")
     print(f"   Total events: {total_events}")
     print(f"   Total damage dealt: {total_damage}")
@@ -110,7 +110,7 @@ def test_golden_multiple_battles_seed_99999():
     assert total_damage > 0, "Should deal damage"
     assert total_events > 0, "Should have events"
     
-    print(f"\n✅ Test passed!")
+    print("\n✅ Test passed!")
     return True
 
 
@@ -190,14 +190,14 @@ def test_golden_level_progression_seed_77777():
     final_level = state.player.character.level
     final_exp = state.player.character.experience
     
-    print(f"\n📊 Level Progress:")
+    print("\n📊 Level Progress:")
     print(f"   Initial: Level {initial_level}, EXP {initial_exp}")
     print(f"   Final: Level {final_level}, EXP {final_exp}")
     print(f"   Level-ups: {final_level - initial_level}")
     
     assert final_level >= initial_level, "Should not decrease level"
     
-    print(f"\n✅ Test passed!")
+    print("\n✅ Test passed!")
     return True
 
 
@@ -217,7 +217,7 @@ def run_all_golden_tests():
     results = []
     for name, test_func in tests:
         try:
-            passed = test_func()
+            test_func()
             results.append((name, "✅ PASS", None))
         except Exception as e:
             results.append((name, "❌ FAIL", str(e)))

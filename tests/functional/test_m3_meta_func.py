@@ -13,7 +13,6 @@ M3 功能测试集 - Meta 存档与结算 (使用 Snapshots)
 """
 
 import sys
-import json
 import tempfile
 import os
 from pathlib import Path
@@ -26,7 +25,6 @@ from git_dungeon.engine.meta import (
     load_meta, save_meta, award_points, unlock_item, can_afford
 )
 from git_dungeon.content.loader import load_content
-from git_dungeon.content.packs import merge_content_with_packs
 from tests.harness.snapshots import SnapshotManager, snapshot_meta
 
 
@@ -50,7 +48,6 @@ class TestMetaPointsHappy:
     def test_meta_points_single_run(self, snapshot_mgr):
         """单局获得点数正确"""
         profile = create_default_profile("TestPlayer")
-        initial_points = profile.total_points
         
         run = RunSummary(
             character_id="developer",

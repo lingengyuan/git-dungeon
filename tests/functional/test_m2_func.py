@@ -20,11 +20,9 @@ from dataclasses import dataclass
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 import pytest
-from git_dungeon.engine import Engine, GameState, Action, DefaultRNG
-from git_dungeon.engine.route import build_route, RouteGraph, NodeKind
+from git_dungeon.engine.route import build_route, NodeKind
 from git_dungeon.content.loader import load_content
 from git_dungeon.content.schema import EventEffect
-from tests.harness.scenario import RepoFactory, ScenarioRunner
 from tests.harness.snapshots import (
     SnapshotManager, snapshot_route, stable_serialize
 )
@@ -335,7 +333,7 @@ class TestEliteBossRewards:
         for eid, enemy in content.enemies.items():
             if enemy.tier.value == "boss":
                 assert enemy.tier.value == "boss"
-                assert enemy.is_boss == True
+                assert enemy.is_boss
         
         print("✅ Boss enemies have tier flag and is_boss=True")
 

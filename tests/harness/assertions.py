@@ -239,14 +239,6 @@ def assert_route_deterministic(routes: list) -> bool:
     return True
 
 
-def assert_route_has_battles(route, min_count: int = 1) -> bool:
-    """断言路径包含战斗节点"""
-    battles = [n for n in route.nodes if n.kind.value == "battle"]
-    if len(battles) < min_count:
-        raise AssertionError(f"Route has {len(battles)} battles, expected >= {min_count}")
-    return True
-
-
 def assert_route_node_count(route, expected: int) -> bool:
     """断言路径节点数量"""
     if len(route.nodes) != expected:

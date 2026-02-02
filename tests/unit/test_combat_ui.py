@@ -193,7 +193,6 @@ class TestCombatUIIntegration:
     def test_combat_flow_updates(self):
         """Test combat flow updates panels correctly."""
         # Initial state
-        player_hp = 100
         enemy_hp = 20
 
         # Simulate damage
@@ -201,13 +200,6 @@ class TestCombatUIIntegration:
         enemy_hp = max(0, enemy_hp - damage)
 
         # Update panel
-        player_panel = CharacterPanel(
-            name="Player",
-            hp=player_hp,
-            max_hp=100,
-            attack=10,
-            defense=5,
-        )
         enemy_panel = CharacterPanel(
             name="Enemy",
             hp=enemy_hp,

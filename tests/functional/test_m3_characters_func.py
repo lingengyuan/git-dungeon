@@ -16,10 +16,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 import pytest
-from git_dungeon.engine import Engine, GameState, Action, DefaultRNG
-from git_dungeon.engine.route import build_route, NodeKind
+from git_dungeon.engine import GameState
 from git_dungeon.content.loader import load_content
-from tests.harness.scenario import Scenario, ScenarioStep, ScenarioExpect, ScenarioRunner, RepoFactory
+from tests.harness.scenario import ScenarioRunner
 
 
 # ==================== Fixtures ====================

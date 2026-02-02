@@ -11,7 +11,6 @@ from pathlib import Path
 
 def check_functional_tests():
     """检查 functional tests 结构"""
-    tests_dir = Path("tests/functional")
     golden_dir = Path("tests/golden")
     
     # 获取所有 golden 文件
@@ -40,13 +39,10 @@ def check_functional_tests():
 def check_assertions_importable():
     """检查 assertions 可导入"""
     try:
-        from tests.harness.assertions import (
-            assert_run_completed,
-            assert_battle_won,
-            assert_character_hp,
-            assert_pack_loaded,
-            assert_no_content_conflicts,
-        )
+        from tests.harness import assertions
+        # Verify module has expected functions
+        _ = assertions.assert_run_completed
+        _ = assertions.assert_battle_won
         print("✅ Assertions importable")
         return True
     except ImportError as e:
@@ -57,12 +53,10 @@ def check_assertions_importable():
 def check_snapshots_importable():
     """检查 snapshots 可导入"""
     try:
-        from tests.harness.snapshots import (
-            stable_serialize,
-            save_snapshot,
-            load_snapshot,
-            SnapshotManager,
-        )
+        from tests.harness import snapshots
+        # Verify module has expected functions
+        _ = snapshots.stable_serialize
+        _ = snapshots.SnapshotManager
         print("✅ Snapshots importable")
         return True
     except ImportError as e:

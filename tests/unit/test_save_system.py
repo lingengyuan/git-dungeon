@@ -1,12 +1,10 @@
 """Tests for save_system.py"""
 
-import tempfile
 import subprocess
-from pathlib import Path
 
 import pytest
 
-from src.core.save_system import SaveSystem, GameSaveData, SaveMetadata
+from src.core.save_system import SaveSystem, SaveMetadata
 from src.core.game_engine import GameState
 from src.core.character import get_character
 
@@ -103,7 +101,7 @@ class TestSaveSystem:
         save_dir = tmp_path / "saves"
         save_system = SaveSystem(save_dir)
         
-        result = save_system.save(game, 0)
+        save_system.save(game, 0)
         # Should not crash, may fail depending on implementation
         # At minimum should not raise exception
 

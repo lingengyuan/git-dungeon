@@ -17,12 +17,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 import pytest
-from git_dungeon.engine.route import build_route, RouteNode
+from git_dungeon.engine.route import build_route
 from git_dungeon.engine.meta import (
-    MetaProfile, RunSummary, create_default_profile,
+    create_default_profile,
     load_meta, save_meta
 )
-from git_dungeon.content.loader import load_content
 from dataclasses import dataclass
 
 
@@ -169,7 +168,7 @@ class TestProfileCorruption:
         try:
             # 类型错误应该被检测到
             try:
-                loaded = load_meta(temp_path)
+                load_meta(temp_path)
                 print("⚠️  Type errors not detected (may be acceptable if handled)")
             except (TypeError, ValueError, KeyError) as e:
                 print(f"✅ Type error detected: {e}")
@@ -187,7 +186,7 @@ class TestProfileCorruption:
         try:
             # JSON 解析错误
             try:
-                loaded = load_meta(temp_path)
+                load_meta(temp_path)
                 print("⚠️  JSON corruption not detected")
             except json.JSONDecodeError as e:
                 print(f"✅ JSON corruption detected: {e}")
@@ -204,7 +203,7 @@ class TestProfileCorruption:
         
         try:
             try:
-                loaded = load_meta(temp_path)
+                load_meta(temp_path)
                 print("⚠️  Empty file not detected")
             except (json.JSONDecodeError, ValueError) as e:
                 print(f"✅ Empty file detected: {e}")

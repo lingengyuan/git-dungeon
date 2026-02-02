@@ -1,8 +1,6 @@
 """Integration tests for skill system in combat."""
 
-import tempfile
 import subprocess
-from pathlib import Path
 
 import pytest
 
@@ -10,8 +8,6 @@ from src.core.game_engine import GameState
 from src.core.character import get_character, CharacterComponent, CharacterType
 from src.core.skills import (
     get_skill,
-    SkillBook,
-    SkillType,
 )
 from src.core.combat import CombatSystem
 
@@ -96,7 +92,6 @@ class TestSkillCombat:
         game.start_combat()
 
         player = get_character(game.player)
-        enemy = get_character(game.current_combat.enemy)
 
         # Use git_commit (high MP cost skill)
         game.player_action("attack", damage=player.stats.attack.value)
@@ -125,7 +120,6 @@ class TestSkillCombat:
                 break
 
             player = get_character(game.player)
-            enemy = get_character(game.current_combat.enemy)
 
             # Choose skill based on MP
             if player.current_mp >= 20:

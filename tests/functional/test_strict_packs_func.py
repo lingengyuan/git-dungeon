@@ -12,16 +12,14 @@
 
 import sys
 import yaml
-import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 import pytest
 from git_dungeon.content.loader import load_content
-from git_dungeon.content.packs import PackLoader, merge_content_with_packs, get_pack_info
+from git_dungeon.content.packs import PackLoader, get_pack_info
 from git_dungeon.engine.route import build_route, NodeKind
-from tests.harness.scenario import RepoFactory
 from tests.harness.snapshots import SnapshotManager, snapshot_route
 
 
@@ -337,13 +335,6 @@ class TestEliteBossPhaseSnapshot:
             print("⚠️  No bosses found")
             return
         
-        # 构建包含 BOSS 的路径
-        commits = make_commits(20)
-        route = build_route(commits, seed=42, chapter_index=0, node_count=20)
-        
-        # 找到 BOSS 节点
-        boss_nodes = [n for n in route.nodes if n.kind == NodeKind.BOSS]
-        
         # 生成 golden 数据
         boss_data = {
             "boss_count": len(bosses),
@@ -368,7 +359,7 @@ class TestEliteBossPhaseSnapshot:
         # 验证所有 BOSS is_boss=True
         for eid, enemy in content.enemies.items():
             if enemy.tier.value == "boss":
-                assert enemy.is_boss == True
+                assert enemy.is_boss
         
         print("✅ All elites have tier flag, all bosses have is_boss=True")
 
