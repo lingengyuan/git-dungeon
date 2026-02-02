@@ -1,0 +1,558 @@
+{
+  "total_runs": 60,
+  "by_difficulty": {
+    "normal": {
+      "runs": 60,
+      "successes": 0,
+      "success_rate": 0.0,
+      "avg_chapters": 0.36666666666666664,
+      "avg_enemies_killed": 5.866666666666666,
+      "death_reasons": {
+        "damage": 22,
+        "chapter_0": 38
+      }
+    }
+  },
+  "individual_results": [
+    {
+      "seed": 42,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 6,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 43,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 44,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 45,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 8,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 46,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 6,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 47,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 48,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 49,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 6,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 50,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 6,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 51,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 5,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 52,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 9,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 53,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 4,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 54,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 55,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 5,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 56,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 6,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 57,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 4,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 58,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 59,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 5,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 60,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 61,
+      "character": "developer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 6,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 42,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 7,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 43,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 7,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 44,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 7,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 45,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 8,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 46,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 7,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 47,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 7,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 48,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 49,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 7,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 50,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 7,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 51,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 6,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 52,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 9,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 53,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 4,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 54,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 7,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 55,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 6,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 56,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 7,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 57,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 4,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 58,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 59,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 6,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 60,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 61,
+      "character": "reviewer",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 1,
+      "enemies": 7,
+      "death_reason": "damage"
+    },
+    {
+      "seed": 42,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 43,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 44,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 45,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 8,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 46,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 47,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 48,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 49,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 50,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 51,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 4,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 52,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 9,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 53,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 4,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 54,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 55,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 4,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 56,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 57,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 4,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 58,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 59,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 4,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 60,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 6,
+      "death_reason": "chapter_0"
+    },
+    {
+      "seed": 61,
+      "character": "devops",
+      "difficulty": "normal",
+      "success": false,
+      "chapters": 0,
+      "enemies": 5,
+      "death_reason": "chapter_0"
+    }
+  ]
+}

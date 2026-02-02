@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from git_dungeon.engine import Engine, Action, DefaultRNG
+from git_dungeon.engine import Action, DefaultRNG
 from git_dungeon.engine.rules.difficulty import DifficultyLevel, get_difficulty
 from git_dungeon.content.loader import load_content
 
@@ -72,107 +72,122 @@ class BalanceSimulator:
         result.difficulty = difficulty
         
         rng = DefaultRNG(seed=seed)
-        engine = Engine(rng=rng)
         
-        # Create a mock git repo for testing
-        import tempfile
-        import subprocess
-        import os
+        # Load content to get character stats
+        from git_dungeon.content.loader import load_content
+        content = load_content("src/git_dungeon/content")
         
-        with tempfile.TemporaryDirectory() as tmpdir:
-            subprocess.run(["git", "init"], cwd=tmpdir, capture_output=True)
-            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=tmpdir, capture_output=True)
-            subprocess.run(["git", "config", "user.name", "Test"], cwd=tmpdir, capture_output=True)
+        # Create game state
+        from git_dungeon.engine.model import GameState, PlayerState, Action
+        from git_dungeon.engine.route import build_route, NodeKind
+        from git_dungeon.engine.rules.difficulty import DifficultyLevel, get_difficulty
+        
+        state = GameState(seed=seed)
+        state.difficulty = difficulty
+        state.character_id = character_id
+        
+        # Initialize character stats
+        char = content.characters[character_id]
+        state.player.current_hp = char.stats.hp
+        state.player.max_hp = char.stats.hp
+        state.player.energy.max_energy = char.stats.energy
+        state.player.energy.current_energy = char.stats.energy
+        state.player.gold = 0
+        
+        # Initialize deck with starting cards
+        for card_id in char.starter_cards:
+            if card_id in content.cards:
+                state.player.deck.draw_pile.append(content.cards[card_id])
+        
+        # Create mock commits
+        class MockCommit:
+            def __init__(self, i):
+                self.hexsha = f"abc{i}"
+        
+        commits = [MockCommit(i) for i in range(50)]
+        
+        for chapter_idx in range(max_chapters):
+            diff_params = get_difficulty(chapter_idx, DifficultyLevel(difficulty))
             
-            # Create mock commits
-            commits = []
-            for i in range(50):
-                commit_file = os.path.join(tmpdir, f"file_{i}.txt")
-                with open(commit_file, "w") as f:
-                    f.write(f"content {i}\n")
-                subprocess.run(["git", "add", "."], cwd=tmpdir, capture_output=True)
-                subprocess.run(
-                    ["git", "commit", "-m", f"commit {i}"],
-                    cwd=tmpdir,
-                    capture_output=True,
-                    env={**os.environ, "GIT_AUTHOR_DATE": "2024-01-01T12:00:00", "GIT_COMMITTER_DATE": "2024-01-01T12:00:00"}
-                )
-                commits.append(type("MockCommit", (), {"hexsha": f"abc{i}"})())
+            # Build route
+            route = build_route(commits, seed=seed + chapter_idx, chapter_index=chapter_idx, node_count=diff_params.node_count)
+            state.chapter_route = route
             
-            # Start game
-            state = engine.start(tmpdir, character_id=character_id)
-            
-            for chapter_idx in range(max_chapters):
-                diff_params = get_difficulty(chapter_idx, DifficultyLevel(difficulty))
-                
-                # Build route
-                from git_dungeon.engine.route import build_route, NodeKind
-                route = build_route(commits, seed=seed + chapter_idx, chapter_index=chapter_idx, node_count=diff_params.node_count)
-                state.chapter_route = route
-                
-                # Process nodes
-                for node in route.nodes:
-                    if state.player.current_hp <= 0:
-                        result.death_reason = "damage"
-                        result.final_hp = 0
-                        return result
-                    
-                    if node.kind == NodeKind.BATTLE:
-                        result.enemies_killed += 1
-                        
-                        # Start combat
-                        action = Action(action_type="combat", action_name="start_combat")
-                        state, _ = engine.apply(state, action)
-                        
-                        # Auto-play combat
-                        if auto_play:
-                            turns = 0
-                            max_combat_turns = 30
-                            
-                            while state.in_combat and turns < max_combat_turns:
-                                turns += 1
-                                result.turns_total += 1
-                                
-                                action = Action(action_type="combat", action_name="start_turn")
-                                state, _ = engine.apply(state, action)
-                                
-                                # Play cards until energy depleted or combat ends
-                                while len(state.player.deck.hand) > 0 and state.player.energy.current_energy > 0 and state.in_combat:
-                                    if not state.in_combat:
-                                        break
-                                    action = Action(action_type="combat", action_name="play_card", data={"card_index": 0})
-                                    state, _ = engine.apply(state, action)
-                                
-                                if not state.in_combat:
-                                    break
-                                
-                                action = Action(action_type="combat", action_name="end_turn")
-                                state, _ = engine.apply(state, action)
-                            
-                            if turns >= max_combat_turns:
-                                result.death_reason = "timeout"
-                                return result
-                    
-                    elif node.kind == NodeKind.ELITE:
-                        result.elites_killed += 1
-                        # Similar combat logic would go here
-                    
-                    elif node.kind == NodeKind.BOSS:
-                        result.bosses_killed += 1
-                        # Boss combat logic
-                
-                # Check if player survived chapter
+            # Process nodes
+            for node in route.nodes:
                 if state.player.current_hp <= 0:
-                    result.death_reason = f"chapter_{chapter_idx}"
+                    result.death_reason = "damage"
                     result.final_hp = 0
                     return result
                 
-                result.chapters_completed = chapter_idx + 1
-                result.final_hp = state.player.current_hp
+                if node.kind == NodeKind.BATTLE:
+                    result.enemies_killed += 1
+                    
+                    # Simplified combat - deal damage to enemy and receive damage
+                    enemy_hp = 20 * diff_params.enemy_scaling.hp_multiplier
+                    enemy_damage = 5 * diff_params.enemy_scaling.damage_multiplier
+                    
+                    # Auto combat simulation
+                    turns = 0
+                    max_combat_turns = 30
+                    
+                    while enemy_hp > 0 and turns < max_combat_turns and state.player.current_hp > 0:
+                        turns += 1
+                        result.turns_total += 1
+                        
+                        # Player deals damage
+                        player_damage = 10  # Simplified
+                        enemy_hp -= player_damage
+                        
+                        # Enemy attacks
+                        if enemy_hp > 0:
+                            damage_taken = max(0, int(enemy_damage))
+                            state.player.current_hp -= damage_taken
+                    
+                    if turns >= max_combat_turns:
+                        result.death_reason = "timeout"
+                        return result
+                
+                elif node.kind == NodeKind.ELITE:
+                    result.elites_killed += 1
+                    # Elite combat (stronger)
+                    elite_hp = 40 * diff_params.enemy_scaling.hp_multiplier
+                    elite_damage = 8 * diff_params.enemy_scaling.damage_multiplier
+                    
+                    turns = 0
+                    while elite_hp > 0 and turns < 40 and state.player.current_hp > 0:
+                        turns += 1
+                        player_damage = 10
+                        elite_hp -= player_damage
+                        if elite_hp > 0:
+                            state.player.current_hp -= max(0, int(elite_damage))
+                
+                elif node.kind == NodeKind.BOSS:
+                    result.bosses_killed += 1
+                    # Boss combat (strongest)
+                    boss_hp = 80 * diff_params.enemy_scaling.hp_multiplier
+                    boss_damage = 12 * diff_params.enemy_scaling.damage_multiplier
+                    
+                    turns = 0
+                    while boss_hp > 0 and turns < 50 and state.player.current_hp > 0:
+                        turns += 1
+                        player_damage = 12
+                        boss_hp -= player_damage
+                        if boss_hp > 0:
+                            state.player.current_hp -= max(0, int(boss_damage))
             
-            result.success = True
+            # Check if player survived chapter
+            if state.player.current_hp <= 0:
+                result.death_reason = f"chapter_{chapter_idx}"
+                result.final_hp = 0
+                return result
+            
+            result.chapters_completed = chapter_idx + 1
             result.final_hp = state.player.current_hp
-            return result
+        
+        result.success = True
+        result.final_hp = state.player.current_hp
+        return result
     
     def batch_simulate(
         self,
