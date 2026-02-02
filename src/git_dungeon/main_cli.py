@@ -15,7 +15,7 @@ import re
 import subprocess
 import tempfile
 import argparse
-from typing import Optional, Any, Union
+from typing import Optional, Any
 
 from git_dungeon.engine import (
     Engine, GameState, EnemyState,

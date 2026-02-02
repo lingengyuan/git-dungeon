@@ -4,7 +4,7 @@ M1.3 Archetype System - 流派系统
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Sequence
+from typing import List, Dict, Optional, Any
 from enum import Enum
 
 from ..rng import RNG

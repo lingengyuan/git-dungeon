@@ -4,7 +4,7 @@ Content loader - 加载 content/*.yml 文件到 ContentRegistry。
 
 import yaml
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any
 from .schema import (
     CardDef, RelicDef, EnemyDef, ArchetypeDef, EventDef, StatusDef,
     CardType, CardRarity, RelicTier, EnemyType, EnemyTier, StatusType,
