@@ -118,7 +118,6 @@ class CombatRules:
         temp_player_hp = player_hp
         temp_enemy_hp = enemy_hp
         turns = 0
-        escaped = False
         
         while temp_player_hp > 0 and temp_enemy_hp > 0 and turns < 100:
             turns += 1

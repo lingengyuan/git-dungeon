@@ -123,7 +123,6 @@ class ItemDetailPanel(Static):
             return
 
         icon = ITEM_TYPE_ICONS.get(self._item.item_type, "📦")
-        rarity_color = RARITY_COLORS.get(self._item.rarity, "white")
 
         yield Container(
             Static(f"{icon} {self._item.name}", classes="item-name"),
