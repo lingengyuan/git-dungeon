@@ -3,6 +3,8 @@
 import random
 from typing import Any, Dict, List, Optional, Protocol, TypeVar, cast
 
+T = TypeVar("T")
+
 
 class RNG(Protocol):
     """Random number generator interface for testability"""
@@ -41,7 +43,6 @@ class RNG(Protocol):
         ...
 
 
-T = TypeVar("T")
 
 
 class DefaultRNG:
