@@ -343,8 +343,8 @@
 - [x] test_m4_difficulty_scaling.py ✅
 
 ## M5 待办
-- [ ] achievements.py 成就系统
-- [ ] test_m5_achievements.py
+- [x] achievements.py 成就系统 ✅
+- [x] test_m5_achievements.py ✅
 
 ## M6 待办
 - [ ] ai/ 目录结构
@@ -355,5 +355,5 @@
 
 ---
 
-> **最后更新**: 2026-02-02
+> **最后更新**: 2026-02-03
 > **版本**: M1 完成, M2-M6 规划完成
