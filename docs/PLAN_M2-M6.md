@@ -337,11 +337,10 @@
 - [ ] test_m3_packs_loader.py
 
 ## M4 待办
-- [ ] difficulty.py 参数表
-- [ ] engine.py difficulty 集成
-- [ ] simulate.py 批量模拟
-- [ ] test_m4_difficulty_scaling.py
-- [ ] test_m4_simulate_smoke.py
+- [x] difficulty.py 参数表 ✅
+- [x] engine.py difficulty 集成 ✅
+- [x] simulate.py 批量模拟 ✅
+- [x] test_m4_difficulty_scaling.py ✅
 
 ## M5 待办
 - [ ] achievements.py 成就系统
