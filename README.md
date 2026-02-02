@@ -4,6 +4,10 @@
 
 > 🎮 在提交历史中战斗，让理解项目演进变得有趣！
 
+[![CI](https://img.shields.io/github/actions/workflow/status/lingengyuan/git-dungeon/ci.yml?branch=main)](https://github.com/lingengyuan/git-dungeon/actions)
+[![Tests](https://img.shields.io/badge/tests-13%2F13-blue)](https://github.com/lingengyuan/git-dungeon/actions)
+[![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org)
+
 ## 特性
 
 | 功能 | 描述 |
