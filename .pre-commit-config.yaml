@@ -1,0 +1,87 @@
+# Pre-commit hooks for Git Dungeon
+# 安装: pip install pre-commit && pre-commit install
+
+repos:
+  # ===== 代码质量 =====
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3.11
+  
+  # ===== 类型检查 =====
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - pydantic>=2.0
+        args: [--ignore-missing-imports, --strict]
+  
+  # ===== 排序导入 =====
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+  
+  # ===== YAML 检查 =====
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        args: [--unsafe]  # 允许自定义标签
+      - id: check-json
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: name-files-test
+        args: ['tests/**/*.py']
+  
+  # ===== 测试相关 =====
+  - repo: local
+    hooks:
+      # 检查测试文件有对应的 golden 快照（如果需要）
+      - id: check-test-structure
+        name: Check Test Structure
+        entry: python tests/harness/check_test_structure.py
+        language: system
+        pass_filenames: false
+        always_run: true
+  
+  # ===== 安全检查 =====
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: detect-private-key
+      - id: check-ast
+        files: '\.py$'
+      - id: forbid-new-submodules
+  
+  # ===== Git 相关 =====
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-case-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1000']  # 禁止 >1MB 文件
+      - id: check-symlinks
+
+# 跳过某些文件
+exclude: |
+  (?x)^(
+    tests/golden/.*\.json  # Golden 快照不需要格式化
+  )
+
+# 默认配置
+default_language_version:
+  python: python3.11
+
+# Stages（可选）
+# stages: [pre-commit, pre-push, manual]

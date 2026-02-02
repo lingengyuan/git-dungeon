@@ -1,0 +1,26 @@
+{
+  "id": "m2_elite_boss_rewards",
+  "hash": "f6g7h8i9",
+  "data": {
+    "normal_count": 24,
+    "elite_count": 6,
+    "boss_count": 3,
+    "has_elites": true,
+    "has_bosses": true,
+    "elite_tier_enemies": [
+      "circular_dependency",
+      "infinite_loop",
+      "legacy_monolith",
+      "memory_leak",
+      "production_outage",
+      "security_vulnerability"
+    ],
+    "boss_tier_enemies": [
+      "api_deprecation",
+      "merge_chaos",
+      "tech_debt_crisis"
+    ],
+    "elite_gold_multipliers": [1.0],
+    "boss_gold_multipliers": [2.0, 3.0]
+  }
+}

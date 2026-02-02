@@ -1,0 +1,18 @@
+{
+  "id": "m2_route_branch_influence",
+  "hash": "h8i9j0k1",
+  "data": {
+    "seed": 42,
+    "node_count": 15,
+    "branch_count": 0,
+    "note": "当前 route 实现没有 branch options 结构，此测试记录预期行为",
+    "expected_behavior": {
+      "description": "分叉点选择 safe/risk 应该影响后续节点类型",
+      "implementation_status": "需要 RouteNode.options 属性支持",
+      "when_implemented": "M4 难度扩展时实现"
+    },
+    "safe_route": null,
+    "risk_route": null,
+    "routes_different": null
+  }
+}

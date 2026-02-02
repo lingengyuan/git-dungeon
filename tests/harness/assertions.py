@@ -229,3 +229,154 @@ def assert_no_duplicate_relic_ids(relics: List[Dict]) -> bool:
     if len(ids) != len(set(ids)):
         raise AssertionError("Duplicate relic IDs found")
     return True
+
+
+# ==================== Route 断言 ====================
+
+def assert_route_deterministic(routes: list) -> bool:
+    """断言路径确定性：同 seed 同结果"""
+    assert routes[0] == routes[1] == routes[2], "Route not deterministic"
+    return True
+
+
+def assert_route_has_battles(route, min_count: int = 1) -> bool:
+    """断言路径包含战斗节点"""
+    battles = [n for n in route.nodes if n.kind.value == "battle"]
+    if len(battles) < min_count:
+        raise AssertionError(f"Route has {len(battles)} battles, expected >= {min_count}")
+    return True
+
+
+def assert_route_node_count(route, expected: int) -> bool:
+    """断言路径节点数量"""
+    if len(route.nodes) != expected:
+        raise AssertionError(f"Route has {len(route.nodes)} nodes, expected {expected}")
+    return True
+
+
+def assert_different_seeds_different_routes(route1, route2) -> bool:
+    """断言不同 seed 产生不同路径"""
+    from tests.harness.snapshots import snapshot_route
+    s1 = snapshot_route(route1.nodes)
+    s2 = snapshot_route(route2.nodes)
+    if s1 == s2:
+        raise AssertionError("Different seeds should produce different routes")
+    return True
+
+
+# ==================== Event 断言 ====================
+
+def assert_event_effect_serializable(effect) -> bool:
+    """断言事件效果可序列化"""
+    from tests.harness.snapshots import stable_serialize
+    try:
+        stable_serialize(effect)
+        return True
+    except Exception as e:
+        raise AssertionError(f"Event effect not serializable: {e}")
+
+
+def assert_all_event_effects_serializable(effects: list) -> bool:
+    """断言所有事件效果可序列化"""
+    from tests.harness.snapshots import stable_serialize
+    for effect in effects:
+        stable_serialize(effect)
+    return True
+
+
+# ==================== Elite/BOSS 断言 ====================
+
+def assert_enemy_has_tier_flag(enemy, expected_tier: str) -> bool:
+    """断言敌人有 tier 标记"""
+    if enemy.tier.value != expected_tier:
+        raise AssertionError(f"Enemy {enemy.id} tier={enemy.tier.value}, expected={expected_tier}")
+    return True
+
+
+def assert_boss_has_is_boss_flag(enemy) -> bool:
+    """断言 BOSS 有 is_boss=True"""
+    if not enemy.is_boss:
+        raise AssertionError(f"BOSS {enemy.id} is_boss should be True")
+    return True
+
+
+def assert_elite_exists(enemies: dict) -> bool:
+    """断言精英敌人存在"""
+    elites = [e for e in enemies.values() if e.tier.value == "elite"]
+    if len(elites) == 0:
+        raise AssertionError("No elite enemies found")
+    return True
+
+
+def assert_boss_exists(enemies: dict) -> bool:
+    """断言 BOSS 敌人存在"""
+    bosses = [e for e in enemies.values() if e.tier.value == "boss"]
+    if len(bosses) == 0:
+        raise AssertionError("No boss enemies found")
+    return True
+
+
+# ==================== Meta 断言 ====================
+
+def assert_meta_points_earned(profile_before: dict, profile_after: dict, min_delta: int) -> bool:
+    """断言获得点数"""
+    delta = profile_after.get("total_points", 0) - profile_before.get("total_points", 0)
+    if delta < min_delta:
+        raise AssertionError(f"Points delta {delta} < expected {min_delta}")
+    return True
+
+
+def assert_profile_unlocked(profile: dict, unlock_type: str, unlock_id: str) -> bool:
+    """断言内容已解锁"""
+    unlocks = profile.get("unlocks", {})
+    if unlock_type not in unlocks:
+        raise AssertionError(f"Unlock type '{unlock_type}' not found")
+    if unlock_id not in unlocks.get(unlock_type, []):
+        raise AssertionError(f"Unlock '{unlock_id}' not in {unlock_type}")
+    return True
+
+
+# ==================== Pack 断言 ====================
+
+def assert_pack_count(packs: dict, min_count: int) -> bool:
+    """断言内容包数量"""
+    if len(packs) < min_count:
+        raise AssertionError(f"Only {len(packs)} packs, expected >= {min_count}")
+    return True
+
+
+def assert_pack_archetype(pack, expected_archetype: str) -> bool:
+    """断言内容包流派"""
+    if pack.archetype != expected_archetype:
+        raise AssertionError(f"Pack {pack.id} archetype={pack.archetype}, expected={expected_archetype}")
+    return True
+
+
+def assert_pack_card_count(pack, min_count: int) -> bool:
+    """断言内容包卡牌数量"""
+    if len(pack.cards) < min_count:
+        raise AssertionError(f"Pack {pack.id} has {len(pack.cards)} cards, expected >= {min_count}")
+    return True
+
+
+# ==================== 组合断言 ====================
+
+def assert_game_invariant(state: dict) -> bool:
+    """游戏不变式断言"""
+    # HP 不能为负
+    if state.get("current_hp", 0) < 0:
+        raise AssertionError("HP cannot be negative")
+    # 能量不能为负
+    if state.get("energy", 0) < 0:
+        raise AssertionError("Energy cannot be negative")
+    # 金币不能为负
+    if state.get("gold", 0) < 0:
+        raise AssertionError("Gold cannot be negative")
+    return True
+
+
+def assert_deterministic_gameplay(runs: list) -> bool:
+    """多次运行结果相同（确定性）"""
+    if not all(r == runs[0] for r in runs):
+        raise AssertionError("Gameplay not deterministic")
+    return True

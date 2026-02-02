@@ -1,0 +1,13 @@
+{
+  "id": "m3_pack_unlock_filter_strict",
+  "hash": "g7h8i9j0",
+  "data": {
+    "unlocked_packs": [],
+    "sample_seeds": [100, 101, 102],
+    "all_results_empty": true,
+    "validation": {
+      "locked_packs_never_appear": true,
+      "note": "未解锁 pack 在任何 seed 下都不应出现在候选池"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "id": "m2_route_graph_determinism",
+  "hash": "e5f6g7h8",
+  "data": {
+    "seed": 42,
+    "node_count": 10,
+    "route": [
+      {"kind": "battle", "enemy_id": null, "event_id": null},
+      {"kind": "battle", "enemy_id": null, "event_id": null},
+      {"kind": "shop", "enemy_id": null, "event_id": null},
+      {"kind": "rest", "enemy_id": null, "event_id": null},
+      {"kind": "elite", "enemy_id": null, "event_id": null},
+      {"kind": "battle", "enemy_id": null, "event_id": null},
+      {"kind": "battle", "enemy_id": null, "event_id": null},
+      {"kind": "boss", "enemy_id": null, "event_id": null}
+    ],
+    "validation": {
+      "node_count": 8,
+      "battle_count": 4,
+      "has_elite": true,
+      "has_boss": true
+    }
+  }
+}

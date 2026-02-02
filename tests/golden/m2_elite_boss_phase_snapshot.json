@@ -1,0 +1,28 @@
+{
+  "id": "m2_elite_boss_phase_snapshot",
+  "hash": "i9j0k1l2",
+  "data": {
+    "boss_count": 3,
+    "boss_ids": ["api_deprecation", "merge_chaos", "tech_debt_crisis"],
+    "boss_hp": {
+      "api_deprecation": 150,
+      "merge_chaos": 200,
+      "tech_debt_crisis": 180
+    },
+    "boss_damage": {
+      "api_deprecation": 12,
+      "merge_chaos": 15,
+      "tech_debt_crisis": 10
+    },
+    "elite_count": 6,
+    "elite_ids": [
+      "circular_dependency",
+      "infinite_loop",
+      "legacy_monolith",
+      "memory_leak",
+      "production_outage",
+      "security_vulnerability"
+    ],
+    "note": "Boss phase snapshot for M4 extension - use for phase design and balance"
+  }
+}

@@ -658,11 +658,221 @@ PR 描述必须包含以下模板：
 
 ---
 
-## 15. 附录：命令速查表
+## 15. Golden 更新纪律（强制）
+
+**任何 PR 更新 golden 必须在 PR 描述中写明**：
+
+| 字段 | 内容 |
+|------|------|
+| **为什么输出变化是预期的** | 功能变更/规则调整/内容扩充说明 |
+| **影响的 scenario ids** | 具体哪些场景的快照需要更新 |
+| **快照文件名** | `tests/golden/<id>.json` |
+
+**禁止**：
+- 无理由"刷新 golden 让 CI 过"
+- "顺手更新 golden" 但无说明
+
+**正确示例**：
+
+```markdown
+## Golden 快照更新
+
+### 变更原因
+新增 debug_pack 内容包，扩展了卡池。
+
+### 影响的 snapshot ids
+- `m3_packs_info`（增加了 debug_pack 信息）
+
+### 验证
+- make test-func: 56 passed
+- make test-golden: 5 passed
+```
+
+---
+
+## 16. 断言分层（强断言 vs 弱断言）
+
+### 16.1 强断言（门禁级约束，必须稳定）
+
+| 断言类型 | 示例 |
+|---------|------|
+| 解锁过滤 | 锁定内容绝不出现 |
+| pack 冲突 | loader 必须 fail |
+| pack 缺引用 | loader 必须 fail |
+| points 计算 | 规则正确 |
+| seed 确定性 | 同输入同输出 |
+
+**示例**：
+
+```python
+# ✅ 强断言：永不出现锁定内容
+assert locked_content_id not in reward_pool
+
+# ✅ 强断言：冲突必须 fail
+with pytest.raises(LoaderError):
+    loader.load_pack("conflict_pack")
+```
+
+### 16.2 弱断言（内容扩充时避免脆弱）
+
+| 类型 | 推荐方式 | 禁止方式 |
+|------|---------|---------|
+| 卡牌 | `any(c.tags.contains("debug") for c in cards)` | `c.id == "debug_strike"` |
+| 遗物 | `len(relics) >= 3` | `relics[0].id == "git_init"` |
+| 敌人 | `any(e.tier == "elite" for e in enemies)` | `e.id == "legacy_monolith"` |
+| 数量 | `5 <= count <= 20` | `count == 10` |
+
+**示例**：
+
+```python
+# ✅ 弱断言：断言范围
+assert 5 <= len(cards) <= 20
+assert any("debug" in c.tags for c in cards)
+
+# ❌ 禁止：锁死具体 id
+assert "debug_strike" in cards
+```
+
+---
+
+## 17. PR 门禁耗时预算
+
+| 类型 | 目标耗时 | 当前状态 | 违规处理 |
+|------|---------|---------|---------|
+| **PR 门禁总计** | < 30s | ~5s | 需优化或解释 |
+| **functional 单 scenario** | < 300ms | ~50ms | 需拆/减断言 |
+| **golden 单 snapshot** | < 100ms | ~10ms | 需优化快照 |
+
+**优化策略**：
+- 功能测试禁止大规模 simulate（放 nightly）
+- 单个 scenario 超时：拆分场景 / 减少断言 / 缩场景
+- golden 过大：只保留关键结构，移除冗余数据
+
+---
+
+## 18. 补强测试 v1.1（建议补充）
+
+### 18.1 失败路径/错误信息稳定性（2 个）
+
+| # | Scenario ID | 输入 | 断言 | Golden |
+|---|------------|------|------|--------|
+| 11 | `m2_invalid_route_choice_edge` | 非法分叉选择（index 越界） | 稳定失败类型 + 稳定错误信息 | - |
+| 12 | `m3_profile_corruption_edge` | meta 存档 JSON 损坏/字段类型错 | 明确报错或自动修复策略一致 | - |
+
+### 18.2 内容包合并强约束回归（2 个）
+
+| # | Scenario ID | 输入 | 断言 | Golden |
+|---|------------|------|------|--------|
+| 13 | `m3_pack_override_forbidden_edge` | 同 id 重复但内容不同 | fail + 指出冲突 id | - |
+| 14 | `m3_pack_unlock_filter_strict_golden` | 未解锁时跑 N 次抽取（固定 seed） | 永不出现锁定内容 | 序列结构 |
+
+### 18.3 Route / Elite-BOSS 关键结构快照（2 个）
+
+| # | Scenario ID | 输入 | 断言 | Golden |
+|---|------------|------|------|--------|
+| 15 | `m2_route_branch_influence_golden` | 同 seed 分叉点选 safe/risk | 后续 5 节点 kind 序列不同 | 结构快照 |
+| 16 | `m2_elite_boss_phase_snapshot_golden` | boss 战前 3 回合 | intent + 状态 stacks + 能量 | 阶段快照 |
+
+---
+
+## 19. M4/M5/M6 强制新增测试配额
+
+### 19.1 M4（难度/平衡/精英 BOSS 扩展）
+
+**必须新增**：≥5 functional + ≥2 golden
+
+| Scenario ID | 说明 |
+|------------|------|
+| `m4_difficulty_scaling_bounds` | 难度在合理范围内 |
+| `m4_elite_drop_rules_strict` | 精英掉落规则严格 |
+| `m4_boss_phase_snapshot_golden` | BOSS 阶段快照 |
+| `m4_multi_build_can_win_smoke` | 3 build 至少可通 |
+| `m4_hard_mode_requires_build_smoke` | 困难模式需要构建 |
+
+### 19.2 M5（成就）
+
+**必须新增**：≥3 functional
+
+| Scenario ID | 说明 |
+|------------|------|
+| `m5_achievement_trigger_happy` | 成就触发正确 |
+| `m5_achievement_not_trigger_edge` | 条件不满足不触发 |
+| `m5_achievement_persist_profile_happy` | 成就持久化到 profile |
+
+### 19.3 M6（AI 文案）
+
+**必须新增**：≥3 functional
+
+| Scenario ID | 说明 |
+|------------|------|
+| `m6_ai_off_no_calls_happy` | AI 关闭时不调用 API |
+| `m6_ai_on_cache_hit_happy` | 缓存命中返回正确结果 |
+| `m6_ai_failure_fallback_edge` | API 失败时 fallback 到默认值 |
+
+**注意**：AI 文案不进入普通 golden（仅专门的 fallback golden）
+
+---
+
+## 20. PR 门禁标准（复制到 PR 模板）
+
+```markdown
+## 门禁检查
+
+- [ ] `make test-func` 通过（56+ scenarios）
+- [ ] `make test-golden` 通过（4+ snapshots）
+
+## Golden 快照更新
+
+- [ ] 无变更
+- [ ] 有变更，更新了以下快照：
+
+| Snapshot | 变更原因 |
+|----------|----------|
+| `<id>.json` | <原因> |
+
+## 功能测试覆盖
+
+- [ ] 新功能至少新增 2 个 functional scenarios（happy+edge）
+- [ ] 影响的 scenario ids: `<列出>`
+
+## 性能检查
+
+- [ ] PR 门禁耗时未显著上升（>30s 需解释）
+```
+
+---
+
+## 21. 附录：当前测试覆盖率
+
+### 21.1 功能测试统计
+
+| 模块 | Scenarios | 状态 | Golden |
+|------|----------|------|--------|
+| M2 Route + Event + Elite-BOSS | 29 | ✅ | 2 |
+| M3 Meta | 8 | ✅ | 2 |
+| M3 Characters | 9 | ✅ | 1 |
+| M3 Packs | 10 | ✅ | 1 |
+| **总计** | **56** | **✅** | **6** |
+
+### 21.2 运行结果
+
+```bash
+$ make test-func
+PYTHONPATH=src python3 -m pytest tests/functional/ -v
+============================== 56 passed in 3.25s ==============================
+
+$ make test-golden
+PYTHONPATH=src python3 -m pytest tests/golden_test.py -v
+============================== 4 passed in 0.05s ==============================
+```
+
+---
+
+## 22. 命令速查表
 
 ```bash
 # ===== 核心命令（PR 门禁） =====
-make test-func    # 功能测试（27 scenarios）⭐
+make test-func    # 功能测试（56 scenarios）⭐
 make test-golden  # 快照回归测试 ⭐
 
 # ===== 本地开发 =====
@@ -688,9 +898,24 @@ pytest tests/ -m "slow" -v            # 慢速测试
 
 ---
 
+## 23. 违反规则的后果
+
+| 违规类型 | 处理方式 |
+|---------|---------|
+| PR 缺少功能测试 | ❌ 拒绝合并 |
+| 功能测试不通过 | ❌ 拒绝合并 |
+| Golden 更新无说明 | ❌ 拒绝合并 |
+| 使用全局 random/time | ❌ 拒绝合并 |
+| 依赖外部真实仓库 | ❌ 拒绝合并 |
+| PR 模板不完整 | ❌ 拒绝合并 |
+| 单 scenario 超时（>300ms） | ⚠️ 需优化 |
+| PR 门禁总耗时 > 30s | ⚠️ 需解释 |
+
+---
+
 **维护者**: Git Dungeon Team  
 **最后更新**: 2026-02-02  
-**版本**: v1.0
+**版本**: v1.1
 
 ---
 
@@ -698,10 +923,5 @@ pytest tests/ -m "slow" -v            # 慢速测试
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| v1.1 | 2026-02-02 | 补强测试规则、M4/M5/M6 配额、Golden 更新纪律、断言分层、耗时预算 |
 | v1.0 | 2026-02-02 | 初始版本（M3 功能测试框架） |
-
----
-
-**维护者**: Git Dungeon Team  
-**最后更新**: 2026-02-02  
-**版本**: v1.0
