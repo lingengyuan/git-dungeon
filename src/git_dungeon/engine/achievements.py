@@ -6,8 +6,8 @@ M5 成就系统 - 目标感与挑战
 
 import os
 import json
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Callable, Set
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Any, Set
 from datetime import datetime
 
 

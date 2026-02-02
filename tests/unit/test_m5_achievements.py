@@ -1,9 +1,7 @@
 """M5 成就系统测试"""
 
-import pytest
 import tempfile
 import os
-import json
 
 from src.git_dungeon.engine.achievements import (
     AchievementDef,
