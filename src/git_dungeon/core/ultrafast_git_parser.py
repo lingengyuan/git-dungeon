@@ -7,7 +7,7 @@ Ultra-Fast Git Parser
 import os
 import subprocess
 import tempfile
-from typing import Optional, Callable
+from typing import Optional
 from pathlib import Path
 
 from git import Repo, InvalidGitRepositoryError
@@ -315,7 +315,7 @@ if __name__ == "__main__":
         for i in range(100):
             os.system(f"cd {repo_path} && echo 'feat{i}' >> features.txt && git add . && git commit -m 'feat: feature {i}' -q 2>/dev/null")
         
-        print(f"\nRepository with 101 commits")
+        print("\nRepository with 101 commits")
         
         # Test 1: UltraFastGitParser
         print("\n" + "=" * 70)

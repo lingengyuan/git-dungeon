@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from src.config import GameConfig
 from src.core.game_engine import GameState
-from src.core.character import CharacterComponent, CharacterType
+from src.core.character import CharacterComponent
 
 
 def print_banner():
@@ -68,7 +68,7 @@ def battle(state: GameState) -> bool:
         if state.current_combat.is_player_turn:
             # 玩家回合 - 等待输入
             print(f"\n🎯 你的回合! (HP:{player.current_hp} MP:{player.current_mp})")
-            print(f"   [1] ⚔️ 攻击  [2] 🛡️ 防御  [3] ✨ 技能  [4] 🏃 逃跑")
+            print("   [1] ⚔️ 攻击  [2] 🛡️ 防御  [3] ✨ 技能  [4] 🏃 逃跑")
             
             try:
                 choice = input("   > ").strip()
@@ -82,7 +82,7 @@ def battle(state: GameState) -> bool:
                 print(f"   ⚔️ 你攻击 {enemy.name}，造成 {actual} 伤害!")
             elif choice == '2':
                 # 防御
-                print(f"   🛡️ 你进入防御姿态，减少 50% 伤害!")
+                print("   🛡️ 你进入防御姿态，减少 50% 伤害!")
                 state.current_combat.player_defending = True
             elif choice == '3':
                 # 技能 (消耗 MP)
@@ -98,14 +98,14 @@ def battle(state: GameState) -> bool:
                 # 逃跑
                 import random
                 if random.random() > 0.3:
-                    print(f"   🏃 逃跑成功!")
+                    print("   🏃 逃跑成功!")
                     state.current_combat.ended = True
                     state.current_combat = None
                     return False
                 else:
-                    print(f"   ❌ 逃跑失败!")
+                    print("   ❌ 逃跑失败!")
             else:
-                print(f"   ⚠️ 无效选择，默认攻击")
+                print("   ⚠️ 无效选择，默认攻击")
                 dmg = player.stats.attack.value + 5
                 actual = enemy.take_damage(dmg)
                 print(f"   ⚔️ 你攻击 {enemy.name}，造成 {actual} 伤害!")
@@ -193,7 +193,7 @@ def clone_github_repo(repo_path: str, clone_path: str) -> bool:
             timeout=60
         )
         if result.returncode == 0:
-            print(f"✅ Cloned successfully!")
+            print("✅ Cloned successfully!")
             return True
         else:
             print(f"❌ Clone failed: {result.stderr}")
@@ -280,10 +280,10 @@ Or use the TUI version:
         
         # 战斗
         if battle(state):
-            print(f"✅ Victory! Gained experience.")
+            print("✅ Victory! Gained experience.")
             state._advance_to_next_commit()
         else:
-            print(f"💀 Defeat!")
+            print("💀 Defeat!")
             break
     
     # 游戏结束

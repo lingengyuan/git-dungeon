@@ -10,28 +10,25 @@ Features:
 - M4: Skill system
 """
 
-import sys
 import os
 import re
 import subprocess
 import tempfile
 import argparse
-from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from git_dungeon.engine import (
-    Engine, GameState, Action, EnemyState,
-    create_rng, EventType, GameEvent,
+    Engine, GameState, EnemyState,
+    create_rng, EventType,
 )
 from git_dungeon.engine.rules import (
-    ChapterSystem, ChapterType,
-    ShopSystem, PlayerInventory,
+    ChapterSystem, ShopSystem, PlayerInventory,
     CombatRules, ProgressionRules,
     BossSystem, BossState,
 )
 from git_dungeon.config import GameConfig
 from git_dungeon.core.git_parser import GitParser, CommitInfo
-from git_dungeon.i18n import i18n, _
+from git_dungeon.i18n import i18n
 from git_dungeon.i18n.translations import get_translation
 
 
@@ -221,7 +218,7 @@ class GitDungeonCLI:
             
             elif choice == "2":  # Defend
                 player.is_defending = True
-                print(f"   🛡️  Defensive stance!")
+                print("   🛡️  Defensive stance!")
             
             elif choice == "3":  # Skill
                 if player.current_mp >= 10:
@@ -241,11 +238,11 @@ class GitDungeonCLI:
                 if chapter.config.shop_enabled and turn % 3 == 0:
                     self._open_shop(chapter)
                 elif self.combat_rules.roll_escape(0.7):
-                    print(f"   🏃  Escaped!")
+                    print("   🏃  Escaped!")
                     self.state.in_combat = False
                     return False
                 else:
-                    print(f"   ❌  Escape failed!")
+                    print("   ❌  Escape failed!")
             
             else:
                 damage = player.stats.attack.value + 5
@@ -267,7 +264,7 @@ class GitDungeonCLI:
                 print(f"   💥 {enemy.name} attacks for {actual} damage!")
                 
                 if not player.is_alive:
-                    print(f"   💀 Defeated!")
+                    print("   💀 Defeated!")
                     return False
         
         return False
@@ -326,7 +323,7 @@ class GitDungeonCLI:
             
             elif choice == "2":  # Defend
                 player.is_defending = True
-                print(f"   🛡️  Defensive stance!")
+                print("   🛡️  Defensive stance!")
             
             elif choice == "3":  # Skill
                 if player.current_mp >= 15:
@@ -346,7 +343,7 @@ class GitDungeonCLI:
                     continue
             
             elif choice == "4":  # Escape (not allowed in boss fight)
-                print(f"   ⚠️  Cannot escape from Boss battle!")
+                print("   ⚠️  Cannot escape from Boss battle!")
                 continue
             
             else:
@@ -585,7 +582,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
         elif msg.startswith("docs:"):
             return f"Docs: {msg[5:].strip()[:15]}"
         elif msg.startswith("merge"):
-            return f"Merge Conflict"
+            return "Merge Conflict"
         else:
             return msg[:25] if msg else "Unknown"
     
@@ -730,7 +727,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
                 capture_output=True, text=True, timeout=300
             )
             if result.returncode == 0:
-                print(f"✅ Cloned!")
+                print("✅ Cloned!")
                 return clone_path
             print(f"❌ {result.stderr}")
         except Exception as e:

@@ -351,7 +351,7 @@ if __name__ == "__main__":
         for i in range(50):
             os.system(f"cd {repo_path} && echo 'feat{i}' >> features.txt && git add . && git commit -m 'feat: feature {i}' -q 2>/dev/null")
         
-        print(f"\nRepository with 51 commits")
+        print("\nRepository with 51 commits")
         
         # Test 1: OptimizedGitParser
         print("\nTest 1: OptimizedGitParser (10 loads)")

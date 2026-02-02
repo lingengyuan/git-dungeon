@@ -18,11 +18,11 @@ Each chapter has:
 - Shop (after chapter completion)
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
 from enum import Enum
 
-from git_dungeon.engine.rng import RNG, random_between, roll_chance
+from git_dungeon.engine.rng import RNG
 from git_dungeon.engine.events import GameEvent, EventType
 
 

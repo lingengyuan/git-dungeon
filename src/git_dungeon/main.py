@@ -5,7 +5,7 @@ import sys
 import json
 import logging
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional
 
 __version__ = "1.0.0"
 

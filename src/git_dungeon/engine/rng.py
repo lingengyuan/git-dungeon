@@ -1,7 +1,7 @@
 # rng.py - Reproducible RNG system with seed support
 
 import random
-from typing import Any, Dict, List, Optional, Protocol, TypeVar, Generic
+from typing import Any, Dict, List, Optional, Protocol, TypeVar
 
 
 class RNG(Protocol):

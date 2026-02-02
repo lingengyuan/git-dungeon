@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
-from .character import CharacterComponent, get_character, StatType
+from .character import get_character, StatType
 from .entity import Entity
 from ..config import GameConfig
 from ..utils.exceptions import GameError
@@ -178,7 +178,7 @@ class CombatSystem:
         # Apply damage
         if action.damage > 0:
             target_char = get_character(action.target)
-            actual_damage = target_char.take_damage(action.damage)
+            target_char.take_damage(action.damage)
 
         # Apply healing
         if action.healing > 0:

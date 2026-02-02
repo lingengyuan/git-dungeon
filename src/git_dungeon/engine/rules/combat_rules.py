@@ -1,9 +1,9 @@
 # combat_rules.py - Combat rules (pure logic, testable)
 
 from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any
 
-from git_dungeon.engine.rng import RNG, random_between, roll_chance
+from git_dungeon.engine.rng import RNG, roll_chance
 
 
 @dataclass

@@ -1,14 +1,12 @@
 """Main entry point for Git Dungeon."""
 
-import sys
 from pathlib import Path
 from typing import Optional, Callable
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Vertical
+from textual.containers import Container
 from textual.widgets import Header, Footer, Static, Input, Button
 from textual.screen import Screen
-from textual import events
 
 from .config import load_config, GameConfig
 from .core.game_engine import GameState
@@ -192,7 +190,6 @@ class GitDungeonApp(App):
     def action_save(self) -> None:
         """Save the game."""
         from git_dungeon.core.save_system import SaveSystem
-        from pathlib import Path
         import tempfile
 
         save_dir = Path(tempfile.gettempdir()) / "git-dungeon-saves"

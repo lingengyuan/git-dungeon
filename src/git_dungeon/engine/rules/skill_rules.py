@@ -11,12 +11,10 @@ Features:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any, Callable
+from typing import List, Optional, Dict, Any
 from enum import Enum
-from abc import ABC, abstractmethod
 
-from git_dungeon.engine.rng import RNG, roll_chance
-from git_dungeon.engine.events import GameEvent, EventType
+from git_dungeon.engine.rng import RNG
 
 
 class SkillType(Enum):

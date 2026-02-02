@@ -186,7 +186,7 @@ class InventoryComponent(Component):
 
         if item.item_type == ItemType.CONSUMABLE:
             # Apply stats
-            from .character import get_character, CharacterComponent
+            from .character import get_character
 
             char = get_character(character)
             if item.stats.hp_bonus > 0:

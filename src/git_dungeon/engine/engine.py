@@ -1,18 +1,15 @@
 # engine.py - Core game engine (pure logic, no I/O)
 
 from dataclasses import dataclass
-from typing import List, Tuple, Optional, Dict, Any
+from typing import List, Tuple, Optional
 from datetime import datetime
 
-from .model import GameState, PlayerState, EnemyState, ChapterState, Action
+from .model import GameState, EnemyState, ChapterState, Action
 from .events import (
     GameEvent, EventType,
     battle_started, damage_dealt,
     exp_gained, level_up,
-    enemy_defeated, item_dropped,
-    chapter_completed, error,
-    player_action, gold_gained, status_applied,
-    chapter_started, game_ended
+    enemy_defeated, chapter_completed
 )
 from .rng import RNG, DefaultRNG
 from .rules.combat_rules import CombatRules

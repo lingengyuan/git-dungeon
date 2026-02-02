@@ -1,7 +1,7 @@
 # progression_rules.py - Progression/leveling rules (pure logic, testable)
 
 from dataclasses import dataclass
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from git_dungeon.engine.rng import RNG, random_stat_bonus
 

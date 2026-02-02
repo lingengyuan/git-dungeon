@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 import json
-import os
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
 
-from .character import CharacterComponent, CharacterStats, CharacterType
+from .character import CharacterComponent
 from .entity import Entity
 from .inventory import InventoryComponent, Item
-from .git_parser import CommitInfo
 
 
 def _config_to_dict(config: Any) -> dict:
@@ -170,7 +168,6 @@ class SaveSystem:
             Loaded GameState or None if failed
         """
         from .game_engine import GameState
-        from .git_parser import GitParser
         from git_dungeon.config import GameConfig
 
         try:

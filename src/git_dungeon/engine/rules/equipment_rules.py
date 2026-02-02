@@ -10,13 +10,12 @@ Features:
 - Equipment acquisition
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
 from enum import Enum
 import random
 
-from git_dungeon.engine.rng import RNG, roll_chance, random_weighted_choice, random_float
-from git_dungeon.engine.events import GameEvent, EventType
+from git_dungeon.engine.rng import RNG, roll_chance
 
 
 class EquipmentType(Enum):

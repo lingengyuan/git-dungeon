@@ -8,7 +8,7 @@ This is the "output" side of the event-driven architecture.
 from typing import List, Optional
 from datetime import datetime
 
-from git_dungeon.engine import GameEvent, EventType, GameState, Action
+from git_dungeon.engine import GameEvent, EventType, GameState
 
 
 class CLIRenderer:
@@ -83,7 +83,7 @@ class CLIRenderer:
         player = state.player.character
         
         lines = [
-            f"",
+            "",
             f"{self.BOX_HORIZONTAL * 40}",
             f"📍 Location: {'Game Over' if state.is_game_over else f'Commit #{state.current_commit_index}'}",
             f"💀 Enemies defeated: {len(state.enemies_defeated)}",

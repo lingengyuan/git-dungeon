@@ -11,12 +11,10 @@ Features:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any, Callable
+from typing import List, Optional, Dict, Any
 from enum import Enum
-from random import randint
 
 from git_dungeon.engine.rng import RNG, roll_chance
-from git_dungeon.engine.events import GameEvent, EventType
 
 
 class BossPhase(Enum):
@@ -522,7 +520,7 @@ class BossSystem:
         lines = [
             "",
             "=" * 50,
-            f"👹 BOSS BATTLE",
+            "👹 BOSS BATTLE",
             "=" * 50,
             f"⚠️  WARNING: {boss.name}",
             f"📝 {boss.template.description}",

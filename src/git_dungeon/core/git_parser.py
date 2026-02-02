@@ -2,15 +2,14 @@
 
 import os
 import subprocess
-from datetime import datetime
 from pathlib import Path
 from typing import Optional, Callable
 
-from git import Repo, Commit as GitCommit
-from git.exc import InvalidGitRepositoryError, GitCommandError, BadName
+from git import Repo
+from git.exc import InvalidGitRepositoryError, BadName
 
-from git_dungeon.config import GameConfig, Difficulty
-from git_dungeon.utils.exceptions import GitError, ResourceLimitError, ParseError
+from git_dungeon.config import GameConfig
+from git_dungeon.utils.exceptions import GitError
 from git_dungeon.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -477,7 +476,7 @@ if __name__ == "__main__":
         for i in range(100):
             os.system(f"cd {repo_path} && echo 'feat{i}' >> features.txt && git add . && git commit -m 'feat: feature {i}' -q 2>/dev/null")
         
-        print(f"\nRepository with 101 commits")
+        print("\nRepository with 101 commits")
         
         # Test 1: Fast mode (no file changes)
         print("\n" + "=" * 70)

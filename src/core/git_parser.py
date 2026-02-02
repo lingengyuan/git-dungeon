@@ -1,16 +1,14 @@
 """Git parser for reading commit history."""
 
-import os
-import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 from git import Repo, Commit as GitCommit
-from git.exc import InvalidGitRepositoryError, GitCommandError
+from git.exc import InvalidGitRepositoryError
 
-from ..config import GameConfig, Difficulty
+from ..config import GameConfig
 from ..utils.exceptions import GitError, ResourceLimitError, ParseError
 from ..utils.logger import setup_logger
 

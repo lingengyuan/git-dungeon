@@ -1,7 +1,7 @@
 # events.py - GameEvent definitions (JSON serializable, simple classes)
 
 from dataclasses import dataclass, field
-from typing import Optional, Any, Dict, List, Union
+from typing import Any, Dict, List
 from datetime import datetime
 from enum import Enum
 import uuid

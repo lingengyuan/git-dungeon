@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
 from typing import Optional, TYPE_CHECKING
 
 from .git_parser import GitParser, CommitInfo
 from .entity import Entity
-from .character import CharacterComponent, CharacterType, CharacterStats
+from .character import CharacterComponent, CharacterType
 from .combat import CombatSystem, CombatEncounter
 from .inventory import InventoryComponent
 from .save_system import SaveSystem
 from .resource_manager import ResourceManager
-from ..config import GameConfig, Difficulty
+from ..config import GameConfig
 from ..utils.logger import setup_logger
 
 if TYPE_CHECKING:

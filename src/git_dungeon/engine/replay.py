@@ -1,13 +1,13 @@
 # replay.py - Replay system for testing and debugging
 
 import json
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from dataclasses import dataclass
 
-from .events import GameEvent, EventType
+from .events import GameEvent
 from .model import GameState, Action
 from .engine import Engine
-from .rng import RNG, DefaultRNG
+from .rng import DefaultRNG
 
 
 @dataclass

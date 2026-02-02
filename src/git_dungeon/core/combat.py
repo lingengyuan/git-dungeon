@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
-from .character import CharacterComponent, get_character, StatType
+from .character import get_character, StatType
 from .entity import Entity
 from git_dungeon.config import GameConfig
 from git_dungeon.utils.exceptions import GameError
