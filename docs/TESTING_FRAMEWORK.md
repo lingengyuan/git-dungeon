@@ -359,6 +359,349 @@ PYTHONPATH=src python3 -m pytest tests/golden_test.py -v
 
 ---
 
+## 8. 命令与脚本（必须提供）
+
+### 8.1 Makefile（必须）
+
+`Makefile` 至少包含：
+
+| 命令 | 说明 |
+|------|------|
+| `make run` | 运行游戏 |
+| `make test` | unit/integration 测试（快速本地检查） |
+| `make test-func` | **functional 测试（PR 门禁）** |
+| `make test-golden` | **golden 快照测试（PR 门禁）** |
+| `make test-all` | 全部测试 |
+| `make lint` | 代码检查（ruff/mypy） |
+| `make format` | 代码格式化（ruff/black） |
+
+**建议新增**：
+
+| 命令 | 说明 |
+|------|------|
+| `make golden-update` | 显式更新 golden（仅预期变化时用） |
+| `make test-sim` | nightly 批量跑（多 seed 组合） |
+| `make clean` | 清理缓存 |
+| `make dev-install` | 安装开发依赖 |
+
+### 8.2 pytest 组织建议（可选）
+
+```bash
+# 功能测试（全量）
+pytest tests/functional/ -v
+
+# Golden 测试
+pytest tests/golden_test.py -v
+
+# 单元测试
+pytest tests/ -m "not functional and not golden" -v
+
+# 带标记运行
+pytest -m "functional" -v    # 只跑 functional
+pytest -m "golden" -v        # 只跑 golden
+pytest -m "slow" -v          # 慢速测试（nightly）
+```
+
+---
+
+## 9. CI 门禁（GitHub Actions 必须配置）
+
+### 9.1 PR 门禁工作流（必须）
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev]"
+      
+      - name: Run Functional Tests ⭐
+        run: make test-func
+      
+      - name: Run Golden Tests ⭐
+        run: make test-golden
+      
+      - name: Lint (optional)
+        run: make lint
+      
+      - name: Unit Tests (optional)
+        run: make test
+```
+
+### 9.2 Nightly 工作流（可选）
+
+```yaml
+# .github/workflows/nightly.yml
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 每天 02:00 UTC
+  workflow_dispatch:
+
+jobs:
+  simulation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      - run: pip install -e ".[dev]"
+      - run: make test-sim
+        env:
+          SEEDS: '42,123,456,789,9999'
+          CHARACTERS: 'developer,reviewer,devops'
+```
+
+**Nightly 输出示例**：
+
+```
+Nightly Test Results
+====================
+Seeds tested: 5
+Characters: 3
+Packs: 3
+Total runs: 45
+Success rate: 42/45 (93.3%)
+Avg run time: 2.3s
+Failed seeds: [456, 789]
+```
+
+---
+
+## 10. 反脆弱要求（必须执行）
+
+### 10.1 确定性控制
+
+| 禁止 | 必须 |
+|------|------|
+| `import random` | 使用 `from git_dungeon.engine.rng import DefaultRNG` |
+| `time.time()` | 使用 `seed` 注入时间或 mock |
+| 网络请求 | 所有 I/O 可控或 mock |
+
+**正确示例**：
+
+```python
+# ✅ 正确：从 seed 创建 RNG
+rng = DefaultRNG(seed=42)
+value = rng.randint(1, 100)
+
+# ❌ 错误：使用全局 random
+import random
+value = random.randint(1, 100)
+```
+
+### 10.2 性能预算
+
+| 测试类型 | 目标耗时 | 当前状态 |
+|---------|---------|---------|
+| PR 门禁（test-func + test-golden） | < 30s | ✅ ~5s |
+| functional 单次 | < 10s | ✅ ~0.1s/scenario |
+| unit 单次 | < 1s | ✅ ~0.01s/test |
+| nightly (test-sim) | < 5min | 批量运行 |
+
+### 10.3 输出稳定化
+
+所有快照通过 `stable_serialize` 处理：
+
+```python
+from tests.harness.snapshots import stable_serialize
+
+# 处理前
+data = {
+    "temp_path": "/tmp/abc123",  # 不稳定
+    "timestamp": 1699999999,     # 每次不同
+    "cards": [{"id": "strike"}, {"id": "defend"}]
+}
+
+# 处理后（stable_serialize 自动过滤/排序）
+{
+    "cards": [{"id": "defend"}, {"id": "strike"}]  # 按 id 排序
+}
+```
+
+**stable_serialize 规则**：
+- dict key 排序
+- list 按 id 排序
+- 过滤临时路径/时间戳等非确定性字段
+- dataclass 转 dict 递归处理
+
+---
+
+## 11. 扩展到后续里程碑时的测试要求（提前写死）
+
+### 11.1 M2（Route + Event 脚本）新增最低场景（至少 6）
+
+| Scenario ID | 说明 |
+|------------|------|
+| `m2_route_graph_determinism_golden` | 同 seed 同 route 结构 |
+| `m2_route_branch_count_happy` | 分叉数量符合预期 |
+| `m2_route_branch_influence_happy` | risk vs safe 影响后续节点 |
+| `m2_event_opcode_happy_<opcode>` | 每个 opcode 至少 1 |
+| `m2_event_opcode_edge_<opcode>` | 每个 opcode 至少 1 边界 |
+| `m2_elite_boss_rewards_golden` | 精英/BOSS 奖励快照 |
+
+### 11.2 M4（难度 + 精英/BOSS）新增最低场景（至少 5）
+
+| Scenario ID | 说明 |
+|------------|------|
+| `m4_difficulty_scaling_bounds` | 难度在合理范围内 |
+| `m4_elite_drop_rules_strict` | 精英掉落规则严格 |
+| `m4_boss_phase_snapshot_golden` | BOSS 阶段快照 |
+| `m4_multi_build_can_win_smoke` | 3 build 至少可通 |
+| `m4_hard_mode_requires_build_smoke` | 困难模式需要构建 |
+
+### 11.3 M5（成就）新增最低场景（至少 3）
+
+| Scenario ID | 说明 |
+|------------|------|
+| `m5_achievement_trigger_happy` | 成就触发正确 |
+| `m5_achievement_not_trigger_edge` | 条件不满足不触发 |
+| `m5_achievement_persist_profile_happy` | 成就持久化到 profile |
+
+### 11.4 M6（AI 文案）新增最低场景（至少 3）
+
+| Scenario ID | 说明 |
+|------------|------|
+| `m6_ai_off_no_calls_happy` | AI 关闭时不调用 API |
+| `m6_ai_on_cache_hit_happy` | 缓存命中返回正确结果 |
+| `m6_ai_failure_fallback_edge` | API 失败时 fallback 到默认值 |
+
+---
+
+## 12. PR 模板（必须执行）
+
+PR 描述必须包含以下模板：
+
+```markdown
+## 实现的功能（Feature List）
+
+- [ ] 功能 1
+- [ ] 功能 2
+- [ ] ...
+
+## 新增/更新的 Scenario IDs
+
+### 新增
+- `m3_meta_points_happy`
+- `m3_pack_conflict_edge`
+
+### 更新
+- （无）
+
+## Golden 快照更新
+
+- [ ] 无变更
+- [ ] 有变更，更新了以下快照：
+
+| Snapshot | 变更原因 |
+|----------|----------|
+| `m3_character_starters.json` | 角色 HP 调整 |
+
+## CI 测试结果
+
+### make test-func
+```
+27 passed in 2.31s
+```
+
+### make test-golden
+```
+4 passed in 0.5s
+```
+
+### make test（可选）
+```
+87 passed, 8 warnings
+```
+
+## 注意事项
+（其他需要 reviewer 注意的事项）
+```
+
+---
+
+## 13. 违反规则的后果
+
+| 违规类型 | 处理方式 |
+|---------|---------|
+| PR 缺少功能测试 | ❌ 拒绝合并 |
+| 功能测试不通过 | ❌ 拒绝合并 |
+| Golden 更新无说明 | ❌ 拒绝合并 |
+| 使用全局 random/time | ❌ 拒绝合并 |
+| 依赖外部真实仓库 | ❌ 拒绝合并 |
+| PR 模板不完整 | ❌ 拒绝合并 |
+
+---
+
+## 14. 演进与例外
+
+- **Minor 更新**：修改 harness 代码 → 同步更新相关 golden 快照
+- **Major 更新**：框架结构变更 → 更新本文档 + 所有相关 golden
+- **例外申请**：在 PR 中说明为什么必须违反某条规则
+
+---
+
+## 15. 附录：命令速查表
+
+```bash
+# ===== 核心命令（PR 门禁） =====
+make test-func    # 功能测试（27 scenarios）⭐
+make test-golden  # 快照回归测试 ⭐
+
+# ===== 本地开发 =====
+make run          # 运行游戏
+make test         # 单元测试（快速）
+make test-all     # 全部测试
+make lint         # 代码检查
+make format       # 代码格式化
+make clean        # 清理缓存
+
+# ===== 高级 =====
+make golden-update  # 更新 golden（谨慎使用）
+make test-sim       # Nightly 批量模拟
+make dev-install    # 安装开发依赖
+make pre-commit-install  # 安装预提交 hook
+
+# ===== 手动 pytest =====
+pytest tests/functional/ -v           # 功能测试
+pytest tests/golden_test.py -v        # Golden 测试
+pytest tests/ -v --tb=short           # 全部测试
+pytest tests/ -m "slow" -v            # 慢速测试
+```
+
+---
+
+**维护者**: Git Dungeon Team  
+**最后更新**: 2026-02-02  
+**版本**: v1.0
+
+---
+
+## 历史版本
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v1.0 | 2026-02-02 | 初始版本（M3 功能测试框架） |
+
+---
+
 **维护者**: Git Dungeon Team  
 **最后更新**: 2026-02-02  
 **版本**: v1.0
