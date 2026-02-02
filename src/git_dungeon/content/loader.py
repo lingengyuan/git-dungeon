@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 from .schema import (
     CardDef, RelicDef, EnemyDef, ArchetypeDef, EventDef, StatusDef,
-    CardType, CardRarity, RelicTier, EnemyType, IntentType, StatusType,
-    ContentRegistry, Effect
+    CardType, CardRarity, RelicTier, EnemyType, EnemyTier, IntentType, StatusType,
+    ContentRegistry, Effect, EventChoice, EventEffect
 )
 
 
@@ -210,6 +210,14 @@ class ContentLoader:
                 self.errors.append(f"[enemy] {enemy_id}: Invalid type '{type_str}'")
                 continue
             
+            # 解析敌人层级
+            tier_str = enemy_data.get("tier", "normal")
+            try:
+                tier = EnemyTier(tier_str)
+            except ValueError:
+                self.errors.append(f"[enemy] {enemy_id}: Invalid tier '{tier_str}'")
+                tier = EnemyTier.NORMAL
+            
             enemy = EnemyDef(
                 id=enemy_id,
                 name_key=enemy_data["name_key"],
@@ -217,11 +225,12 @@ class ContentLoader:
                 base_hp=enemy_data["base_hp"],
                 base_damage=enemy_data["base_damage"],
                 base_block=enemy_data.get("base_block", 0),
+                tier=tier,
                 ai_pattern=enemy_data.get("ai_pattern", "basic"),
                 status_resist=enemy_data.get("status_resist", []),
                 status_vulnerable=enemy_data.get("status_vulnerable", []),
                 intent_preference=enemy_data.get("intent_preference", []),
-                is_boss=enemy_data.get("is_boss", False),
+                is_boss=tier == EnemyTier.BOSS,
                 gold_multiplier=enemy_data.get("gold_multiplier", 1.0),
                 exp_multiplier=enemy_data.get("exp_multiplier", 1.0)
             )
@@ -281,13 +290,26 @@ class ContentLoader:
             ):
                 continue
             
+            # 解析 choices 为 EventChoice 对象列表
+            choices = []
+            for j, choice_data in enumerate(event_data.get("choices", [])):
+                choice_id = choice_data.get("id", f"choice_{j}")
+                choice = EventChoice(
+                    id=choice_id,
+                    text_key=choice_data.get("text_key", ""),
+                    effects=choice_data.get("effects", []),  # List[Dict] - effects
+                    condition=choice_data.get("condition")
+                )
+                choices.append(choice)
+            
             event = EventDef(
                 id=event_id,
                 name_key=event_data["name_key"],
                 desc_key=event_data["desc_key"],
-                choices=event_data.get("choices", []),
+                choices=choices,
                 conditions=event_data.get("conditions", {}),
-                weights=event_data.get("weights", {})
+                weights=event_data.get("weights", {}),
+                route_tags=event_data.get("route_tags", [])
             )
             
             if event_id in registry.events:

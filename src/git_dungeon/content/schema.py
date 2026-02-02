@@ -154,6 +154,13 @@ class StatusDef:
         return damage
 
 
+class EnemyTier(Enum):
+    """敌人难度层级"""
+    NORMAL = "normal"
+    ELITE = "elite"
+    BOSS = "boss"
+
+
 @dataclass
 class EnemyDef:
     """敌人定义"""
@@ -163,11 +170,12 @@ class EnemyDef:
     base_hp: int
     base_damage: int
     base_block: int = 0
+    tier: EnemyTier = EnemyTier.NORMAL
     ai_pattern: str = "basic"  # "basic", "aggressive", "defensive", "cycle"
     status_resist: List[str] = field(default_factory=list)  # 抵抗的状态
     status_vulnerable: List[str] = field(default_factory=list)  # 弱点的状态
     intent_preference: List[IntentType] = field(default_factory=list)  # 意图偏好
-    is_boss: bool = False  # 是否为精英敌人
+    is_boss: bool = False  # 是否为 BOSS (兼容旧字段)
     gold_multiplier: float = 1.0  # 金币倍率
     exp_multiplier: float = 1.0  # 经验倍率
     
@@ -201,14 +209,33 @@ class ArchetypeDef:
 
 
 @dataclass
+class EventEffect:
+    """事件效果定义"""
+    opcode: str  # 效果操作码: gain_gold, lose_gold, heal, take_damage, add_card, remove_card, upgrade_card, add_relic, remove_relic, apply_status, trigger_battle, modify_bias, set_flag
+    value: Any  # 效果值
+    target: str = "player"  # player, enemy, all
+    condition: Optional[Dict[str, Any]] = None  # 条件
+
+
+@dataclass
+class EventChoice:
+    """事件选项定义"""
+    id: str
+    text_key: str  # 选项描述 i18n key
+    effects: List[EventEffect] = field(default_factory=list)  # 效果列表
+    condition: Optional[Dict[str, Any]] = None  # 显示条件
+
+
+@dataclass
 class EventDef:
     """事件定义"""
     id: str
     name_key: str
     desc_key: str
-    choices: List[Dict[str, Any]] = field(default_factory=list)  # 选项列表
-    conditions: Dict[str, Any] = field(default_factory=dict)  # 触发条件
+    choices: List[EventChoice] = field(default_factory=list)  # 选项列表
+    conditions: Dict[str, Any] = field(default_factory=dict)  # 全局触发条件
     weights: Dict[str, int] = field(default_factory=dict)  # 权重配置
+    route_tags: List[str] = field(default_factory=list)  # 关联的路径标签
 
 
 @dataclass

@@ -310,3 +310,198 @@ def game_ended(result: str, enemies_defeated: int = 0) -> GameEvent:
             "enemies_defeated": enemies_defeated
         }
     )
+
+
+# ==================== M2.2 事件效果系统 ====================
+
+class EventEffectOpcode:
+    """事件效果操作码常量"""
+    GAIN_GOLD = "gain_gold"
+    LOSE_GOLD = "lose_gold"
+    HEAL = "heal"
+    TAKE_DAMAGE = "take_damage"
+    ADD_CARD = "add_card"
+    REMOVE_CARD = "remove_card"
+    UPGRADE_CARD = "upgrade_card"
+    ADD_RELIC = "add_relic"
+    REMOVE_RELIC = "remove_relic"
+    APPLY_STATUS = "apply_status"
+    TRIGGER_BATTLE = "trigger_battle"
+    MODIFY_BIAS = "modify_bias"
+    SET_FLAG = "set_flag"
+
+
+def apply_event_choice(
+    run_state: "GameState",
+    choice_effects: List[Dict[str, Any]],
+    rng: "RNG"
+) -> Dict[str, Any]:
+    """
+    应用事件选择效果
+    
+    Args:
+        run_state: 当前游戏状态
+        choice_effects: 效果列表 (从 YAML 加载的 dict)
+        rng: 随机数生成器
+    
+    Returns:
+        执行结果 {"success": bool, "effects_applied": [...], "messages": [...], "state_changes": {...}}
+    """
+    from git_dungeon.engine.model import GameState
+    
+    result = {
+        "success": True,
+        "effects_applied": [],
+        "messages": [],
+        "state_changes": {}
+    }
+    
+    # 确保 route_state 存在
+    if run_state.route_state is None:
+        run_state.route_state = {
+            "current_node_id": "",
+            "visited_nodes": [],
+            "route_flags": {},
+            "event_flags": {}
+        }
+    
+    event_flags = run_state.route_state.setdefault("event_flags", {})
+    
+    for effect in choice_effects:
+        opcode = effect.get("opcode", "")
+        value = effect.get("value", 0)
+        target = effect.get("target", "player")
+        
+        try:
+            if opcode == EventEffectOpcode.GAIN_GOLD:
+                amount = int(value) if isinstance(value, (int, float)) else 0
+                run_state.player.gold += amount
+                result["effects_applied"].append(f"gain_gold:{amount}")
+                result["messages"].append(f"+{amount} 💰")
+                
+            elif opcode == EventEffectOpcode.LOSE_GOLD:
+                amount = int(value) if isinstance(value, (int, float)) else 0
+                run_state.player.gold = max(0, run_state.player.gold - amount)
+                result["effects_applied"].append(f"lose_gold:{amount}")
+                result["messages"].append(f"-{amount} 💰")
+                
+            elif opcode == EventEffectOpcode.HEAL:
+                amount = int(value) if isinstance(value, (int, float)) else 0
+                actual = run_state.player.character.heal(amount)
+                result["effects_applied"].append(f"heal:{actual}")
+                result["messages"].append(f"+{actual} ❤️")
+                
+            elif opcode == EventEffectOpcode.TAKE_DAMAGE:
+                amount = int(value) if isinstance(value, (int, float)) else 0
+                run_state.player.character.current_hp = max(
+                    0, run_state.player.character.current_hp - amount
+                )
+                result["effects_applied"].append(f"take_damage:{amount}")
+                result["messages"].append(f"-{amount} ❤️")
+                
+            elif opcode == EventEffectOpcode.ADD_CARD:
+                card_id = str(value)
+                # 添加卡牌到抽牌堆
+                from git_dungeon.engine.model import CardInstance
+                new_card = CardInstance(card_id=card_id, upgrade_level=0)
+                run_state.player.deck.draw_pile.append(new_card)
+                result["effects_applied"].append(f"add_card:{card_id}")
+                result["messages"].append(f"+{card_id} 🃏")
+                
+            elif opcode == EventEffectOpcode.REMOVE_CARD:
+                # value 可以是卡牌ID或选择条件
+                card_id = str(value)
+                # 从手牌、抽牌堆、弃牌堆中移除
+                removed = False
+                for pile_name in ["hand", "draw_pile", "discard_pile"]:
+                    pile = getattr(run_state.player.deck, pile_name, [])
+                    for i, card in enumerate(pile):
+                        if card.card_id == card_id:
+                            pile.pop(i)
+                            removed = True
+                            break
+                    if removed:
+                        break
+                result["effects_applied"].append(f"remove_card:{card_id}")
+                result["messages"].append(f"-{card_id} 🃏")
+                
+            elif opcode == EventEffectOpcode.UPGRADE_CARD:
+                card_id = str(value)
+                # 升级所有匹配的卡牌
+                for pile_name in ["hand", "draw_pile", "discard_pile"]:
+                    pile = getattr(run_state.player.deck, pile_name, [])
+                    for card in pile:
+                        if card.card_id == card_id:
+                            card.upgrade_level = min(3, card.upgrade_level + 1)
+                result["effects_applied"].append(f"upgrade_card:{card_id}")
+                result["messages"].append(f"↑{card_id} 🃏")
+                
+            elif opcode == EventEffectOpcode.ADD_RELIC:
+                relic_id = str(value)
+                if relic_id not in run_state.player.relics:
+                    run_state.player.relics.append(relic_id)
+                    result["effects_applied"].append(f"add_relic:{relic_id}")
+                    result["messages"].append(f"+{relic_id} 🛡️")
+                    
+            elif opcode == EventEffectOpcode.REMOVE_RELIC:
+                relic_id = str(value)
+                if relic_id in run_state.player.relics:
+                    run_state.player.relics.remove(relic_id)
+                    result["effects_applied"].append(f"remove_relic:{relic_id}")
+                    result["messages"].append(f"-{relic_id} 🛡️")
+                    
+            elif opcode == EventEffectOpcode.APPLY_STATUS:
+                status_id = str(value)
+                # 应用状态
+                current = run_state.player.character.statuses.get(status_id, 0)
+                run_state.player.character.statuses[status_id] = current + 1
+                result["effects_applied"].append(f"apply_status:{status_id}")
+                result["messages"].append(f"+{status_id} 💫")
+                
+            elif opcode == EventEffectOpcode.TRIGGER_BATTLE:
+                # 设置触发战斗标记（实际战斗在引擎中处理）
+                battle_type = str(value)  # "normal" or "elite"
+                event_flags["trigger_battle"] = battle_type
+                result["effects_applied"].append(f"trigger_battle:{battle_type}")
+                result["messages"].append(f"⚔️ {battle_type} battle")
+                
+            elif opcode == EventEffectOpcode.MODIFY_BIAS:
+                # 格式: "archetype_id:delta"
+                parts = str(value).split(":")
+                archetype = parts[0]
+                delta = float(parts[1]) if len(parts) > 1 else 0.1
+                if "bias" not in run_state.route_state:
+                    run_state.route_state["bias"] = {}
+                current = run_state.route_state["bias"].get(archetype, 0.0)
+                run_state.route_state["bias"][archetype] = current + delta
+                result["effects_applied"].append(f"modify_bias:{archetype}:{delta}")
+                result["messages"].append(f"📊 {archetype} +{delta}")
+                
+            elif opcode == EventEffectOpcode.SET_FLAG:
+                # 格式: "key:value"
+                parts = str(value).split(":", 1)
+                key = parts[0]
+                flag_value = parts[1] if len(parts) > 1 else True
+                event_flags[key] = flag_value
+                result["effects_applied"].append(f"set_flag:{key}")
+                result["messages"].append(f"🔒 {key}")
+                
+            else:
+                result["effects_applied"].append(f"unknown:{opcode}")
+                result["messages"].append(f"?{opcode}")
+                
+        except Exception as e:
+            result["success"] = False
+            result["effects_applied"].append(f"error:{opcode}:{str(e)}")
+            result["messages"].append(f"❌ {opcode} failed")
+    
+    # 更新状态变化
+    result["state_changes"] = {
+        "gold": run_state.player.gold,
+        "hp": run_state.player.character.current_hp,
+        "max_hp": run_state.player.character.stats.hp.value,
+        "relics": len(run_state.player.relics),
+        "total_cards": run_state.player.deck.total_cards
+    }
+    
+    return result

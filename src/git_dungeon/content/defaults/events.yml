@@ -1,109 +1,422 @@
-# 事件定义 - Git Dungeon
-# M0/M1 阶段：事件骨架，后续丰富内容
+# 事件定义 - Git Dungeon M2
+# 包含 15+ 个事件，每个事件有 2+ 选择，至少 1 个有代价
+# 支持流派倾向事件（Debug/Test/Refactor）
 
 events:
-  # ============ 基础事件 ============
+  # ============ 基础休息事件 ============
   - id: rest_site
     name_key: "event.rest_site.name"
     desc_key: "event.rest_site.desc"
+    route_tags: ["safe"]
     choices:
       - id: rest
-        desc_key: "event.rest_site.choice.rest"
+        text_key: "event.rest_site.choice.rest"
         effects:
-          - type: heal
+          - opcode: heal
             value: 30
-      - id: upgrade
-        desc_key: "event.rest_site.choice.upgrade"
+      - id: upgrade_card
+        text_key: "event.rest_site.choice.upgrade"
         effects:
-          - type: card_upgrade
-            value: 1
-    conditions: {}
+          - opcode: upgrade_card
+            value: strike
+          - opcode: take_damage
+            value: 10
+      - id: upgrade_random
+        text_key: "event.rest_site.choice.upgrade_random"
+        effects:
+          - opcode: upgrade_card
+            value: any
+            condition: { has_cards: true }
     weights:
       default: 10
-      
+
+  - id: shrine
+    name_key: "event.shrine.name"
+    desc_key: "event.shrine.desc"
+    route_tags: ["safe"]
+    choices:
+      - id: purify
+        text_key: "event.shrine.choice.purify"
+        effects:
+          - opcode: apply_status
+            value: clear_negative
+            target: player
+      - id: sacrifice
+        text_key: "event.shrine.choice.sacrifice"
+        effects:
+          - opcode: modify_bias
+            value: "debug_beatdown:0.2"
+          - opcode: take_damage
+            value: 15
+    weights:
+      default: 5
+
+  # ============ 商店事件 ============
   - id: merchant
     name_key: "event.merchant.name"
     desc_key: "event.merchant.desc"
+    route_tags: ["shop"]
     choices:
       - id: buy_card
-        desc_key: "event.merchant.choice.buy_card"
+        text_key: "event.merchant.choice.buy_card"
         effects:
-          - type: card_choice
-            count: 3
-            rarity: uncommon
+          - opcode: add_card
+            value: random_common
+          - opcode: lose_gold
+            value: 50
       - id: buy_relic
-        desc_key: "event.merchant.choice.buy_relic"
+        text_key: "event.merchant.choice.buy_relic"
         effects:
-          - type: relic_choice
-            count: 1
-    conditions: {}
+          - opcode: add_relic
+            value: random_uncommon
+          - opcode: lose_gold
+            value: 75
+      - id: sell_cards
+        text_key: "event.merchant.choice.sell_cards"
+        effects:
+          - opcode: gain_gold
+            value: 30
+          - opcode: remove_card
+            value: strike
     weights:
-      default: 5
-      
-  - id: treasure
-    name_key: "event.treasure.name"
-    desc_key: "event.treasure.desc"
+      default: 8
+
+  - id: black_market
+    name_key: "event.black_market.name"
+    desc_key: "event.black_market.desc"
+    route_tags: ["greed"]
     choices:
-      - id: take
-        desc_key: "event.treasure.choice.take"
+      - id: buy_powerful
+        text_key: "event.black_market.choice.buy_powerful"
         effects:
-          - type: relic
-            id: random
-    conditions: {}
+          - opcode: add_relic
+            value: random_rare
+          - opcode: lose_gold
+            value: 100
+          - opcode: take_damage
+            value: 20
+      - id: gamble
+        text_key: "event.black_market.choice.gamble"
+        effects:
+          - opcode: add_card
+            value: random_rare
+          - opcode: lose_gold
+            value: 80
+      - id: steal
+        text_key: "event.black_market.choice.steal"
+        effects:
+          - opcode: gain_gold
+            value: 50
+          - opcode: apply_status
+            value: tech_debt
     weights:
       default: 3
-      
-  # ============ Debug 流派事件 ============
-  - id: bug_hunt
-    name_key: "event.bug_hunt.name"
-    desc_key: "event.bug_hunt.desc"
+
+  # ============ 宝藏事件 ============
+  - id: treasure_room
+    name_key: "event.treasure_room.name"
+    desc_key: "event.treasure_room.desc"
+    route_tags: ["treasure"]
     choices:
-      - id: hunt
-        desc_key: "event.bug_hunt.choice.hunt"
+      - id: claim
+        text_key: "event.treasure_room.choice.claim"
         effects:
-          - type: card_choice
+          - opcode: add_relic
+            value: random_starter
+      - id: trap
+        text_key: "event.treasure_room.choice.trap"
+        effects:
+          - opcode: add_relic
+            value: random_common
+          - opcode: take_damage
+            value: 25
+    weights:
+      default: 5
+
+  - id: abandoned_pack
+    name_key: "event.abandoned_pack.name"
+    desc_key: "event.abandoned_pack.desc"
+    choices:
+      - id: open
+        text_key: "event.abandoned_pack.choice.open"
+        effects:
+          - opcode: add_card
+            value: random_common
             count: 3
-            tags: ["debug"]
-          - type: gold
-            value: -20
-    conditions:
-      tags_contains: debug
+      - id: ignore
+        text_key: "event.abandoned_pack.choice.ignore"
+        effects: []
+    weights:
+      default: 4
+
+  # ============ Debug 流派事件 ============
+  - id: debug_summon
+    name_key: "event.debug_summon.name"
+    desc_key: "event.debug_summon.desc"
+    route_tags: ["debug_heavy"]
+    choices:
+      - id: overload
+        text_key: "event.debug_summon.choice.overload"
+        effects:
+          - opcode: add_card
+            value: debug_strike
+          - opcode: add_card
+            value: debug_strike
+          - opcode: take_damage
+            value: 15
+      - id: optimize
+        text_key: "event.debug_summon.choice.optimize"
+        effects:
+          - opcode: add_card
+            value: debug_power
+          - opcode: modify_bias
+            value: "debug_beatdown:0.1"
     weights:
       debug: 10
-      
-  # ============ 测试流派事件 ============
+
+  - id: panic_mode
+    name_key: "event.panic_mode.name"
+    desc_key: "event.panic_mode.desc"
+    route_tags: ["risk"]
+    choices:
+      - id: release
+        text_key: "event.panic_mode.choice.release"
+        effects:
+          - opcode: gain_gold
+            value: 50
+          - opcode: trigger_battle
+            value: elite
+      - id: delay
+        text_key: "event.panic_mode.choice.delay"
+        effects:
+          - opcode: heal
+            value: 20
+          - opcode: apply_status
+            value: tech_debt
+    weights:
+      debug: 8
+
+  # ============ Test 流派事件 ============
   - id: test_lab
     name_key: "event.test_lab.name"
     desc_key: "event.test_lab.desc"
+    route_tags: ["test_heavy"]
     choices:
-      - id: train
-        desc_key: "event.test_lab.choice.train"
+      - id: expand
+        text_key: "event.test_lab.choice.expand"
         effects:
-          - type: relic_choice
-            count: 1
-            tier: uncommon
-          - type: gold
-            value: -30
-    conditions:
-      tags_contains: test
+          - opcode: add_card
+            value: test_guard
+            count: 2
+          - opcode: lose_gold
+            value: 25
+      - id: certify
+        text_key: "event.test_lab.choice.certify"
+        effects:
+          - opcode: add_relic
+            value: test_relic
+          - opcode: modify_bias
+            value: "test_shrine:0.1"
     weights:
       test: 10
-      
-  # ============ 重构流派事件 ============
+
+  - id: ci_pipeline
+    name_key: "event.ci_pipeline.name"
+    desc_key: "event.ci_pipeline.desc"
+    choices:
+      - id: run_full
+        text_key: "event.ci_pipeline.choice.run_full"
+        effects:
+          - opcode: heal
+            value: 40
+          - opcode: take_damage
+            value: 10
+          - opcode: modify_bias
+            value: "test_shrine:0.05"
+      - id: quick_scan
+        text_key: "event.ci_pipeline.choice.quick_scan"
+        effects:
+          - opcode: add_card
+            value: test_shrine
+    weights:
+      test: 6
+
+  # ============ Refactor 流派事件 ============
   - id: legacy_code
     name_key: "event.legacy_code.name"
     desc_key: "event.legacy_code.desc"
+    route_tags: ["refactor_heavy"]
     choices:
       - id: embrace
-        desc_key: "event.legacy_code.choice.embrace"
+        text_key: "event.legacy_code.choice.embrace"
         effects:
-          - type: card_choice
-            count: 3
-            tags: ["refactor"]
-          - type: status
-            status: tech_debt
+          - opcode: add_card
+            value: refactor_risk
+            count: 2
+          - opcode: take_damage
+            value: 20
+          - opcode: apply_status
+            value: tech_debt
             value: 2
-    conditions:
-      tags_contains: refactor
+      - id: avoid
+        text_key: "event.legacy_code.choice.avoid"
+        effects:
+          - opcode: heal
+            value: 15
     weights:
       refactor: 10
+
+  - id: debt_collector
+    name_key: "event.debt_collector.name"
+    desc_key: "event.debt_collector.desc"
+    choices:
+      - id: pay_now
+        text_key: "event.debt_collector.choice.pay_now"
+        effects:
+          - opcode: apply_status
+            value: clear_tech_debt
+          - opcode: lose_gold
+            value: 40
+      - id: defer
+        text_key: "event.debt_collector.choice.defer"
+        effects:
+          - opcode: apply_status
+            value: tech_debt
+            value: 2
+          - opcode: gain_gold
+            value: 20
+    weights:
+      refactor: 8
+
+  # ============ 挑战事件 ============
+  - id: mystery_portal
+    name_key: "event.mystery_portal.name"
+    desc_key: "event.mystery_portal.desc"
+    route_tags: ["risk", "greed"]
+    choices:
+      - id: enter
+        text_key: "event.mystery_portal.choice.enter"
+        effects:
+          - opcode: trigger_battle
+            value: elite
+          - opcode: add_relic
+            value: random_boss
+      - id: flee
+        text_key: "event.mystery_portal.choice.flee"
+        effects:
+          - opcode: gain_gold
+            value: 25
+    weights:
+      default: 4
+
+  - id: haunted_library
+    name_key: "event.haunted_library.name"
+    desc_key: "event.haunted_library.desc"
+    choices:
+      - id: study
+        text_key: "event.haunted_library.choice.study"
+        effects:
+          - opcode: add_card
+            value: any_rare
+          - opcode: take_damage
+            value: 30
+      - id: banish
+        text_key: "event.haunted_library.choice.banish"
+        effects:
+          - opcode: apply_status
+            value: clear_negative
+          - opcode: gain_gold
+            value: 15
+    weights:
+      default: 5
+
+  - id: golden_idol
+    name_key: "event.golden_idol.name"
+    desc_key: "event.golden_idol.desc"
+    route_tags: ["greed"]
+    choices:
+      - id: take
+        text_key: "event.golden_idol.choice.take"
+        effects:
+          - opcode: gain_gold
+            value: 100
+          - opcode: trigger_battle
+            value: normal
+      - id: offer
+        text_key: "event.golden_idol.choice.offer"
+        effects:
+          - opcode: gain_gold
+            value: 30
+          - opcode: add_relic
+            value: random_rare
+    weights:
+      default: 3
+
+  # ============ 流派事件 (通用) ============
+  - id: archetype_shrine
+    name_key: "event.archetype_shrine.name"
+    desc_key: "event.archetype_shrine.desc"
+    choices:
+      - id: debug_blessing
+        text_key: "event.archetype_shrine.choice.debug"
+        effects:
+          - opcode: add_card
+            value: debug_power
+          - opcode: modify_bias
+            value: "debug_beatdown:0.15"
+          - opcode: take_damage
+            value: 10
+        condition:
+          bias_contains: debug
+      - id: test_blessing
+        text_key: "event.archetype_shrine.choice.test"
+        effects:
+          - opcode: add_card
+            value: test_relic
+          - opcode: modify_bias
+            value: "test_shrine:0.15"
+          - opcode: heal
+            value: 15
+        condition:
+          bias_contains: test
+      - id: refactor_blessing
+        text_key: "event.archetype_shrine.choice.refactor"
+        effects:
+          - opcode: add_card
+            value: refactor_power
+          - opcode: modify_bias
+            value: "refactor_risk:0.15"
+          - opcode: apply_status
+            value: tech_debt
+            value: 1
+        condition:
+          bias_contains: refactor
+      - id: any_blessing
+        text_key: "event.archetype_shrine.choice.any"
+        effects:
+          - opcode: add_card
+            value: any_power
+          - opcode: modify_bias
+            value: "any:0.05"
+    weights:
+      default: 6
+
+  - id: boss_encounter
+    name_key: "event.boss_encounter.name"
+    desc_key: "event.boss_encounter.desc"
+    route_tags: ["boss"]
+    choices:
+      - id: prepare
+        text_key: "event.boss_encounter.choice.prepare"
+        effects:
+          - opcode: add_relic
+            value: random_boss
+          - opcode: take_damage
+            value: 50
+      - id: challenge
+        text_key: "event.boss_encounter.choice.challenge"
+        effects:
+          - opcode: trigger_battle
+            value: boss
+    weights:
+      default: 1

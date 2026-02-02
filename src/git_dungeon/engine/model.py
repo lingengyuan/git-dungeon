@@ -433,6 +433,10 @@ class GameState:
     # M1: 流派倾向
     archetype_tags: List[str] = field(default_factory=list)  # 玩家选择的流派标签
     
+    # M2: 路径系统
+    route_state: Optional[Dict[str, Any]] = None  # {"current_node_id": "...", "visited_nodes": [...], "route_flags": {...}}
+    chapter_route: Optional[Any] = None  # RouteGraph 对象（不序列化）
+    
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to dict"""
         return {
