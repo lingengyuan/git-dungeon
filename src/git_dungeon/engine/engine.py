@@ -1,7 +1,7 @@
 # engine.py - Core game engine (M1: 战斗状态机 + 敌人意图)
 
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import Any, List, Tuple, Optional
 from datetime import datetime
 
 from .model import (
