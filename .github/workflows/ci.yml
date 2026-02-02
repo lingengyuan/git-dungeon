@@ -35,8 +35,7 @@ jobs:
 
       - name: Run tests
         run: |
-          export PYTHONPATH="${PYTHONPATH}:src"
-          pytest tests/test_i18n.py tests/test_cli.py tests/golden_test.py -v
+          PYTHONPATH=$(pwd)/src pytest tests/test_i18n.py tests/test_cli.py tests/golden_test.py -v
 
       - name: Upload coverage
         if: matrix.python-version == '3.11'
