@@ -10,10 +10,10 @@ pack_info:
   points_cost: 150
 
 cards:
-  # Test 专属强力卡
-  - id: test_coverage
-    name_key: "card.test_coverage.name"
-    desc_key: "card.test_coverage.desc"
+  # Test 专属强力卡 (使用唯一 ID)
+  - id: test_suite
+    name_key: "card.test_suite.name"
+    desc_key: "card.test_suite.desc"
     type: skill
     cost: 2
     rarity: rare
@@ -25,9 +25,9 @@ cards:
         value: 5
     tags: ["test", "defensive"]
     
-  - id: regression_stop
-    name_key: "card.regression_stop.name"
-    desc_key: "card.regression_stop.desc"
+  - id: regression_block
+    name_key: "card.regression_block.name"
+    desc_key: "card.regression_block.desc"
     type: skill
     cost: 1
     rarity: uncommon
@@ -39,9 +39,9 @@ cards:
         target: player
     tags: ["test", "defensive"]
     
-  - id: integration_wall
-    name_key: "card.integration_wall.name"
-    desc_key: "card.integration_wall.desc"
+  - id: test_wall
+    name_key: "card.test_wall.name"
+    desc_key: "card.test_wall.desc"
     type: skill
     cost: 2
     rarity: uncommon
@@ -53,9 +53,9 @@ cards:
         value: 2
     tags: ["test", "defensive"]
     
-  - id: e2e_barrier
-    name_key: "card.e2e_barrier.name"
-    desc_key: "card.e2e_barrier.desc"
+  - id: end2end_shield
+    name_key: "card.end2end_shield.name"
+    desc_key: "card.end2end_shield.desc"
     type: skill
     cost: 2
     rarity: rare
@@ -67,9 +67,9 @@ cards:
         value: 10
     tags: ["test", "defensive"]
     
-  - id: unit_bastion
-    name_key: "card.unit_bastion.name"
-    desc_key: "card.unit_bastion.desc"
+  - id: test_anchor
+    name_key: "card.test_anchor.name"
+    desc_key: "card.test_anchor.desc"
     type: skill
     cost: 1
     rarity: common
@@ -108,7 +108,7 @@ events:
         text_key: "event.test_fortress.choice.fortify"
         effects:
           - opcode: add_card
-            value: test_coverage
+            value: test_suite
           - opcode: lose_gold
             value: 30
       - id: study

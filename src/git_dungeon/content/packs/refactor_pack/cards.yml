@@ -10,10 +10,10 @@ pack_info:
   points_cost: 150
 
 cards:
-  # Refactor 专属强力卡
-  - id: legacy_crash
-    name_key: "card.legacy_crash.name"
-    desc_key: "card.legacy_crash.desc"
+  # Refactor 专属强力卡 (使用唯一 ID)
+  - id: legacy_smash
+    name_key: "card.legacy_smash.name"
+    desc_key: "card.legacy_smash.desc"
     type: attack
     cost: 2
     rarity: rare
@@ -25,9 +25,9 @@ cards:
         value: 2
     tags: ["refactor", "offensive", "risk"]
     
-  - id: debt_collector
-    name_key: "card.debt_collector.name"
-    desc_key: "card.debt_collector.desc"
+  - id: debt_hammer
+    name_key: "card.debt_hammer.name"
+    desc_key: "card.debt_hammer.desc"
     type: attack
     cost: 1
     rarity: uncommon
@@ -39,23 +39,23 @@ cards:
         target: player
     tags: ["refactor", "offensive"]
     
-  - id: api_breach
-    name_key: "card.api_breach.name"
-    desc_key: "card.api_breach.desc"
+  - id: api_break
+    name_key: "card.api_break.name"
+    desc_key: "card.api_break.desc"
     type: attack
     cost: 3
-    rarity: rare  # Changed from epic
+    rarity: rare
     effects:
       - type: damage
-        value: 35  # Reduced from 40
+        value: 35
       - type: status
         value: tech_debt
         value: 2
     tags: ["refactor", "offensive", "risk"]
     
-  - id: spaghetti_whip
-    name_key: "card.spaghetti_whip.name"
-    desc_key: "card.spaghetti_whip.desc"
+  - id: tangle_whip
+    name_key: "card.tangle_whip.name"
+    desc_key: "card.tangle_whip.desc"
     type: attack
     cost: 1
     rarity: uncommon
@@ -67,9 +67,9 @@ cards:
         value: 2
     tags: ["refactor", "offensive"]
     
-  - id: monolith_crash
-    name_key: "card.monolith_crash.name"
-    desc_key: "card.monolith_crash.desc"
+  - id: giant_crash
+    name_key: "card.giant_crash.name"
+    desc_key: "card.giant_crash.desc"
     type: power
     cost: 2
     rarity: rare
@@ -81,9 +81,9 @@ cards:
 
 relics:
   # Refactor 专属遗物
-  - id: spaghetti_monitor
-    name_key: "relic.spaghetti_monitor.name"
-    desc_key: "relic.spaghetti_monitor.desc"
+  - id: tangle_monitor
+    name_key: "relic.tangle_monitor.name"
+    desc_key: "relic.tangle_monitor.desc"
     tier: rare
     effects:
       damage_per_tech_debt: 2
@@ -107,7 +107,7 @@ events:
         text_key: "event.refactor_chaos.choice.embrace"
         effects:
           - opcode: add_card
-            value: legacy_crash
+            value: legacy_smash
           - opcode: take_damage
             value: 25
           - opcode: apply_status

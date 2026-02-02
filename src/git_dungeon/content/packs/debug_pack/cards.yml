@@ -10,7 +10,7 @@ pack_info:
   points_cost: 150
 
 cards:
-  # Debug 专属强力卡
+  # Debug 专属强力卡 (使用唯一 ID)
   - id: panic_mode
     name_key: "card.panic_mode.name"
     desc_key: "card.panic_mode.desc"
@@ -34,9 +34,9 @@ cards:
         value: 20
     tags: ["debug", "offensive"]
     
-  - id: breakpoint_trap
-    name_key: "card.breakpoint_trap.name"
-    desc_key: "card.breakpoint_trap.desc"
+  - id: debug_trap
+    name_key: "card.debug_trap.name"
+    desc_key: "card.debug_trap.desc"
     type: skill
     cost: 1
     rarity: uncommon
@@ -48,9 +48,9 @@ cards:
         target: enemy
     tags: ["debug", "defensive"]
     
-  - id: stack_trace
-    name_key: "card.stack_trace.name"
-    desc_key: "card.stack_trace.desc"
+  - id: trace_output
+    name_key: "card.trace_output.name"
+    desc_key: "card.trace_output.desc"
     type: attack
     cost: 2
     rarity: uncommon
@@ -63,9 +63,9 @@ cards:
         target: enemy
     tags: ["debug", "offensive"]
     
-  - id: console_log
-    name_key: "card.console_log.name"
-    desc_key: "card.console_log.desc"
+  - id: debug_draw
+    name_key: "card.debug_draw.name"
+    desc_key: "card.debug_draw.desc"
     type: skill
     cost: 0
     rarity: common
