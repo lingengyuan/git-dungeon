@@ -376,10 +376,10 @@ class LuaEngine:
 
     def load_file(self, file_path: str) -> tuple[bool, str]:
         """Load and execute a Lua script file.
-
+        
         Args:
-            file_path: Path to Lua script
-
+            file_path: Path to Lua script or JSON content file
+            
         Returns:
             Tuple of (success, message)
         """
@@ -387,9 +387,13 @@ class LuaEngine:
         if not path.exists():
             return False, f"File not found: {file_path}"
         
-        # Try to load as JSON if Lua is not available
-        if self.lua is None:
+        # Handle JSON files directly (regardless of Lua availability)
+        if path.suffix == ".json":
             return self._load_json_file(path)
+        
+        # For non-JSON files, require Lua
+        if self.lua is None:
+            return False, f"Lua not available for: {file_path}"
         
         try:
             with open(path, "r", encoding="utf-8") as f:

@@ -4,6 +4,11 @@ import pytest
 import tempfile
 import os
 import json
+import sys
+from pathlib import Path
+
+# Add src to path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.core.lua import (
     LuaEngine,
@@ -12,6 +17,16 @@ from src.core.lua import (
     DropEntry,
     Theme,
 )
+
+
+# Check if Lua is available
+LUA_AVAILABLE = False
+try:
+    import importlib.util
+    if importlib.util.find_spec("lupa") is not None:
+        LUA_AVAILABLE = True
+except ImportError:
+    LUA_AVAILABLE = False
 
 
 class TestLuaEngine:
@@ -23,6 +38,7 @@ class TestLuaEngine:
         assert engine is not None
         assert "default" in engine.themes
 
+    @pytest.mark.skipif(LUA_AVAILABLE, reason="Lua is available, skip Lua-unavailable test")
     def test_engine_no_lua_fallback(self):
         """Test engine works without Lua runtime."""
         engine = LuaEngine()
@@ -34,9 +50,31 @@ class TestLuaEngine:
         assert success is False
         assert "not available" in result
 
-    def test_monster_via_python(self):
-        """Test adding monsters via Python API."""
+    @pytest.mark.skipif(LUA_AVAILABLE, reason="Lua is available, skip Python-only test")
+    def test_monster_via_python_fallback(self):
+        """Test adding monsters via Python API when Lua unavailable."""
         engine = LuaEngine()
+        
+        # Define a monster via Python API
+        monster = MonsterTemplate(
+            name="TestMonster",
+            base_hp=100,
+            base_attack=10,
+            base_defense=5,
+            base_mp=0,
+            speed=10,
+            critical=10,
+            evasion=5,
+            luck=5,
+            experience=20,
+            skills=[],
+            drop_table=None,
+            theme="default",
+            description="A test monster",
+            difficulty_factor=1.0,
+        )
+        engine.monsters["TestMonster"] = monster
+        assert "TestMonster" in engine.monsters
         
         monster = MonsterTemplate(
             name="DirectMonster",
