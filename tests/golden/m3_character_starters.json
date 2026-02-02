@@ -1,0 +1,33 @@
+{
+  "id": "m3_character_starters",
+  "hash": "b2c3d4e5",
+  "data": {
+    "characters": {
+      "developer": {
+        "hp": 100,
+        "energy": 3,
+        "starter_cards": ["strike", "strike", "strike", "defend", "defend", "defend"],
+        "starter_relics": ["git_init"],
+        "abilities": []
+      },
+      "reviewer": {
+        "hp": 110,
+        "energy": 3,
+        "starter_cards": ["test_guard", "test_guard", "test_guard", "defend", "defend", "defend", "debug_strike"],
+        "starter_relics": ["test_framework"],
+        "abilities": [
+          {"trigger": "on_turn_start", "effect": "clear_negative_status"}
+        ]
+      },
+      "devops": {
+        "hp": 90,
+        "energy": 3,
+        "starter_cards": ["debug_strike", "debug_strike", "test_guard", "ci_pipeline", "staging_deploy"],
+        "starter_relics": ["ci_badge"],
+        "abilities": [
+          {"trigger": "on_turn_end", "effect": "add_energy_or_draw"}
+        ]
+      }
+    }
+  }
+}

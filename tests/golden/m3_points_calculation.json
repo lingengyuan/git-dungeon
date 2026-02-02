@@ -1,0 +1,26 @@
+{
+  "id": "m3_points_calculation",
+  "hash": "d4e5f6g7",
+  "data": {
+    "base_points_per_kill": 10,
+    "elite_multiplier": 1.5,
+    "boss_multiplier": 2.0,
+    "victory_bonus": 50,
+    "examples": {
+      "casual_run": {
+        "enemies": 5,
+        "elites": 1,
+        "bosses": 0,
+        "victory": false,
+        "expected_points": "65-80"
+      },
+      "victory_run": {
+        "enemies": 10,
+        "elites": 2,
+        "bosses": 1,
+        "victory": true,
+        "expected_points": "180-220"
+      }
+    }
+  }
+}

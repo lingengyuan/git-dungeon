@@ -1,0 +1,22 @@
+{
+  "id": "m3_meta_profile_default",
+  "hash": "a1b2c3d4",
+  "data": {
+    "player_name": "NewPlayer",
+    "total_points": 0,
+    "available_points": 0,
+    "unlocks": {
+      "characters": ["developer"],
+      "packs": [],
+      "relics": []
+    },
+    "stats": {
+      "total_runs": 0,
+      "total_kills": 0,
+      "total_elites": 0,
+      "total_bosses": 0,
+      "total_gold": 0,
+      "victories": 0
+    }
+  }
+}
