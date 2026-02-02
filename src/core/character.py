@@ -8,7 +8,7 @@ from typing import Optional
 
 from .component import Component
 from .entity import Entity
-from ..utils.exceptions import GameError
+from git_dungeon.utils.exceptions import GameError
 
 
 class CharacterType(Enum):
@@ -200,7 +200,7 @@ class CharacterComponent(Component):
             return 0
 
         # Apply defense
-        actual_damage = max(1, amount - self.stats.defense.value)
+        actual_damage = max(1, amount - (self.stats.defense.value if self.stats else 0))
 
         self.current_hp = max(0, self.current_hp - actual_damage)
 

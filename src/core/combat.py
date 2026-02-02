@@ -6,11 +6,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
-from .character import get_character, StatType
+from .character import get_character, StatType, Stat
 from .entity import Entity
-from ..config import GameConfig
-from ..utils.exceptions import GameError
-from ..utils.logger import setup_logger
+from git_dungeon.config import GameConfig
+from git_dungeon.utils.exceptions import GameError
+from git_dungeon.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -106,8 +106,8 @@ class CombatSystem:
         defender_char = get_character(defender)
 
         # Get attack stat
-        attack_stat = attacker_char.stats.get(StatType.ATTACK)
-        defense_stat = defender_char.stats.get(StatType.DEFENSE)
+        attack_stat = attacker_char.stats.get(StatType.ATTACK) if attacker_char.stats else Stat(10)
+        defense_stat = defender_char.stats.get(StatType.DEFENSE) if defender_char.stats else Stat(5)
 
         # Calculate base damage with attack
         damage = base_damage + attack_stat.value
@@ -242,7 +242,7 @@ class CombatEncounter:
         """Check if it's player's turn."""
         return self.turn_phase == "player"
 
-    def player_action(self, action: str, **kwargs) -> CombatResult:
+    def player_action(self, action: str, **kwargs: object) -> CombatResult:
         """Execute a player action.
 
         Args:

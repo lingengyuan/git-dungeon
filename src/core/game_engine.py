@@ -12,8 +12,8 @@ from .combat import CombatSystem, CombatEncounter
 from .inventory import InventoryComponent
 from .save_system import SaveSystem
 from .resource_manager import ResourceManager
-from ..config import GameConfig
-from ..utils.logger import setup_logger
+from git_dungeon.config import GameConfig
+from git_dungeon.utils.logger import setup_logger
 
 if TYPE_CHECKING:
     from .system import System
@@ -301,6 +301,9 @@ class GameState:
         else:
             # All commits defeated!
             logger.info("All commits defeated! Victory!")
+            self.is_game_over = True
+            # 不设置为 None，让测试可以检查状态
+            # self.current_commit = None
             return False
 
     def use_item(self, slot_index: int) -> bool:
