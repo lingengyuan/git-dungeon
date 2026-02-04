@@ -37,7 +37,7 @@ jobs:
       - name: Run Golden Tests ⭐
         run: |
           echo "=== Running Golden Tests ==="
-          PYTHONPATH=src python3 -m pytest tests/golden_test.py -v --tb=short
+          PYTHONPATH=src python3 -m pytest tests/test_golden.py tests/golden_test.py -v --tb=short
           echo "=== Golden Tests Passed ==="
       
       - name: Upload Results
