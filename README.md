@@ -309,6 +309,16 @@ python -m git_dungeon . --lang zh_CN
 python -m git_dungeon . --auto
 ```
 
+## 🔥 M6 AI 命令行参数
+
+| 参数 | 描述 | 默认值 |
+|------|------|--------|
+| `--ai, -a` | 启用 AI 文案生成 (on/off) | off |
+| `--ai-provider` | AI Provider (mock/gemini/openai) | mock |
+| `--ai-cache` | AI 缓存目录 | .git_dungeon_cache |
+| `--ai-timeout` | API 超时时间 (秒) | 5 |
+| `--ai-prefetch` | 预获取策略 (chapter/run/off) | chapter |
+
 ## 命令行参数
 
 | 参数 | 描述 |
@@ -319,6 +329,26 @@ python -m git_dungeon . --auto
 | `--auto, -a` | 自动战斗模式 |
 | `--verbose, -v` | 详细输出 |
 | `--json-log` | JSON 格式日志 |
+
+### M6 AI 使用示例
+
+```bash
+# 关闭 AI（默认，与 v0.8 兼容）
+python -m git_dungeon .
+
+# 开启 AI（使用 Gemini 免费模型）
+export GEMINI_API_KEY="your-key"
+python -m git_dungeon . --ai=on --ai-provider=gemini
+
+# 测试模式（确定性输出，无需 API）
+python -m git_dungeon . --ai=on --ai-provider=mock
+
+# 带缓存目录
+python -m git_dungeon . --ai=on --ai-cache=/path/to/cache
+
+# 禁用预获取
+python -m git_dungeon . --ai=on --ai-prefetch=off
+```
 
 ## 游戏界面
 
