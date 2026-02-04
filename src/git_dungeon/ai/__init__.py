@@ -2,12 +2,14 @@
 Git Dungeon AI Text Generation Module
 
 Provides flavor text generation for enemies, battles, events, and boss phases.
+Supports: null, mock, gemini (free tier), openai (skeleton)
 """
 
 from .types import TextKind, TextRequest, TextResponse
 from .client_base import AIClient
 from .client_null import NullAIClient
 from .client_mock import MockAIClient
+from .client_gemini import GeminiAIClient
 from .cache import TextCache
 
 __all__ = [
@@ -17,5 +19,6 @@ __all__ = [
     "AIClient",
     "NullAIClient", 
     "MockAIClient",
+    "GeminiAIClient",
     "TextCache",
 ]

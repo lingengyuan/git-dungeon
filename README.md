@@ -8,6 +8,75 @@
 [![Tests](https://img.shields.io/badge/tests-372%2F372-blue)](https://github.com/lingengyuan/git-dungeon/actions)
 [![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org)
 
+## 🎯 M6 更新：AI 文案生成
+
+M6 引入 AI 生成的 Flavor 文案，提升沉浸感与可玩性。
+
+### M6 功能特性
+
+| 模块 | 功能 | 描述 |
+|------|------|------|
+| **AI 文案类型** | 5 种 | 敌人介绍/战斗开场/战斗结束/事件氛围/BOSS 台词 |
+| **AI Provider** | 3 种 | Gemini (免费), OpenAI (GPT-4), Mock (测试) |
+| **缓存系统** | SQLite/JSON | 确定性复现，相同 seed 产出相同文案 |
+| **降级策略** | 模板 fallback | AI 失败时使用预设文案，不中断游戏 |
+
+### M6 AI Provider
+
+| Provider | 模型 | 费用 | 配置 |
+|----------|------|------|------|
+| **Gemini** | gemini-2.5-flash | 🆓 免费 | `GEMINI_API_KEY` |
+| **OpenAI** | gpt-4o-mini | 💰 付费 | `OPENAI_API_KEY` |
+| **Mock** | 伪随机生成 | 🆓 免费 | 无需配置 |
+
+### M6 使用方式
+
+```bash
+# 关闭 AI（默认，与 v0.8 兼容）
+python -m git_dungeon .
+
+# 开启 AI（使用 Gemini 免费模型）
+export GEMINI_API_KEY="your-key"
+python -m git_dungeon . --ai=on --ai-provider=gemini
+
+# 开启 AI（使用 OpenAI GPT-4）
+export OPENAI_API_KEY="your-key"
+python -m git_dungeon . --ai=on --ai-provider=openai
+
+# 测试模式（确定性输出）
+python -m git_dungeon . --ai=on --ai-provider=mock
+```
+
+### M6 配置
+
+```bash
+# Gemini（推荐，免费）
+export GEMINI_API_KEY="AIzaSy..."
+
+# OpenAI（可选）
+export OPENAI_API_KEY="sk-..."
+
+# 缓存目录（默认 .git_dungeon_cache）
+--ai-cache /path/to/cache
+
+# API 超时（默认 5 秒）
+--ai-timeout 10
+```
+
+### M6 测试结果
+
+```
+AI Module Tests:
+├── Null Client tests        ✅
+├── Mock Client tests       ✅
+├── Cache tests             ✅
+├── Sanitization tests      ✅
+├── Fallback tests          ✅
+└── All tests               ✅
+```
+
+---
+
 ## 🎯 M5 更新：成就挑战系统
 
 M5 版本在 M4 基础上增加了成就系统，为玩家提供目标感和挑战。
@@ -353,7 +422,7 @@ PYTHONPATH=src python3 -m pytest tests/ -v
 ```
 git-dungeon/
 ├── src/git_dungeon/
-│   ├── content/              # 内容系统 (M1+M2+M3)
+│   ├── content/              # 内容系统 (M1-M6)
 │   │   ├── schema.py         # 数据模型定义 (M3: ContentPack)
 │   │   ├── loader.py         # YAML 加载器
 │   │   ├── packs.py          # 内容包加载器 (M3)
@@ -366,9 +435,15 @@ git-dungeon/
 │   │   │   ├── events.yml    # 17 个事件 (M2: +11)
 │   │   │   └── characters.yml # 3 角色 (M3)
 │   │   └── packs/            # 可解锁内容包 (M3)
-│   │       ├── debug_pack/   # Debug 爆发包 (5 卡, 2 遗物)
-│   │       ├── test_pack/    # Test 护盾包 (5 卡, 2 遗物)
-│   │       └── refactor_pack/ # Refactor 代价包 (4 卡, 2 遗物)
+│   ├── ai/                   # AI 文案生成 (M6) ⭐
+│   │   ├── types.py         # TextKind, TextRequest, TextResponse
+│   │   ├── client_gemini.py # Gemini API 集成
+│   │   ├── client_openai.py  # OpenAI API 集成
+│   │   ├── client_mock.py   # 测试用 Mock 客户端
+│   │   ├── prompts.py       # AI 提示词模板
+│   │   ├── sanitize.py       # 输出清理/验证
+│   │   ├── fallbacks.py     # 模板降级文案
+│   │   └── cache.py         # SQLite/JSON 缓存
 │   ├── engine/
 │   │   ├── model.py          # 数据模型 (M1-M5: MetaProfile/RunSummary)
 │   │   ├── engine.py         # 游戏引擎 (M1-M5)
