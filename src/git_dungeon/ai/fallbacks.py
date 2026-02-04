@@ -4,7 +4,7 @@ Fallback Templates
 Template-based fallback text when AI fails or is disabled.
 """
 
-from typing import Dict, Optional
+from typing import Dict
 from .types import TextKind, TextRequest
 
 

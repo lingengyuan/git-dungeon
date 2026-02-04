@@ -10,7 +10,7 @@ import os
 import sqlite3
 import threading
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any
 from .types import TextRequest, TextResponse
 
 
