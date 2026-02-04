@@ -56,13 +56,21 @@ class TextCache:
                 provider TEXT,
                 text TEXT,
                 created_at REAL,
-                meta TEXT
+                meta TEXT,
+                repo_id TEXT,
+                seed INTEGER,
+                lang TEXT,
+                kind TEXT
             )
         """)
-        conn.execute("""
-            CREATE INDEX IF NOT EXISTS idx_repo_seed_lang 
-            ON ai_text_cache (repo_id, seed, lang)
-        """)
+        # Create index only if columns exist
+        try:
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_repo_seed_lang 
+                ON ai_text_cache (repo_id, seed, lang)
+            """)
+        except Exception:
+            pass  # Index might already exist without those columns
         conn.commit()
         conn.close()
     
@@ -141,18 +149,23 @@ class TextCache:
         """Cache a text response."""
         with self._lock:
             if self.backend == "sqlite":
-                self._set_sqlite(cache_key, response)
+                self._set_sqlite(cache_key, response, **kwargs)
             else:
                 self._set_json(cache_key, response)
     
-    def _set_sqlite(self, cache_key: str, response: TextResponse):
+    def _set_sqlite(self, cache_key: str, response: TextResponse, **kwargs):
         """Set in SQLite."""
         try:
             import datetime
             conn = sqlite3.connect(self.db_path)
             conn.execute(
-                "INSERT OR REPLACE INTO ai_text_cache (cache_key, provider, text, created_at, meta) VALUES (?, ?, ?, ?, ?)",
-                (cache_key, response.provider, response.text, datetime.datetime.now().timestamp(), json.dumps(response.meta))
+                """INSERT OR REPLACE INTO ai_text_cache 
+                (cache_key, provider, text, created_at, meta, repo_id, seed, lang, kind) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (cache_key, response.provider, response.text,
+                 datetime.datetime.now().timestamp(), json.dumps(response.meta),
+                 kwargs.get('repo_id', ''), kwargs.get('seed', 0),
+                 kwargs.get('lang', ''), kwargs.get('kind', ''))
             )
             conn.commit()
             conn.close()
@@ -163,7 +176,11 @@ class TextCache:
         """Set in JSON file."""
         try:
             cache = json.loads(self.json_cache_file.read_text())
-            cache[cache_key] = {"text": response.text, "provider": response.provider, "meta": response.meta}
+            cache[cache_key] = {
+                "text": response.text,
+                "provider": response.provider,
+                "meta": response.meta,
+            }
             self.json_cache_file.write_text(json.dumps(cache, indent=2))
         except Exception as e:
             print(f"[AI Cache] JSON set error: {e}")
@@ -187,7 +204,13 @@ class TextCache:
     
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
-        stats = {"backend": self.backend, "cache_dir": str(self.cache_dir), "entries": 0, "size_bytes": 0}
+        stats = {
+            "backend": self.backend,
+            "cache_dir": str(self.cache_dir),
+            "entries": 0,
+            "size_bytes": 0,
+        }
+        
         if self.backend == "sqlite":
             try:
                 conn = sqlite3.connect(self.db_path)
@@ -204,6 +227,7 @@ class TextCache:
                 stats["size_bytes"] = self.json_cache_file.stat().st_size
             except Exception as e:
                 print(f"[AI Cache] Stats error: {e}")
+        
         return stats
     
     def build_cache_key(
@@ -213,8 +237,21 @@ class TextCache:
         content_version: str,
         prompt_version: str = "1.0"
     ) -> str:
-        """Build a cache key for a request."""
+        """
+        Build a cache key for a request.
+        
+        Args:
+            provider: AI provider name
+            request: Text generation request
+            content_version: Content version (YAML files hash)
+            prompt_version: Prompts version
+            
+        Returns:
+            Cache key string
+        """
+        # Include prompt version to invalidate cache when prompts change
         combined_version = f"{content_version}:{prompt_version}"
+        
         return self._generate_cache_key(
             provider=provider,
             repo_id=request.repo_id,
