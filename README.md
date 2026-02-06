@@ -1,601 +1,118 @@
 # Git Dungeon
 
-一个将 Git 提交历史转化为 roguelike 卡牌游戏的创新工具。
+将 Git 提交历史映射为可游玩的命令行 Roguelike 卡牌战斗项目。
 
-> 🎮 在提交历史中战斗，让理解项目演进变得有趣！
+## 当前状态（以代码为准）
 
-[![CI](https://img.shields.io/github/actions/workflow/status/lingengyuan/git-dungeon/ci.yml?branch=main)](https://github.com/lingengyuan/git-dungeon/actions)
-[![Tests](https://img.shields.io/badge/tests-372%2F372-blue)](https://github.com/lingengyuan/git-dungeon/actions)
-[![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org)
+- 核心玩法可运行：仓库解析、章节推进、战斗、奖励与基础结算。
+- 内容系统可用：`YAML` 配置 + `packs` 扩展内容。
+- 测试体系完整：`unit` / `integration` / `functional` / `golden`。
+- M6（AI）为可选能力：已具备 provider、缓存、清洗、fallback 与测试；默认关闭，不影响主流程。
 
-## 🎯 M6 更新：AI 文案生成
-
-M6 引入 AI 生成的 Flavor 文案，提升沉浸感与可玩性。
-
-### M6 功能特性
-
-| 模块 | 功能 | 描述 |
-|------|------|------|
-| **AI 文案类型** | 5 种 | 敌人介绍/战斗开场/战斗结束/事件氛围/BOSS 台词 |
-| **AI Provider** | 3 种 | Gemini (免费), OpenAI (GPT-4), Mock (测试) |
-| **缓存系统** | SQLite/JSON | 确定性复现，相同 seed 产出相同文案 |
-| **降级策略** | 模板 fallback | AI 失败时使用预设文案，不中断游戏 |
-
-### M6 AI Provider
-
-| Provider | 模型 | 费用 | 配置 |
-|----------|------|------|------|
-| **Gemini** | gemini-2.5-flash | 🆓 免费 | `GEMINI_API_KEY` |
-| **OpenAI** | gpt-4o-mini | 💰 付费 | `OPENAI_API_KEY` |
-| **Mock** | 伪随机生成 | 🆓 免费 | 无需配置 |
-
-### M6 使用方式
-
-```bash
-# 关闭 AI（默认，与 v0.8 兼容）
-python -m git_dungeon .
-
-# 开启 AI（使用 Gemini 免费模型）
-export GEMINI_API_KEY="your-key"
-python -m git_dungeon . --ai=on --ai-provider=gemini
-
-# 开启 AI（使用 OpenAI GPT-4）
-export OPENAI_API_KEY="your-key"
-python -m git_dungeon . --ai=on --ai-provider=openai
-
-# 测试模式（确定性输出）
-python -m git_dungeon . --ai=on --ai-provider=mock
-```
-
-### M6 配置
-
-```bash
-# Gemini（推荐，免费）
-export GEMINI_API_KEY="AIzaSy..."
-
-# OpenAI（可选）
-export OPENAI_API_KEY="sk-..."
-
-# 缓存目录（默认 .git_dungeon_cache）
---ai-cache /path/to/cache
-
-# API 超时（默认 5 秒）
---ai-timeout 10
-```
-
-### M6 测试结果
-
-```
-AI Module Tests:
-├── Null Client tests        ✅
-├── Mock Client tests       ✅
-├── Cache tests             ✅
-├── Sanitization tests      ✅
-├── Fallback tests          ✅
-└── All tests               ✅
-```
-
----
-
-## 🎯 M5 更新：成就挑战系统
-
-M5 版本在 M4 基础上增加了成就系统，为玩家提供目标感和挑战。
-
-### M5 功能特性
-
-| 模块 | 功能 | 描述 |
-|------|------|------|
-| **成就定义** | 20 个成就 | combat/exploration/collection/special 四类 |
-| **成就条件** | 多种类型 | enemy_kills、chapters_completed、unique_cards 等 |
-| **稀有度** | 4 等级 | common/rare/epic/legendary |
-| **隐藏成就** | 1 个 | 需要解锁后才显示 |
-| **点数奖励** | 总计 1000+ | 成就点数可累计 |
-
-### M5 成就统计
-
-| 类别 | 数量 | 示例 |
-|------|------|------|
-| **战斗** | 8 | First Blood、Elite Hunter、Boss Slayer |
-| **探索** | 4 | Chapter Victor、Explorer、Event Master |
-| **收集** | 3 | Card Collector、Relic Hoarder、Deck Builder |
-| **特殊** | 5 | Tech Debt Survivor、Hard Mode Victory |
-
-### M5 测试结果
-
-```
-29 passed, 0 warnings
-
-测试套件:
-├── AchievementDef tests     5/5  ✅
-├── AchievementProgress tests 2/2  ✅
-├── AchievementManager tests 11/11 ✅
-├── AchievementFileIO tests  3/3  ✅
-├── AchievementDisplay tests 4/4  ✅
-└── AchievementDefs tests    4/4  ✅
-```
-
----
-
-## 🎯 M4 更新：难度曲线与平衡
-
-M4 版本在 M3 基础上增加了难度曲线系统和平衡模拟工具。
-
-### M4 功能特性
-
-| 模块 | 功能 | 描述 |
-|------|------|------|
-| **难度参数** | 2 档难度 | Normal (默认) / Hard |
-| **章节缩放** | 5 章递增 | enemy_hp/damage 随章节增长 |
-| **难度叠加** | 难度×章节 | Hard 难度下增益/减益倍率叠加 |
-| **模拟工具** | 本地工具 | 批量跑 auto-play 验证平衡 |
-
-### M4 难度参数
-
-| 参数 | Normal | Hard | 章节增长 |
-|------|--------|------|---------|
-| 敌人 HP | 1.0x | 1.5x | +20%/章 |
-| 敌人伤害 | 1.0x | 1.3x | +10%/章 |
-| 精英概率 | 20% | 35% | +5%/章 |
-| 奖励倍率 | 1.0x | 0.8x | -5%/章 |
-
-### M4 工具
-
-| 工具 | 用途 |
-|------|------|
-| `simulate.py` | 批量模拟多 seed/难度/角色的通关率 |
-| `health_check.py` | 预推送验证脚本 (lint/mypy/tests) |
-
-### M4 测试结果
-
-```
-12 passed, 0 warnings
-
-测试套件:
-├── DifficultyConfig tests    4/4  ✅
-├── DifficultyScaler tests   5/5  ✅
-└── Difficulty application   3/3  ✅
-```
-
----
-
-## 🎯 M3 更新：Meta 进度 + 角色系统 + 内容包
-
-M3 版本在 M2 基础上增加了元进度系统、多角色系统、可解锁内容包。
-
-### M3 功能特性
-
-| 模块 | 功能 | 描述 |
-|------|------|------|
-| **M3.1 Meta 进度** | 玩家档案 | 点数累计、解锁系统、单局总结、存档 |
-| **M3.2 角色系统** | 3 角色 | Developer/Reviewer/DevOps，各有特色 |
-| **M3.3 内容包** | 可解锁包 | Debug/Test/Refactor 流派专属扩展包 |
-
-### M3 内容统计
-
-| 内容类型 | M2 | M3 | 变化 |
-|---------|----|----|------|
-| 角色 | 0 | 3 | +3 (Developer/Reviewer/DevOps) |
-| 内容包 | 0 | 3 | +3 (debug/test/refactor pack) |
-| 包内卡牌 | 0 | 14 | +14 |
-| 包内遗物 | 0 | 6 | +6 |
-| 包内事件 | 0 | 3 | +3 |
-
-### M3 测试结果
-
-```
-372 passed, 2 skipped, 2 warnings (total)
-
-测试套件:
-├── i18n tests              6/6  ✅
-├── CLI tests               3/3  ✅
-├── golden tests            4/4  ✅
-├── M2 route tests          6/6  ✅
-├── M2 event effect tests  13/6  ✅
-├── M2 elite/boss tests     6/6  ✅
-├── M3 meta tests          10/10 ✅
-├── M3 character tests      8/8  ✅
-├── M3 pack tests           7/7  ✅
-├── M4 difficulty tests    12/12 ✅
-└── M5 achievement tests   29/29 ✅
-```
-
----
-
-## 🎯 M2 更新：路径系统 + 事件扩展
-
-M2 版本在 M1 基础上增加了章节路径系统、事件效果引擎、精英与 BOSS 敌人。
-
-### M2 功能特性
-
-| 模块 | 功能 | 描述 |
-|------|------|------|
-| **M2.1 路径系统** | 章节地图 | 10-14 节点，战斗/事件/商店/休息/精英/BOSS |
-| **M2.2 事件系统** | 效果引擎 | 17 事件，11 种效果 (gold/heal/card/relic/bias) |
-| **M2.3 精英/BOSS** | 难度分层 | 6 Elite + 3 BOSS，2-3 倍奖励倍率 |
-
-### M2 内容统计
-
-| 内容类型 | M1 | M2 | 变化 |
-|---------|----|----|------|
-| 卡牌 | 54 | 54 | - |
-| 敌人 | 27 | 33 | +6 Elite +3 BOSS |
-| 遗物 | 16 | 16 | - |
-| 状态 | 9 | 9 | - |
-| 流派 | 3 | 3 | - |
-| 事件 | 6 | 17 | +11 事件 |
-
-### M3 角色系统
-
-| 角色 | HP | 能量 | 起始卡 | 起始遗物 | 特殊能力 |
-|------|-----|------|--------|---------|---------|
-| **Developer** | 100 | 3 | 6 (Strike/Defend) | git_init | 无 |
-| **Reviewer** | 110 | 3 | 7 (Test Guard/Defend) | test_framework | 回合开始净化 |
-| **DevOps** | 90 | 3 | 5 (Debug/CI Pipeline) | ci_badge | 回合结束资源生成 |
-
-### M3 内容包系统
-
-| 内容包 | 流派 | 卡牌 | 遗物 | 事件 | 点数成本 |
-|-------|------|------|------|------|---------|
-| **debug_pack** | Debug 爆发流 | 5 | 2 | 1 | 150 |
-| **test_pack** | Test 护盾流 | 5 | 2 | 1 | 150 |
-| **refactor_pack** | Refactor 代价流 | 4 | 2 | 1 | 150 |
-
----
-
-### M2 测试结果
-
-```
-38 passed, 5 warnings
-
-测试套件:
-├── i18n tests              6/6  ✅
-├── CLI tests               3/3  ✅
-├── golden tests            4/4  ✅
-├── M2 route tests          6/6  ✅
-├── M2 event effect tests  13/6  ✅
-└── M2 elite/boss tests     6/6  ✅
-```
-
----
-
-## 🎯 M1 更新：完整卡牌战斗系统
-
-M1 版本完成了核心游戏机制，包含完整的 Deck/Energy/Status 系统、Combat 状态机、奖励与流派系统。
-
-### M1 功能特性
-
-| 模块 | 功能 | 描述 |
-|------|------|------|
-| **Deck 系统** | 抽牌/出牌/洗牌 | 手牌、抽牌堆、弃牌堆、消耗堆 |
-| **Energy 系统** | 3 能量/回合 | 能量消耗与回合重置 |
-| **Status 系统** | 9 种状态 | Block/Vulnerable/Burn/TechDebt 等 |
-| **Combat 状态机** | 回合制战斗 | 回合开始→抽牌→出牌→敌人行动→回合结束 |
-| **奖励系统** | 金币/卡牌/遗物 | 战斗奖励、精英加成、BOSS 奖励 |
-| **流派系统** | 3 大流派 | Debug 爆发流/测试护盾流/重构代价流 |
-
-### M1 内容统计
-
-| 内容类型 | 数量 | 说明 |
-|---------|------|------|
-| 卡牌 | 54 张 | Debug 15, Test 17, Refactor 20, Basic 2 |
-| 敌人 | 33 个 | 24 Normal + 6 Elite + 3 BOSS |
-| 遗物 | 16 个 | Starter/BOSS/Rare/Uncommon/Common |
-| 状态 | 9 个 | Block/Vulnerable/Burn/TechDebt 等 |
-| 流派 | 3 个 | Debug 爆发流/测试护盾流/重构代价流 |
-| 事件 | 17 个 | 基础/商店/Debug/Test/Refactor/挑战 |
-
----
+> 说明：历史里程碑/统计信息已移除，避免与当前实现偏差。
 
 ## 快速开始
 
 ```bash
-# 克隆项目
 git clone https://github.com/lingengyuan/git-dungeon.git
 cd git-dungeon
 
-# 安装依赖
-pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
 
-# 运行游戏 (当前仓库)
+### 运行游戏
+
+```bash
+# 当前目录仓库
 python -m git_dungeon .
 
-# 运行游戏 (任意 GitHub 仓库)
+# 指定 GitHub 仓库（user/repo）
 python -m git_dungeon username/repo
 
-# 使用中文界面
+# 中文界面
 python -m git_dungeon . --lang zh_CN
 
-# 自动战斗模式 (适合演示)
+# 自动战斗
 python -m git_dungeon . --auto
 ```
 
-## 🔥 M6 AI 命令行参数
-
-| 参数 | 描述 | 默认值 |
-|------|------|--------|
-| `--ai, -a` | 启用 AI 文案生成 (on/off) | off |
-| `--ai-provider` | AI Provider (mock/gemini/openai) | mock |
-| `--ai-cache` | AI 缓存目录 | .git_dungeon_cache |
-| `--ai-timeout` | API 超时时间 (秒) | 5 |
-| `--ai-prefetch` | 预获取策略 (chapter/run/off) | chapter |
-
-## 命令行参数
-
-| 参数 | 描述 |
-|------|------|
-| `repository` | 仓库路径或 GitHub 用户名/仓库名 |
-| `--seed, -s` | 随机种子 (用于复现) |
-| `--lang, -l` | 语言 (en/zh_CN)，默认英文 |
-| `--auto, -a` | 自动战斗模式 |
-| `--verbose, -v` | 详细输出 |
-| `--json-log` | JSON 格式日志 |
-
-### M6 AI 使用示例
+### AI 参数（可选）
 
 ```bash
-# 关闭 AI（默认，与 v0.8 兼容）
-python -m git_dungeon .
+# 本地可复现（无外网依赖）
+python -m git_dungeon . --ai=on --ai-provider=mock
 
-# 开启 AI（使用 Gemini 免费模型）
+# Gemini
 export GEMINI_API_KEY="your-key"
 python -m git_dungeon . --ai=on --ai-provider=gemini
 
-# 测试模式（确定性输出，无需 API）
-python -m git_dungeon . --ai=on --ai-provider=mock
-
-# 带缓存目录
-python -m git_dungeon . --ai=on --ai-cache=/path/to/cache
-
-# 禁用预获取
-python -m git_dungeon . --ai=on --ai-prefetch=off
+# OpenAI
+export OPENAI_API_KEY="your-key"
+python -m git_dungeon . --ai=on --ai-provider=openai
 ```
 
-## 游戏界面
+支持参数：
 
-```
-⚔️  Chapter 1: Chaos Begins
-👤 DEVELOPER (Lv.1)          👾 Bug: fix issue
-🟢 HP:100/100 |████████      🟢 HP:30/30 |███
+- `--ai`：`on/off`（默认 `off`）
+- `--ai-provider`：`mock/gemini/openai`（默认 `mock`）
+- `--ai-cache`：缓存目录（默认 `.git_dungeon_cache`）
+- `--ai-timeout`：API 超时秒数（默认 `5`）
+- `--ai-prefetch`：`chapter/run/off`（默认 `chapter`）
 
-Your Hand:
-  [1] ⚔️  Strike      [2] 🛡️  Defend
-  [3] ⚔️  Debug Strike [4] 🛡️  Test Guard
-
-Choose your action (1-4) or enter card number:
->
-```
-
-### 流派系统
-
-| 流派 | 风格 | 核心机制 |
-|------|------|---------|
-| 🔥 **Debug 爆发流** | 高伤害输出 | 快速击杀避免 TechDebt 累积 |
-| 🛡️ **Test 护盾流** | 防御持久 | 高护甲/净化，稳扎稳打 |
-| ⚖️ **Refactor 代价流** | 高风险高回报 | 用血量/状态换强大效果 |
-
-### 敌人层级 (M2)
-
-| 层级 | 数量 | 特点 |
-|------|------|------|
-| **Normal** | 24 | 普通敌人，标准奖励 |
-| **Elite** | 6 | 2x 金币/经验，70% 掉落遗物 |
-| **BOSS** | 3 | 3x 金币/经验，必掉稀有遗物，3选1 |
-
-### 事件类型 (M2)
-
-| 类型 | 数量 | 示例 |
-|------|------|------|
-| 基础事件 | 4 | 休息、商店、宝藏、神秘门户 |
-| Debug 事件 | 2 | 调试召唤、紧急发布 |
-| Test 事件 | 2 | 测试实验室、CI 流水线 |
-| Refactor 事件 | 2 | 遗留代码、债务回收 |
-| 流派事件 | 1 | 流派祭坛 |
-| BOSS 事件 | 1 | BOSS 遭遇战 |
-
-## 敌人类型
-
-| Commit 类型 | 敌人 | 难度 | 描述 |
-|------------|------|------|------|
-| `feat` | ✨ 功能 | ⭐⭐ | 新功能 |
-| `fix` | 🐛 Bug | ⭐⭐⭐ | 修复问题 |
-| `docs` | 📖 文档 | ⭐ | 文档更新 |
-| `merge` | 🔀 合并 | ⭐⭐⭐⭐⭐ | BOSS 级 |
-| `refactor` | 🔨 重构 | ⭐⭐⭐ | 代码重构 |
-| `chore` | 🔧 维护 | ⭐ | 杂项任务 |
-| `perf` | ⚡ 性能 | ⭐⭐⭐ | 性能优化 |
-| `style` | 💅 格式 | ⭐ | 代码格式 |
-| `test` | ✅ 测试 | ⭐⭐ | 测试相关 |
-| `ci` | 🔄 流水线 | ⭐⭐ | CI/CD |
-
-## 运行测试
+## 开发命令
 
 ```bash
-# 运行所有测试
-PYTHONPATH=src python3 -m pytest tests/ -v
+# 快速单测/集成（排除 functional、golden、slow）
+make test
 
-# 运行 Golden Tests (确定性测试)
-PYTHONPATH=src python3 -m pytest tests/golden_test.py -v
+# 功能测试（CI 门禁）
+make test-func
 
-# 运行 i18n 测试
-PYTHONPATH=src python3 -m pytest tests/test_i18n.py -v
+# Golden 回归测试（CI 门禁）
+make test-golden
 
-# 运行 CLI 测试
-PYTHONPATH=src python3 -m pytest tests/test_cli.py -v
+# 代码检查
+make lint
 
-# 运行 M2 路径系统测试
-PYTHONPATH=src python3 -m pytest tests/test_m2_route.py -v
-
-# 运行 M2 事件效果测试
-PYTHONPATH=src python3 -m pytest tests/test_m2_event_effects.py -v
-
-# 运行 M2 精英/BOSS 测试
-PYTHONPATH=src python3 -m pytest tests/test_m2_elite_boss.py -v
-
-# 运行 M3 元进度系统测试
-PYTHONPATH=src python3 -m pytest tests/test_m3_meta.py -v
-
-# 运行 M3 角色系统测试
-PYTHONPATH=src python3 -m pytest tests/test_m3_characters.py -v
-
-# 运行 M3 内容包测试
-PYTHONPATH=src python3 -m pytest tests/test_m3_packs.py -v
-
-# 运行 M3 完整自动化测试
-PYTHONPATH=src python3 tests/test_m3_full_automation.py
-
-# 运行所有测试
-PYTHONPATH=src python3 -m pytest tests/ -v
+# 格式化
+make format
 ```
 
 ## 项目结构
 
-```
+```text
 git-dungeon/
 ├── src/git_dungeon/
-│   ├── content/              # 内容系统 (M1-M6)
-│   │   ├── schema.py         # 数据模型定义 (M3: ContentPack)
-│   │   ├── loader.py         # YAML 加载器
-│   │   ├── packs.py          # 内容包加载器 (M3)
-│   │   ├── defaults/         # 默认内容
-│   │   │   ├── cards.yml     # 54 张卡牌
-│   │   │   ├── enemies.yml   # 33 个敌人 (M2: +9 elite/boss)
-│   │   │   ├── relics.yml    # 16 个遗物
-│   │   │   ├── statuses.yml  # 9 个状态
-│   │   │   ├── archetypes.yml # 3 个流派
-│   │   │   ├── events.yml    # 17 个事件 (M2: +11)
-│   │   │   └── characters.yml # 3 角色 (M3)
-│   │   └── packs/            # 可解锁内容包 (M3)
-│   ├── ai/                   # AI 文案生成 (M6) ⭐
-│   │   ├── types.py         # TextKind, TextRequest, TextResponse
-│   │   ├── client_gemini.py # Gemini API 集成
-│   │   ├── client_openai.py  # OpenAI API 集成
-│   │   ├── client_mock.py   # 测试用 Mock 客户端
-│   │   ├── prompts.py       # AI 提示词模板
-│   │   ├── sanitize.py       # 输出清理/验证
-│   │   ├── fallbacks.py     # 模板降级文案
-│   │   └── cache.py         # SQLite/JSON 缓存
-│   ├── engine/
-│   │   ├── model.py          # 数据模型 (M1-M5: MetaProfile/RunSummary)
-│   │   ├── engine.py         # 游戏引擎 (M1-M5)
-│   │   ├── events.py         # 事件系统 (M1+M2: 效果引擎)
-│   │   ├── rng.py            # 随机数生成
-│   │   ├── route.py          # 路径系统 (M2)
-│   │   ├── meta.py           # 元进度系统 (M3)
-│   │   ├── achievements.py   # 成就系统 (M5) ⭐ 新增
-│   │   └── rules/
-│   │       ├── difficulty.py # 难度曲线 (M4) ⭐ 新增
-│   │       ├── rewards.py    # 奖励系统 (M1+M2: elite/boss)
-│   │       └── archetype.py  # 流派系统 (M1)
-│   ├── core/
-│   │   └── git_parser.py     # Git 数据提取
-│   ├── i18n/                 # 国际化
-│   ├── main.py               # CLI 入口
-│   └── main_cli.py           # CLI 游戏逻辑
-├── tests/
-│   ├── golden_test.py        # 确定性测试
-│   ├── test_i18n.py          # i18n 测试
-│   ├── test_cli.py           # CLI 测试
-│   ├── test_m2_route.py           # M2 路径系统测试
-│   ├── test_m2_event_effects.py    # M2 事件效果测试
-│   ├── test_m2_elite_boss.py       # M2 精英/BOSS 测试
-│   ├── test_m3_meta.py             # M3 元进度系统测试
-│   ├── test_m3_characters.py       # M3 角色系统测试
-│   ├── test_m3_packs.py            # M3 内容包测试
-│   ├── test_m3_full_automation.py  # M3 完整自动化测试
-│   ├── test_m4_difficulty.py       # M4 难度曲线测试 ⭐ 新增
-│   └── test_m5_achievements.py     # M5 成就系统测试 ⭐ 新增
-├── docs/                     # 文档
-└── pyproject.toml            # 项目配置
+│   ├── main.py              # CLI 入口
+│   ├── main_cli.py          # 主游戏流程
+│   ├── main_cli_ai.py       # AI 参数与包装层
+│   ├── engine/              # 核心规则与状态
+│   ├── content/             # YAML 内容与 packs
+│   ├── ai/                  # AI 客户端/缓存/清洗/fallback
+│   └── core/                # Git 解析与基础系统
+├── tests/                   # unit/integration/functional/golden
+├── docs/                    # 设计与阶段文档
+└── Makefile                 # 常用开发命令
 ```
 
-## 技术栈
+## 相关文档
 
-- **Python 3.11** - 开发语言
-- **GitPython** - Git 仓库操作
-- **Rich** - 终端美化输出
-- **Typer** - CLI 框架
-- **PyInstaller** - 打包成可执行文件
-- **PyYAML** - 内容配置
-
-## 技术细节
-
-### 确定性保证
-- 所有随机数由 `seed` 驱动
-- 固定 seed 下游戏结果完全可复现
-- Golden Tests 覆盖核心功能
-
-### 数据驱动设计
-- 所有游戏内容通过 YAML 文件定义
-- 新增卡牌/敌人/遗物/事件只需修改 YAML
-- Content Loader 自动校验引用完整性
-
-### M2 事件效果系统
-
-| Opcode | 效果 | 示例 |
-|--------|------|------|
-| `gain_gold` | +金币 | +50 |
-| `lose_gold` | -金币 | -30 |
-| `heal` | 治疗 | +30 HP |
-| `take_damage` | 受伤 | -20 HP |
-| `add_card` | 抽卡 | +debug_strike |
-| `remove_card` | 删卡 | -strike |
-| `upgrade_card` | 升级 | ↑strike |
-| `add_relic` | 遗物 | +power_relic |
-| `modify_bias` | 流派倾向 | debug +0.2 |
-| `set_flag` | 事件标记 | visited_shrine |
-| `trigger_battle` | 触发战斗 | elite/normal |
-
-### M2 奖励倍率
-
-| 敌人类型 | 金币倍率 | 经验倍率 | 遗物概率 |
-|---------|---------|---------|---------|
-| Normal | 1x | 1x | 10% |
-| Elite | 2x | 1.5x | 30% |
-| BOSS | 3x | 2.0x | 100% |
-
-### M3 Meta 进度系统
-
-| 功能 | 描述 |
-|------|------|
-| MetaProfile | 玩家档案，存储累计点数、解锁、统计 |
-| RunSummary | 单局总结，包含击杀、章节、奖励等 |
-| award_points | 根据表现奖励点数 (击杀+章节+胜利) |
-| 解锁系统 | 角色(100/150/200) / 内容包(150) / 成就 |
-| 存档 | JSON 格式，默认 ~/.git-dungeon/profiles/ |
-
-### M3 内容包合并逻辑
-
-```python
-# 合并基础内容和已解锁包
-merged = merge_content_with_packs(
-    base_registry,      # 基础内容
-    "packs/",           # 包目录
-    ["debug_pack", "test_pack"]  # 已解锁包
-)
-
-# ID 冲突检测 (warn 但继续)
-# 按 archetype 筛选: get_packs_by_archetype("debug_beatdown")
-```
-
-## 路线图
-
-| 版本 | 里程碑 | 目标 | 状态 |
-|------|--------|------|------|
-| v0.7 | M4 | 难度曲线 + 平衡工具 | ✅ |
-| v0.8 | M5 | 成就挑战系统 | ✅ |
-| v0.9 | M6 | AI 文案（可选） | ⏳ |
-
-详见 [docs/PLAN_M2-M6.md](docs/PLAN_M2-M6.md)
+- `docs/AI_TEXT.md`：M6 AI 模块说明（部分内容可能超前，建议结合代码与测试阅读）
+- `docs/TESTING_FRAMEWORK.md`：测试分层与门禁策略
+- `AGENTS.md`：仓库协作约定
 
 ## 贡献
 
-欢迎提交 Issue 和 Pull Request！
+欢迎提交 Issue / PR。提交前建议至少运行：
 
-## 许可证
+```bash
+make test
+make test-func
+make test-golden
+```
 
-MIT License - see [LICENSE](LICENSE) for details.
+## License
 
-## 作者
-
-- GitHub: [@lingengyuan](https://github.com/lingengyuan)
-- 项目: https://github.com/lingengyuan/git-dungeon
+MIT，详见 `LICENSE`。
