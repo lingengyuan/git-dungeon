@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from git_dungeon.ai import NullAIClient, TextCache, TextKind
+from git_dungeon.i18n import normalize_lang
 from git_dungeon.ai.integration import (
     AIAggregator,
     add_ai_args as add_ai_args_to_parser,
@@ -32,7 +33,7 @@ class GitDungeonAICLI:
         ai_prefetch: str = "chapter",
     ) -> None:
         self.seed = seed or 0
-        self.lang = lang
+        self.lang = normalize_lang(lang)
         self.ai_enabled = ai_enabled
         self.ai_provider = ai_provider
         self.ai_cache_dir = ai_cache_dir
@@ -51,7 +52,7 @@ class GitDungeonAICLI:
             seed=seed,
             verbose=verbose,
             auto_mode=auto_mode,
-            lang=lang,
+            lang=self.lang,
         )
 
         provider = ai_provider if ai_enabled else "off"

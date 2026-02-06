@@ -151,6 +151,30 @@ class TestAIIntegration:
             assert text2 == text1
             assert client.calls == 1
 
+    def test_lang_alias_zh_maps_to_zh_cn_for_fallback(self):
+        """`zh` alias should return Chinese fallback text, not English."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = TextCache(cache_dir=tmpdir, backend="sqlite")
+
+            class EmptyClient:
+                name = "gemini/test"
+
+                def generate_batch(self, requests):
+                    return [TextResponse(text="", provider=self.name, cached=False, meta={}) for _ in requests]
+
+            text = get_ai_text(
+                client=EmptyClient(),
+                cache=cache,
+                kind=TextKind.BATTLE_START,
+                lang="zh",
+                seed=1,
+                repo_id="lang-alias",
+                extra_context={"tier": "normal"},
+                content_version="1.0",
+            )
+
+            assert text == "战斗开始！"
+
 
 class TestAIAggregator:
     """Test AI request aggregator for batch processing."""

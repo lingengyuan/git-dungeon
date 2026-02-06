@@ -28,7 +28,7 @@ from git_dungeon.engine.rules import (
 )
 from git_dungeon.config import GameConfig
 from git_dungeon.core.git_parser import GitParser, CommitInfo
-from git_dungeon.i18n import i18n
+from git_dungeon.i18n import i18n, normalize_lang
 from git_dungeon.i18n.translations import get_translation
 
 
@@ -37,11 +37,11 @@ class GitDungeonCLI:
     
     def __init__(self, seed: Optional[int] = None, verbose: bool = False, auto_mode: bool = False, lang: str = "en"):
         self.seed = seed
-        self.lang = lang
+        self.lang = normalize_lang(lang)
         self.verbose = verbose
         
         # Load language
-        i18n.load_language(lang)
+        i18n.load_language(self.lang)
         
         self.rng = create_rng(seed)
         self.engine = Engine(rng=self.rng)
@@ -767,7 +767,7 @@ def main() -> None:
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose")
     parser.add_argument("--lang", "-l", type=str, default="en", 
                         choices=["en", "zh", "zh_CN"],
-                        help="Language (en/zh_CN)")
+                        help="Language (en/zh_CN, zh alias)")
     
     args = parser.parse_args()
     

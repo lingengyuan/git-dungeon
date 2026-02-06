@@ -1,30 +1,32 @@
 # Git Dungeon
 
-将 Git 提交历史映射为可游玩的命令行 Roguelike 战斗游戏。
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-## 这个项目是做什么的
+Turn Git commit history into a playable command-line roguelike.
 
-`Git Dungeon` 会把一个 Git 仓库的提交历史转换为“章节 + 敌人”战斗流程：
+## What This Project Does
 
-- 每个 commit 会映射为一场战斗敌人。
-- commit 类型会影响敌人类型和章节分布（如 `feat`、`fix`、`merge`）。
-- 你通过战斗获得经验与金币，推进章节，最终通关整局。
-- 可选开启 M6 AI 文案，让章节/战斗/Boss 有动态旁白。
+`Git Dungeon` maps repository commits into chapters and enemies:
 
-它适合用于：
+- Each commit becomes one battle enemy.
+- Commit types (`feat`, `fix`, `merge`) affect enemy flavor and chapter pacing.
+- You gain EXP and gold from battles, then progress chapter by chapter.
+- Optional M6 AI flavor text adds dynamic narration for intros, battle lines, events, and boss phases.
 
-- 用游戏化方式浏览仓库历史。
-- 做 CLI/规则引擎/内容系统（YAML）实验。
-- 作为测试驱动的 Python 项目模板参考。
+Use cases:
 
-## 当前能力
+- Explore project history in a game-like way.
+- Experiment with CLI architecture, rules engines, and YAML-driven content.
+- Reference a tested Python CLI game project structure.
 
-- 主流程已可用：仓库解析、章节推进、战斗、奖励结算。
-- 内容系统可用：`YAML` 默认内容 + `packs` 扩展。
-- 测试分层完整：`unit` / `functional` / `golden`。
-- M6 AI 文案已接入章节、战斗、商店、Boss 输出；默认关闭。
+## Current Status
 
-## 安装
+- Core gameplay is complete: parse repo, chapter progression, combat, rewards.
+- Content system is active: built-in YAML + extension packs.
+- Test layers are stable: unit, functional, golden.
+- M6 AI text is integrated and production-safe (fallback + caching + rate-limit guard).
+
+## Install
 
 ```bash
 python3 -m venv .venv
@@ -32,20 +34,22 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-## 运行方式
+## Quick Start
 
 ```bash
-# 当前目录仓库
+# Play current repository
 python -m git_dungeon.main .
 
-# 自动战斗 + 中文
+# Auto battle + Chinese UI (supports zh alias)
 python -m git_dungeon.main . --auto --lang zh_CN
+# or
+python -m git_dungeon.main . --auto --lang zh
 
-# 安装后可直接使用命令
+# Installed command
 git-dungeon . --auto
 ```
 
-## 实际输出示例（无 AI）
+## Gameplay Output Example (No AI)
 
 ```text
 Loading repository...
@@ -62,10 +66,10 @@ Divided into 20 chapters:
 ⭐ +19 EXP  |  💰 +9 Gold
 ```
 
-## AI 文案（可选）
+## AI Flavor Text (Optional)
 
 ```bash
-# 可复现（推荐 CI）
+# Deterministic CI-friendly mode
 python -m git_dungeon.main . --ai=on --ai-provider=mock
 
 # Gemini
@@ -77,53 +81,31 @@ export OPENAI_API_KEY="your-key"
 python -m git_dungeon.main . --ai=on --ai-provider=openai --lang zh_CN
 ```
 
-## AI 模式输出示例（Gemini + 自动保护）
+Gemini behavior:
 
-```text
-[AI] enabled provider=gemini
-[AI] prefetch auto-adjusted: chapter -> off (gemini free-tier safety)
-[AI] Gemini rate limit: HTTP Error 429: Too Many Requests. Falling back to mock for ~60s
-🧠 A fix approaches, its aura pulsing with mysterious energy.
-🧠 The battle begins! fix prepares its power surge...
-```
+- Prefetch auto-adjusts to `off` for free-tier safety.
+- On HTTP 429, client enters cooldown and falls back to mock text temporarily.
+- Tunable by env vars: `GEMINI_MAX_RPM` (default `8`), `GEMINI_RATE_LIMIT_COOLDOWN` (default `60`).
 
-- `--ai`: `on/off`（默认 `off`）
-- `--ai-provider`: `mock/gemini/openai`（默认 `mock`）
-- `--ai-cache`: 缓存目录（默认 `.git_dungeon_cache`）
-- `--ai-timeout`: 超时秒数（默认 `5`）
-- `--ai-prefetch`: `chapter/run/off`（默认 `chapter`）
-
-Gemini 说明：
-- 当 `--ai-provider=gemini` 且 prefetch 非 `off`，运行时会自动降级为 `off`。
-- 命中 429 后会进入冷却并回退 `gemini/fallback`，避免持续限流。
-- 可通过 `GEMINI_MAX_RPM`（默认 `8`）和 `GEMINI_RATE_LIMIT_COOLDOWN`（默认 `60`）调节。
-
-## 开发与测试
+## Development and Tests
 
 ```bash
-# 代码检查
 make lint
-
-# 单元/集成（不含 functional/golden/slow）
 make test
-
-# 功能测试
 make test-func
-
-# Golden 回归
 make test-golden
 ```
 
-## 目录结构
+## Project Layout
 
 ```text
-src/git_dungeon/     # 主代码
+src/git_dungeon/     # application code
 tests/               # unit / functional / golden / integration
-docs/                # 当前有效文档
-Makefile             # 常用命令
+docs/                # active docs
+Makefile             # common commands
 ```
 
-## 文档
+## Docs
 
 - `docs/AI_TEXT.md`
 - `docs/TESTING_FRAMEWORK.md`
