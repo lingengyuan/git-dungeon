@@ -24,11 +24,11 @@ class TestCombatSystem:
         defender = Entity(id="defender", name="Defender")
 
         attacker_char = CharacterComponent(CharacterType.PLAYER, "Attacker")
-        attacker_char.initialize_stats(hp=100, mp=50, attack=20, defense=10)
+        attacker_char.initialize_stats(hp=100, mp=50, attack=20, defense=10, critical=0, evasion=0)
         attacker.add_component(attacker_char)
 
         defender_char = CharacterComponent(CharacterType.MONSTER, "Defender")
-        defender_char.initialize_stats(hp=50, mp=0, attack=10, defense=5)
+        defender_char.initialize_stats(hp=50, mp=0, attack=10, defense=5, critical=0, evasion=0)
         defender.add_component(defender_char)
 
         damage, is_critical = self.combat.calculate_damage(
@@ -52,7 +52,7 @@ class TestCombatSystem:
         attacker.add_component(attacker_char)
 
         defender_char = CharacterComponent(CharacterType.MONSTER, "Defender")
-        defender_char.initialize_stats(hp=50, mp=0, attack=10, defense=5)
+        defender_char.initialize_stats(hp=50, mp=0, attack=10, defense=5, critical=0, evasion=0)
         defender.add_component(defender_char)
 
         damage, is_critical = self.combat.calculate_damage(
@@ -72,7 +72,7 @@ class TestCombatSystem:
         defender = Entity(id="defender", name="Defender")
 
         attacker_char = CharacterComponent(CharacterType.PLAYER, "Attacker")
-        attacker_char.initialize_stats(hp=100, mp=50, attack=20, defense=10)
+        attacker_char.initialize_stats(hp=100, mp=50, attack=20, defense=10, critical=0, evasion=0)
         attacker.add_component(attacker_char)
 
         defender_char = CharacterComponent(CharacterType.MONSTER, "Defender")
@@ -88,11 +88,11 @@ class TestCombatSystem:
         defender = Entity(id="defender", name="Defender")
 
         attacker_char = CharacterComponent(CharacterType.PLAYER, "Attacker")
-        attacker_char.initialize_stats(hp=100, mp=50, attack=20, defense=10)
+        attacker_char.initialize_stats(hp=100, mp=50, attack=20, defense=10, critical=0, evasion=0)
         attacker.add_component(attacker_char)
 
         defender_char = CharacterComponent(CharacterType.MONSTER, "Defender")
-        defender_char.initialize_stats(hp=50, mp=0, attack=10, defense=5)
+        defender_char.initialize_stats(hp=50, mp=0, attack=10, defense=5, critical=0, evasion=0)
         defender.add_component(defender_char)
 
         action = CombatAction(
@@ -114,11 +114,11 @@ class TestCombatSystem:
         defender = Entity(id="defender", name="Defender")
 
         attacker_char = CharacterComponent(CharacterType.PLAYER, "Attacker")
-        attacker_char.initialize_stats(hp=100, mp=50, attack=20, defense=10)
+        attacker_char.initialize_stats(hp=100, mp=50, attack=20, defense=10, critical=0, evasion=0)
         attacker.add_component(attacker_char)
 
         defender_char = CharacterComponent(CharacterType.MONSTER, "Defender")
-        defender_char.initialize_stats(hp=20, mp=0, attack=10, defense=0)
+        defender_char.initialize_stats(hp=20, mp=0, attack=10, defense=0, critical=0, evasion=0)
         defender.add_component(defender_char)
 
         action = CombatAction(
@@ -145,11 +145,11 @@ class TestCombatEncounter:
         enemy = Entity(id="enemy", name="Enemy")
 
         player_char = CharacterComponent(CharacterType.PLAYER, "Player")
-        player_char.initialize_stats(hp=100, mp=50, attack=20, defense=10)
+        player_char.initialize_stats(hp=100, mp=50, attack=20, defense=10, critical=0, evasion=0)
         player.add_component(player_char)
 
         enemy_char = CharacterComponent(CharacterType.MONSTER, "Enemy")
-        enemy_char.initialize_stats(hp=50, mp=0, attack=10, defense=5)
+        enemy_char.initialize_stats(hp=50, mp=0, attack=10, defense=5, critical=0, evasion=0)
         enemy.add_component(enemy_char)
 
         encounter = combat_system.start_combat(player, enemy)
@@ -166,11 +166,11 @@ class TestCombatEncounter:
         enemy = Entity(id="enemy", name="Enemy")
 
         player_char = CharacterComponent(CharacterType.PLAYER, "Player")
-        player_char.initialize_stats(hp=100, mp=50, attack=20, defense=10)
+        player_char.initialize_stats(hp=100, mp=50, attack=20, defense=10, critical=0, evasion=0)
         player.add_component(player_char)
 
         enemy_char = CharacterComponent(CharacterType.MONSTER, "Enemy")
-        enemy_char.initialize_stats(hp=50, mp=0, attack=10, defense=5)
+        enemy_char.initialize_stats(hp=50, mp=0, attack=10, defense=5, critical=0, evasion=0)
         enemy.add_component(enemy_char)
 
         encounter = combat_system.start_combat(player, enemy)
@@ -189,11 +189,11 @@ class TestCombatEncounter:
         enemy = Entity(id="enemy", name="Enemy")
 
         player_char = CharacterComponent(CharacterType.PLAYER, "Player")
-        player_char.initialize_stats(hp=100, mp=50, attack=20, defense=10)
+        player_char.initialize_stats(hp=100, mp=50, attack=20, defense=10, critical=0, evasion=0)
         player.add_component(player_char)
 
         enemy_char = CharacterComponent(CharacterType.MONSTER, "Enemy")
-        enemy_char.initialize_stats(hp=50, mp=0, attack=10, defense=5)
+        enemy_char.initialize_stats(hp=50, mp=0, attack=10, defense=5, critical=0, evasion=0)
         enemy.add_component(enemy_char)
 
         encounter = combat_system.start_combat(player, enemy)
