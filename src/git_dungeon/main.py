@@ -115,10 +115,13 @@ def run_cli(
     repository: str,
     seed: Optional[int] = None,
     verbose: bool = False,
+    compact: bool = False,
     log_file: Optional[str] = None,
     json_log: Optional[str] = None,
     no_color: bool = False,
     auto: bool = False,
+    metrics_out: Optional[str] = None,
+    print_metrics: bool = False,
     lang: str = "en",
     ai: str = "off",
     ai_provider: str = "mock",
@@ -147,7 +150,10 @@ def run_cli(
             game = GitDungeonAICLI(
                 seed=seed,
                 verbose=verbose,
+                compact=compact,
                 auto_mode=auto,
+                metrics_out=metrics_out,
+                print_metrics=print_metrics,
                 lang=lang,
                 ai_enabled=True,
                 ai_provider=ai_provider,
@@ -157,7 +163,15 @@ def run_cli(
             )
         else:
             from git_dungeon.main_cli import GitDungeonCLI
-            game = GitDungeonCLI(seed=seed, verbose=verbose, auto_mode=auto, lang=lang)
+            game = GitDungeonCLI(
+                seed=seed,
+                verbose=verbose,
+                compact=compact,
+                auto_mode=auto,
+                metrics_out=metrics_out,
+                print_metrics=print_metrics,
+                lang=lang,
+            )
         success = game.start(repository)
         logger.info(f"Game ended with success={success}")
         return 0 if success else 1
@@ -188,6 +202,8 @@ def main() -> int:
                         help="Random seed for reproducibility")
     parser.add_argument("--verbose", "-v", action="store_true",
                         help="Enable verbose output")
+    parser.add_argument("--compact", action="store_true",
+                        help="Compact one-line combat summaries")
     parser.add_argument("--version", action="version",
                         version=f"Git Dungeon {__version__}")
     parser.add_argument("--no-color", action="store_true",
@@ -198,6 +214,10 @@ def main() -> int:
                         help="Write JSON log to file (JSONL format)")
     parser.add_argument("--auto", action="store_true",
                         help="Auto-battle mode (automatic combat)")
+    parser.add_argument("--metrics-out", type=str, default=None,
+                        help="Write gameplay metrics to JSON")
+    parser.add_argument("--print-metrics", action="store_true",
+                        help="Print gameplay metrics summary")
     parser.add_argument("--lang", "-l", type=str, default="en",
                         choices=["en", "zh", "zh_CN"],
                         help="Language (en/zh_CN, zh alias)")
@@ -212,6 +232,8 @@ def main() -> int:
         print("  git-dungeon username/repo        # GitHub repo")
         print("  git-dungeon . --seed 12345       # With seed")
         print("  git-dungeon . --auto             # Auto-battle")
+        print("  git-dungeon . --auto --compact   # Compact auto battle logs")
+        print("  git-dungeon . --auto --metrics-out run_metrics.json")
         print("  git-dungeon . --ai=on --ai-provider=mock")
         print("  git-dungeon . --json-log run.jsonl  # JSON logging")
         return 0
@@ -220,10 +242,13 @@ def main() -> int:
         repository=args.repository,
         seed=args.seed,
         verbose=args.verbose,
+        compact=args.compact,
         log_file=args.log_file,
         json_log=args.json_log,
         no_color=args.no_color,
         auto=args.auto,
+        metrics_out=args.metrics_out,
+        print_metrics=args.print_metrics,
         lang=args.lang,
         ai=args.ai,
         ai_provider=args.ai_provider,
