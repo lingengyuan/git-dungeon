@@ -7,6 +7,16 @@ This project follows:
 - [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [Unreleased]
+
+### Added
+
+- Runtime content-pack loader with strict validation and deterministic merge priority.
+- `--content-pack`, `--daily`, `--daily-date`, and `--mutator` CLI options.
+- Example external pack: `content_packs/example_pack/`.
+- Data-driven chapter defaults in `src/git_dungeon/content/defaults/chapters.yml`.
+- New docs: `docs/CONTENT_PACKS.md`.
+
 ## [1.2.0] - 2026-02-06
 
 ### Added
