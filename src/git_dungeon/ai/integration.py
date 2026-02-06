@@ -73,7 +73,6 @@ def create_ai_client(
     
     elif provider == "gemini":
         # API key from environment variable
-        gemini_key = api_key or "GEMINI_API_KEY"
         actual_key = None
         
         # Try environment variable

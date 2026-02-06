@@ -7,8 +7,6 @@ Covers: null client, mock client, cache, sanitization, fallbacks.
 
 import pytest
 import tempfile
-import os
-from pathlib import Path
 
 from git_dungeon.ai import (
     TextKind, TextRequest, TextResponse,

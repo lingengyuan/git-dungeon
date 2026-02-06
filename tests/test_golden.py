@@ -174,7 +174,6 @@ class TestGoldenLevelProgression:
         rng, engine, state = seed_77777
         
         initial_level = state.player.character.level
-        initial_exp = state.player.character.experience
         
         # Gain experience through actions
         for i in range(10):
@@ -186,7 +185,6 @@ class TestGoldenLevelProgression:
             state, events = engine.apply(state, action)
         
         final_level = state.player.character.level
-        final_exp = state.player.character.experience
         
         # Verify results
         assert final_level >= initial_level, "Should not decrease level"

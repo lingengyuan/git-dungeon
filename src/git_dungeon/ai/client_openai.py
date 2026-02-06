@@ -75,7 +75,6 @@ class OpenAIClient(AIClient):
         if not self.client or not self.api_key:
             return False
         try:
-            import openai
             self.client.models.list()
             return True
         except Exception:

@@ -7,8 +7,7 @@ Tests for AI CLI integration, parameters, and full workflow.
 import pytest
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from git_dungeon.ai import TextKind, NullAIClient, MockAIClient, TextCache
 from git_dungeon.ai.integration import (

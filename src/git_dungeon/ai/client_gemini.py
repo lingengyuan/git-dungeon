@@ -118,7 +118,7 @@ class GeminiAIClient(AIClient):
                     cached=False,
                     meta={"reason": "sanitization_failed"}
                 )
-            except Exception as e:
+            except Exception:
                 if attempt < self.max_retries - 1:
                     time.sleep(0.5 * (attempt + 1))
                 else:
