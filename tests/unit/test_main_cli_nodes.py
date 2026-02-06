@@ -43,6 +43,7 @@ def test_compact_node_flow_has_stable_event_rest_shop_lines(capsys) -> None:
         commits=[SimpleNamespace(hexsha="a" * 40, message="feat: a", total_changes=5)],
         start_index=0,
         enemies_defeated=0,
+        enemy_count=1,
         is_boss_chapter=False,
         config=SimpleNamespace(
             gold_bonus=1.0,

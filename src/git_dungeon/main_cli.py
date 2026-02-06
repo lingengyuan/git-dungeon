@@ -622,8 +622,8 @@ class GitDungeonCLI:
             actual = player.heal(heal_amount)
             output = f"heal={actual}"
         else:
-            player.stats.attack.value += 2
-            player.stats.hp.value += 5
+            player.stats.attack.base += 2
+            player.stats.hp.base += 5
             player.current_hp = min(player.stats.hp.value, player.current_hp + 5)
             output = "focus=atk+2 hp_max+5"
 
@@ -684,11 +684,11 @@ class GitDungeonCLI:
         player = self.state.player.character
         hp_max_gain = int(offer.get("hp_max", 0))
         if hp_max_gain:
-            player.stats.hp.value += hp_max_gain
+            player.stats.hp.base += hp_max_gain
             player.current_hp += hp_max_gain
         atk_gain = int(offer.get("atk", 0))
         if atk_gain:
-            player.stats.attack.value += atk_gain
+            player.stats.attack.base += atk_gain
         mp_gain = int(offer.get("mp", 0))
         if mp_gain:
             player.current_mp = min(
