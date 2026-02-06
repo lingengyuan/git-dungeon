@@ -11,6 +11,7 @@ from git_dungeon.ai import (
     NullAIClient, MockAIClient, GeminiAIClient,
     TextCache
 )
+from git_dungeon.i18n import normalize_lang
 
 
 def add_ai_args(parser: argparse.ArgumentParser) -> None:
@@ -128,6 +129,7 @@ def get_ai_text(
         Generated text (or empty string if AI disabled)
     """
     from git_dungeon.ai.fallbacks import get_fallback_text
+    lang = normalize_lang(lang)
     
     # Check if AI is disabled
     if isinstance(client, NullAIClient):
@@ -185,7 +187,7 @@ class AIAggregator:
     def __init__(self, client, cache, lang, seed, repo_id, content_version="1.0"):
         self.client = client
         self.cache = cache
-        self.lang = lang
+        self.lang = normalize_lang(lang)
         self.seed = seed
         self.repo_id = repo_id
         self.content_version = content_version

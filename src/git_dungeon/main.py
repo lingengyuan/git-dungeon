@@ -134,6 +134,9 @@ def run_cli(
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     
+    from git_dungeon.i18n import normalize_lang
+    lang = normalize_lang(lang)
+
     log_level = logging.DEBUG if verbose else logging.INFO
     logger = setup_logging(log_level, log_file, json_log, no_color)
     logger.info(f"Starting Git Dungeon v{__version__}")
@@ -197,7 +200,7 @@ def main() -> int:
                         help="Auto-battle mode (automatic combat)")
     parser.add_argument("--lang", "-l", type=str, default="en",
                         choices=["en", "zh", "zh_CN"],
-                        help="Language (en/zh_CN)")
+                        help="Language (en/zh_CN, zh alias)")
     add_ai_args(parser)
     
     args = parser.parse_args()

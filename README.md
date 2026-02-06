@@ -1,15 +1,32 @@
 # Git Dungeon
 
-将 Git 提交历史映射为可游玩的命令行 Roguelike 战斗游戏。
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-## 当前实现
+Turn Git commit history into a playable command-line roguelike.
 
-- 主流程已可用：仓库解析、章节推进、战斗、奖励结算。
-- 内容系统可用：`YAML` 默认内容 + `packs` 扩展。
-- 测试分层完整：`unit` / `functional` / `golden`。
-- M6 AI 文案已接入章节、战斗、商店、Boss 输出；默认关闭。
+## What This Project Does
 
-## 安装
+`Git Dungeon` maps repository commits into chapters and enemies:
+
+- Each commit becomes one battle enemy.
+- Commit types (`feat`, `fix`, `merge`) affect enemy flavor and chapter pacing.
+- You gain EXP and gold from battles, then progress chapter by chapter.
+- Optional M6 AI flavor text adds dynamic narration for intros, battle lines, events, and boss phases.
+
+Use cases:
+
+- Explore project history in a game-like way.
+- Experiment with CLI architecture, rules engines, and YAML-driven content.
+- Reference a tested Python CLI game project structure.
+
+## Current Status
+
+- Core gameplay is complete: parse repo, chapter progression, combat, rewards.
+- Content system is active: built-in YAML + extension packs.
+- Test layers are stable: unit, functional, golden.
+- M6 AI text is integrated and production-safe (fallback + caching + rate-limit guard).
+
+## Install
 
 ```bash
 python3 -m venv .venv
@@ -17,43 +34,79 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-## 运行
+## Quick Start
 
 ```bash
-# 当前目录仓库
+# Play current repository
 python -m git_dungeon.main .
 
-# 自动战斗 + 中文
+# Auto battle + Chinese UI (supports zh alias)
 python -m git_dungeon.main . --auto --lang zh_CN
+# or
+python -m git_dungeon.main . --auto --lang zh
+
+# Installed command
+git-dungeon . --auto
 ```
 
-## AI 文案（可选）
+## Gameplay Output Example (No AI)
+
+```text
+Loading repository...
+Loaded 248 commits!
+Divided into 20 chapters:
+  🔄 Chapter 0: 混沌初开 (initial)
+  ⏳ Chapter 1: 修复时代 (fix)
+
+📖 第 1 章：混沌初开
+⚔️  混沌初开: fix bug
+👤 DEVELOPER (Lv.1)          👾 fix bug
+⚔️  You attack fix bug for 14 damage!
+💀 fix bug defeated!
+⭐ +19 EXP  |  💰 +9 Gold
+```
+
+## AI Flavor Text (Optional)
 
 ```bash
-# 可复现（推荐 CI）
+# Deterministic CI-friendly mode
 python -m git_dungeon.main . --ai=on --ai-provider=mock
 
 # Gemini
 export GEMINI_API_KEY="your-key"
-python -m git_dungeon.main . --ai=on --ai-provider=gemini
+python -m git_dungeon.main . --ai=on --ai-provider=gemini --lang zh_CN
 
 # OpenAI
 export OPENAI_API_KEY="your-key"
-python -m git_dungeon.main . --ai=on --ai-provider=openai
+python -m git_dungeon.main . --ai=on --ai-provider=openai --lang zh_CN
 ```
 
-- `--ai`: `on/off`（默认 `off`）
-- `--ai-provider`: `mock/gemini/openai`（默认 `mock`）
-- `--ai-cache`: 缓存目录（默认 `.git_dungeon_cache`）
-- `--ai-timeout`: 超时秒数（默认 `5`）
-- `--ai-prefetch`: `chapter/run/off`（默认 `chapter`）
+AI output example:
 
-Gemini 说明：
-- 当 `--ai-provider=gemini` 且 prefetch 非 `off`，运行时会自动降级为 `off`。
-- 命中 429 后会进入冷却并回退 `gemini/fallback`，避免持续限流。
-- 可通过 `GEMINI_MAX_RPM`（默认 `8`）和 `GEMINI_RATE_LIMIT_COOLDOWN`（默认 `60`）调节。
+```text
+[AI] enabled provider=gemini
+[AI] prefetch auto-adjusted: chapter -> off (gemini free-tier safety)
+🧠 A fix approaches, its aura pulsing with mysterious energy.
+🧠 The battle begins! fix prepares its power surge...
+⚔️  修复时代: fix unit test bug
+...
+[AI] Gemini rate limit: HTTP Error 429: Too Many Requests. Falling back to mock for ~60s
+🧠 You enter a quantum realm, pulsating.
+```
 
-## 开发与测试
+If `🧠` lines do not appear:
+
+- Confirm `--ai=on` is present.
+- For Chinese output, pass `--lang zh_CN` (or `--lang zh`).
+- Clear old cache first with `make ai-cache-clear`.
+
+Gemini behavior:
+
+- Prefetch auto-adjusts to `off` for free-tier safety.
+- On HTTP 429, client enters cooldown and falls back to mock text temporarily.
+- Tunable by env vars: `GEMINI_MAX_RPM` (default `8`), `GEMINI_RATE_LIMIT_COOLDOWN` (default `60`).
+
+## Development and Tests
 
 ```bash
 make lint
@@ -62,16 +115,16 @@ make test-func
 make test-golden
 ```
 
-## 目录结构
+## Project Layout
 
 ```text
-src/git_dungeon/     # 主代码
-tests/               # 单测/功能/Golden
-docs/                # 当前有效文档
-Makefile             # 常用命令
+src/git_dungeon/     # application code
+tests/               # unit / functional / golden / integration
+docs/                # active docs
+Makefile             # common commands
 ```
 
-## 文档
+## Docs
 
 - `docs/AI_TEXT.md`
 - `docs/TESTING_FRAMEWORK.md`

@@ -108,3 +108,10 @@ def test_non_gemini_prefetch_not_auto_adjusted():
     cli = GitDungeonAICLI(ai_enabled=True, ai_provider="mock", ai_prefetch="chapter")
     assert cli.ai_prefetch == "chapter"
     assert cli.ai_prefetch_auto_adjusted is False
+
+
+def test_lang_alias_zh_normalized_to_zh_cn():
+    """`zh` alias should map to `zh_CN` for both base CLI and AI requests."""
+    cli = GitDungeonAICLI(ai_enabled=True, ai_provider="mock", lang="zh")
+    assert cli.lang == "zh_CN"
+    assert cli._base_cli.lang == "zh_CN"

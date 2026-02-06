@@ -134,6 +134,8 @@ class TestMockAIClient:
         # Both should have text (different languages)
         assert responses[0].text != ""
         assert responses[1].text != ""
+        assert responses[0].text != responses[1].text
+        assert any("\u4e00" <= ch <= "\u9fff" for ch in responses[1].text)
 
 
 class TestTextCache:

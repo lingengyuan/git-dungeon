@@ -38,6 +38,7 @@ class I18n:
         Returns:
             True if loaded successfully
         """
+        lang = normalize_lang(lang)
         if lang in self._translations:
             self._current_lang = lang
             return True
@@ -75,6 +76,16 @@ class I18n:
 
 # Global instance
 i18n = I18n()
+
+
+def normalize_lang(lang: str) -> str:
+    """Normalize supported language aliases to canonical codes."""
+    normalized = (lang or "en").replace("-", "_").strip().lower()
+    if normalized in ("zh", "zh_cn"):
+        return "zh_CN"
+    if normalized == "en":
+        return "en"
+    return lang
 
 # Convenience function
 def _(text: str, lang: Optional[str] = None) -> str:
