@@ -68,6 +68,5 @@ test_screenshots.txt
 .git_dungeon_cache/
 AGENTS.md
 .env
-docs/plan.md
-docs/PROJECT_REVIEW.md
+docs/
 
