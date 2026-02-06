@@ -81,6 +81,25 @@ export OPENAI_API_KEY="your-key"
 python -m git_dungeon.main . --ai=on --ai-provider=openai --lang zh_CN
 ```
 
+AI output example:
+
+```text
+[AI] enabled provider=gemini
+[AI] prefetch auto-adjusted: chapter -> off (gemini free-tier safety)
+🧠 A fix approaches, its aura pulsing with mysterious energy.
+🧠 The battle begins! fix prepares its power surge...
+⚔️  修复时代: fix unit test bug
+...
+[AI] Gemini rate limit: HTTP Error 429: Too Many Requests. Falling back to mock for ~60s
+🧠 You enter a quantum realm, pulsating.
+```
+
+If `🧠` lines do not appear:
+
+- Confirm `--ai=on` is present.
+- For Chinese output, pass `--lang zh_CN` (or `--lang zh`).
+- Clear old cache first with `make ai-cache-clear`.
+
 Gemini behavior:
 
 - Prefetch auto-adjusts to `off` for free-tier safety.
