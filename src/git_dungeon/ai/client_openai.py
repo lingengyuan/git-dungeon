@@ -105,6 +105,13 @@ class OpenAIClient(AIClient):
             except Exception:
                 if attempt < self.max_retries - 1:
                     time.sleep(0.5 * (attempt + 1))
+
+        return TextResponse(
+            text="",
+            provider=self.name,
+            cached=False,
+            meta={"reason": "retry_exhausted"},
+        )
     
     def _build_prompt_vars(self, request: TextRequest) -> Dict[str, Any]:
         """Build prompt variables from request."""

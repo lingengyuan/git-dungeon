@@ -123,6 +123,13 @@ class GeminiAIClient(AIClient):
                     time.sleep(0.5 * (attempt + 1))
                 else:
                     raise
+
+        return TextResponse(
+            text="",
+            provider=self.name,
+            cached=False,
+            meta={"reason": "retry_exhausted"},
+        )
     
     def _call_api(self, prompt: str) -> Optional[str]:
         """Call Gemini API."""
