@@ -87,7 +87,7 @@ def profile_combat():
     pr = cProfile.Profile()
     pr.enable()
     
-    combat = CombatSystem()
+    _ = CombatSystem()
     
     for _ in range(100):
         player = CharacterComponent(CharacterType.PLAYER, "Dev")

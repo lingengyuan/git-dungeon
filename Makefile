@@ -1,7 +1,7 @@
 # Git Dungeon Makefile
 # 简化开发、测试、发布流程
 
-.PHONY: help test test-unit test-functional test-all test-golden test-golden-update run lint format clean test-m6 ai-cache-clear
+.PHONY: help test test-unit test-functional test-all test-golden test-golden-update run lint format clean test-m6 ai-cache-clear bench perf-smoke
 
 # 默认帮助
 help:
@@ -15,6 +15,8 @@ help:
 	@echo "  make test-all     - 全部测试"
 	@echo "  make test-golden  - 运行 golden tests"
 	@echo "  make test-golden-update - 更新 golden 快照"
+	@echo "  make bench        - 运行性能基线 benchmark"
+	@echo "  make perf-smoke   - 小数据集性能烟雾检测"
 	@echo ""
 	@echo "AI/Cache 命令:"
 	@echo "  make test-m6              - 运行 M6 AI 测试"
@@ -88,6 +90,16 @@ ai-cache-clear:
 	else \
 		echo "No AI cache found"; \
 	fi
+
+# 运行性能基线（small + medium + large）
+bench:
+	PYTHONPATH=src python3 -m benchmarks.run --dataset all --iterations 3 \
+		--output-json benchmarks/output/benchmark_results.json
+
+# 小数据集性能烟雾检测（默认不硬失败）
+perf-smoke:
+	PYTHONPATH=src python3 -m benchmarks.run --dataset small --iterations 2 \
+		--output-json benchmarks/output/perf_smoke.json --perf-smoke
 
 # 安装开发依赖
 dev-install:

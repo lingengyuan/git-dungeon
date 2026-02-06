@@ -168,6 +168,8 @@ class GitDungeonCLI:
         
             # Parse chapters
             self.chapter_system.parse_chapters(commits)
+            self._parser = parser
+            self._commits_cache = commits
         
             print(
                 f"{self._t('Divided into')} {len(self.chapter_system.chapters)} "
@@ -907,18 +909,20 @@ MP: {player.current_mp}/{player.stats.mp.value}
     
     def _get_current_commit(self) -> Any:
         """Get current commit from parser."""
-        if not hasattr(self, '_parser'):
-            if not self.state:
-                return None
+        if not self.state:
+            return None
+
+        if not hasattr(self, "_parser"):
             config = GameConfig()
             self._parser = GitParser(config)
             self._parser.load_repository(self.state.repo_path)
-        
-        if not self.state:
-            return None
-        commits = self._parser.get_commit_history()
+
+        commits = getattr(self, "_commits_cache", None)
+        if commits is None:
+            commits = self._parser.get_commit_history()
+            self._commits_cache = commits
+
         idx = self.state.current_commit_index
-        
         if 0 <= idx < len(commits):
             return commits[idx]
         return None

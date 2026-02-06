@@ -1,0 +1,9 @@
+{
+  "schema_version": "m2_benchmark_small_baseline_v1",
+  "startup_total_s": 0.144292,
+  "git_parse_s": 0.067854,
+  "chapter_build_s": 0.001395,
+  "commit_fetch_loop_s": 0.074129,
+  "peak_memory_mb": 0.67,
+  "note": "Captured on Linux 6.8.0-71-generic, Python 3.12.3, 2026-02-06."
+}

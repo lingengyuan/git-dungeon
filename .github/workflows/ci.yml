@@ -78,6 +78,24 @@ jobs:
             -m "not functional and not golden and not slow" \
             -v --tb=short -q
 
+  perf-smoke:
+    name: Perf Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -e ".[dev]"
+      - name: Run Small Dataset Perf Smoke
+        run: |
+          PYTHONPATH=src python3 -m benchmarks.run \
+            --dataset small \
+            --iterations 2 \
+            --output-json benchmarks/output/perf_smoke_ci.json \
+            --perf-smoke
+
   # ===== 合并检查 =====
   check-mergeability:
     name: Check Mergeability
@@ -92,8 +110,8 @@ jobs:
   # ===== 汇总 =====
   success:
     name: All Checks Passed
-    needs: [functional-test, lint, unit-test]
-    if: ${{ always() && needs.functional-test.result == 'success' }}
+    needs: [functional-test, lint, unit-test, perf-smoke]
+    if: ${{ always() && needs.functional-test.result == 'success' && needs.lint.result == 'success' && needs.unit-test.result == 'success' && needs.perf-smoke.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: CI Success
