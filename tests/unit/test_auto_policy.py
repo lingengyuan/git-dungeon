@@ -4,6 +4,12 @@ from git_dungeon.engine.auto_policy import (
     ACTION_ATTACK,
     ACTION_DEFEND,
     AutoCombatContext,
+    AutoEventContext,
+    AutoEventOptionContext,
+    AutoRestContext,
+    AutoShopContext,
+    AutoShopOptionContext,
+    REST_ACTION_HEAL,
     RuleBasedAutoPolicy,
 )
 
@@ -81,3 +87,48 @@ def test_low_mp_falls_back_to_attack() -> None:
     )
     assert policy.choose_action(low_mp_ctx) == ACTION_ATTACK
 
+
+def test_event_policy_prefers_healing_when_low_hp() -> None:
+    policy = RuleBasedAutoPolicy()
+    ctx = AutoEventContext(
+        seed=42,
+        chapter_index=1,
+        node_index=2,
+        player_hp=18,
+        player_max_hp=100,
+        player_gold=40,
+        options=(
+            AutoEventOptionContext(choice_id="heal", hp_delta=20, gold_delta=0, resource_delta=0.0, risk_level=0),
+            AutoEventOptionContext(choice_id="greed", hp_delta=-10, gold_delta=30, resource_delta=0.0, risk_level=1),
+        ),
+    )
+    assert policy.choose_event_choice(ctx) == 0
+
+
+def test_rest_policy_uses_heal_under_threshold() -> None:
+    policy = RuleBasedAutoPolicy()
+    ctx = AutoRestContext(
+        seed=1,
+        chapter_index=0,
+        node_index=3,
+        player_hp=35,
+        player_max_hp=100,
+    )
+    assert policy.choose_rest_action(ctx) == REST_ACTION_HEAL
+
+
+def test_shop_policy_skips_when_affordable_value_is_too_low() -> None:
+    policy = RuleBasedAutoPolicy()
+    ctx = AutoShopContext(
+        seed=2026,
+        chapter_index=0,
+        node_index=4,
+        player_hp=80,
+        player_max_hp=100,
+        player_gold=90,
+        options=(
+            AutoShopOptionContext(option_id="tiny", cost=70, value_score=0.1, hp_delta=0),
+            AutoShopOptionContext(option_id="minor", cost=50, value_score=0.2, hp_delta=0),
+        ),
+    )
+    assert policy.choose_shop_option(ctx) is None

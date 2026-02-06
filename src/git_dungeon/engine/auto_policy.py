@@ -17,6 +17,9 @@ ACTION_LABELS = {
     ACTION_ESCAPE: "escape",
 }
 
+REST_ACTION_HEAL = "heal"
+REST_ACTION_FOCUS = "focus"
+
 
 @dataclass(frozen=True)
 class AutoPolicyConfig:
@@ -29,6 +32,16 @@ class AutoPolicyConfig:
     finisher_enemy_hp_ratio: float = 0.40
     skill_damage_multiplier: float = 2.0
     attack_base_bonus: int = 5
+    rest_heal_threshold: float = 0.55
+    shop_gold_reserve_ratio: float = 0.35
+    shop_min_score: float = 0.4
+    shop_cost_weight: float = 1.2
+    event_hp_weight: float = 0.20
+    event_gold_weight: float = 0.05
+    event_resource_weight: float = 0.8
+    event_risk_penalty: float = 2.5
+    event_low_hp_heal_bonus: float = 4.0
+    event_low_hp_damage_penalty: float = 0.25
 
 
 @dataclass(frozen=True)
@@ -77,6 +90,98 @@ class AutoCombatPolicy(Protocol):
 
     def choose_action(self, ctx: AutoCombatContext) -> str:
         """Return one action from ACTION_* constants."""
+
+
+class AutoDecisionPolicy(Protocol):
+    """Extensible strategy interface for combat + node decisions."""
+
+    def choose_action(self, ctx: AutoCombatContext) -> str:
+        """Return one combat action from ACTION_* constants."""
+
+    def choose_event_choice(self, ctx: AutoEventContext) -> int:
+        """Return selected event choice index."""
+
+    def choose_rest_action(self, ctx: AutoRestContext) -> str:
+        """Return one rest action from REST_ACTION_* constants."""
+
+    def choose_shop_option(self, ctx: AutoShopContext) -> int | None:
+        """Return shop option index, or None to skip purchase."""
+
+
+@dataclass(frozen=True)
+class AutoEventOptionContext:
+    """Scored summary of one event choice."""
+
+    choice_id: str
+    hp_delta: int = 0
+    gold_delta: int = 0
+    resource_delta: float = 0.0
+    risk_level: int = 0
+
+
+@dataclass(frozen=True)
+class AutoEventContext:
+    """Event decision input for deterministic auto-play."""
+
+    seed: int
+    chapter_index: int
+    node_index: int
+    player_hp: int
+    player_max_hp: int
+    player_gold: int
+    options: tuple[AutoEventOptionContext, ...]
+
+    @property
+    def player_hp_ratio(self) -> float:
+        if self.player_max_hp <= 0:
+            return 0.0
+        return self.player_hp / self.player_max_hp
+
+
+@dataclass(frozen=True)
+class AutoRestContext:
+    """Rest node decision input."""
+
+    seed: int
+    chapter_index: int
+    node_index: int
+    player_hp: int
+    player_max_hp: int
+
+    @property
+    def player_hp_ratio(self) -> float:
+        if self.player_max_hp <= 0:
+            return 0.0
+        return self.player_hp / self.player_max_hp
+
+
+@dataclass(frozen=True)
+class AutoShopOptionContext:
+    """Summary of one shop offer."""
+
+    option_id: str
+    cost: int
+    value_score: float
+    hp_delta: int = 0
+
+
+@dataclass(frozen=True)
+class AutoShopContext:
+    """Shop node decision input."""
+
+    seed: int
+    chapter_index: int
+    node_index: int
+    player_hp: int
+    player_max_hp: int
+    player_gold: int
+    options: tuple[AutoShopOptionContext, ...]
+
+    @property
+    def player_hp_ratio(self) -> float:
+        if self.player_max_hp <= 0:
+            return 0.0
+        return self.player_hp / self.player_max_hp
 
 
 class RuleBasedAutoPolicy:
@@ -139,6 +244,81 @@ class RuleBasedAutoPolicy:
         best = [action for action, score in scores.items() if score == best_score]
         return self._break_tie(best, ctx)
 
+    def choose_event_choice(self, ctx: AutoEventContext) -> int:
+        """Pick one event choice index deterministically."""
+        if not ctx.options:
+            return 0
+
+        low_hp = ctx.player_hp_ratio <= self.config.low_hp_threshold
+        scored: list[tuple[int, float]] = []
+        for idx, option in enumerate(ctx.options):
+            score = 0.0
+            score += option.hp_delta * self.config.event_hp_weight
+            score += option.gold_delta * self.config.event_gold_weight
+            score += option.resource_delta * self.config.event_resource_weight
+            score -= option.risk_level * self.config.event_risk_penalty
+
+            if low_hp and option.hp_delta > 0:
+                score += self.config.event_low_hp_heal_bonus
+            if low_hp and option.hp_delta < 0:
+                score -= abs(option.hp_delta) * self.config.event_low_hp_damage_penalty
+
+            scored.append((idx, score))
+
+        best_score = max(score for _, score in scored)
+        best_indices = [idx for idx, score in scored if score == best_score]
+        return self._break_index_tie(
+            best_indices,
+            seed=ctx.seed,
+            chapter_index=ctx.chapter_index,
+            node_index=ctx.node_index,
+            pivot=ctx.player_hp + ctx.player_gold,
+        )
+
+    def choose_rest_action(self, ctx: AutoRestContext) -> str:
+        """Select rest action from REST_ACTION_* constants."""
+        if ctx.player_hp_ratio <= self.config.rest_heal_threshold:
+            return REST_ACTION_HEAL
+        return REST_ACTION_FOCUS
+
+    def choose_shop_option(self, ctx: AutoShopContext) -> int | None:
+        """Select a shop option index or None when skipping purchase."""
+        if not ctx.options:
+            return None
+
+        low_hp = ctx.player_hp_ratio <= self.config.low_hp_threshold
+        reserve_gold = 0 if low_hp else int(ctx.player_gold * self.config.shop_gold_reserve_ratio)
+        affordable: list[tuple[int, AutoShopOptionContext]] = [
+            (idx, option)
+            for idx, option in enumerate(ctx.options)
+            if option.cost <= ctx.player_gold
+        ]
+        if not affordable:
+            return None
+
+        scored: list[tuple[int, float]] = []
+        for idx, option in affordable:
+            spend_ratio = option.cost / max(1, ctx.player_gold)
+            score = option.value_score - (spend_ratio * self.config.shop_cost_weight)
+            if (ctx.player_gold - option.cost) < reserve_gold:
+                score -= 1.5
+            if low_hp and option.hp_delta > 0:
+                score += 2.0
+            scored.append((idx, score))
+
+        best_idx, best_score = max(scored, key=lambda item: item[1])
+        if best_score < self.config.shop_min_score:
+            return None
+        best_indices = [idx for idx, score in scored if score == best_score]
+        return self._break_index_tie(
+            best_indices,
+            seed=ctx.seed,
+            chapter_index=ctx.chapter_index,
+            node_index=ctx.node_index,
+            pivot=ctx.player_gold + ctx.player_hp,
+            fallback=best_idx,
+        )
+
     def _is_high_threat(self, ctx: AutoCombatContext) -> bool:
         if ctx.threat_hint:
             return True
@@ -162,4 +342,22 @@ class RuleBasedAutoPolicy:
             + (ctx.player_hp * 7)
             + (ctx.enemy_hp * 11)
         )
+        return ordered[stable_value % len(ordered)]
+
+    @staticmethod
+    def _break_index_tie(
+        candidates: list[int],
+        *,
+        seed: int,
+        chapter_index: int,
+        node_index: int,
+        pivot: int,
+        fallback: int = 0,
+    ) -> int:
+        if not candidates:
+            return fallback
+        if len(candidates) == 1:
+            return candidates[0]
+        ordered = sorted(candidates)
+        stable_value = (seed * 131) + (chapter_index * 17) + (node_index * 19) + (pivot * 7)
         return ordered[stable_value % len(ordered)]
