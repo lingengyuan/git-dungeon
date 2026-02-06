@@ -4,11 +4,49 @@
 
 将 Git 提交历史映射为可游玩的命令行 Roguelike。
 
+## 项目是做什么的
+
+`Git Dungeon` 会把仓库历史转换成一局可战斗流程：
+
+- 每个 commit 对应一个敌人遭遇。
+- commit 类型（`feat`、`fix`、`docs`、`merge`）影响章节风格和节奏。
+- 战斗后获得 EXP/金币，升级并推进章节。
+- 可选 AI 文案增强叙事，同时保留可复现与降级能力。
+
+适用场景：
+
+- 以游戏化方式浏览项目历史。
+- 演示 Python CLI 中可复现玩法系统。
+- 作为测试驱动 roguelike 架构参考实现。
+
+## 玩法流程
+
+1. 解析仓库 commits。
+2. 构建章节与敌人。
+3. 进行战斗（手动或 `--auto` 自动策略）。
+4. 结算奖励并推进直到通关或失败。
+
+## 输出示例
+
+```text
+Loading repository...
+Loaded 248 commits!
+Divided into 20 chapters:
+  🔄 Chapter 0: 混沌初开 (initial)
+  ⏳ Chapter 1: 修复时代 (fix)
+
+⚔️  混沌初开: fix bug [compact]
+T01 action=attack dealt=14 taken=3 hp=97/100 enemy=6/20
+T02 action=skill dealt=9 taken=0 hp=97/100 enemy=0/20 [KILL]
+   ✨[KILL] fix bug defeated
+📊 Metrics written: ./run_metrics.json
+```
+
 ## 当前版本
 
 - `1.2.0`
 - 版本策略：`SemVer`
-- 升级说明：见 `CHANGELOG.md`（`1.2.0`）
+- 升级说明：`CHANGELOG.md`
 
 ## 快速开始（3 步）
 
@@ -19,7 +57,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-2. 使用 wheel 安装（发布链路推荐）。
+2. 从 wheel 安装。
 
 ```bash
 python -m pip install --upgrade pip build
@@ -27,7 +65,7 @@ python -m build --wheel
 pip install dist/*.whl
 ```
 
-3. 运行可复现 demo（自动战斗 + 紧凑输出 + 指标）。
+3. 运行可复现 demo。
 
 ```bash
 git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
@@ -36,15 +74,19 @@ git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
 ## 常用参数
 
 - `--auto`：自动战斗决策。
-- `--compact`：战斗紧凑日志。
-- `--metrics-out <path>`：输出 JSON 指标。
-- `--print-metrics`：终局打印指标摘要。
-- `--seed <int>`：固定随机种子，便于复现。
+- `--compact`：每回合紧凑摘要输出。
+- `--metrics-out <path>`：输出指标 JSON。
+- `--print-metrics`：打印本局指标摘要。
+- `--seed <int>`：固定随机种子。
 - `--ai=off|on --ai-provider=mock|gemini|openai`：AI 文案开关与提供方。
 
 ## 存档目录
 
-默认保存到 `~/.local/share/git-dungeon`，可通过环境变量覆盖：
+默认：
+
+- `~/.local/share/git-dungeon`
+
+可覆盖：
 
 ```bash
 export GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-saves
@@ -53,13 +95,8 @@ export GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-saves
 ## Demo 命令
 
 ```bash
-# 运行当前仓库
 git-dungeon . --auto
-
-# 紧凑自动战斗并打印指标摘要
 git-dungeon . --seed 42 --auto --compact --print-metrics
-
-# 中文 UI
 git-dungeon . --auto --lang zh_CN
 ```
 

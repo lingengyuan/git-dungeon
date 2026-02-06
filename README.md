@@ -4,11 +4,49 @@
 
 Turn Git commit history into a playable command-line roguelike.
 
+## What This Project Is
+
+`Git Dungeon` maps repository history into a battle run:
+
+- Each commit becomes an enemy encounter.
+- Commit types (`feat`, `fix`, `docs`, `merge`) shape chapter flavor and pacing.
+- You gain EXP and gold, level up, and progress chapter by chapter.
+- Optional AI text adds narrative flavor while keeping deterministic fallback behavior.
+
+This project is useful for:
+
+- Exploring repository history in a game-like way.
+- Demoing deterministic game systems in Python CLI.
+- Serving as a reference for test-first roguelike architecture.
+
+## Gameplay Loop
+
+1. Parse repository commits.
+2. Build chapters and enemies.
+3. Fight battles (manual or `--auto` policy).
+4. Collect rewards and advance until clear or defeat.
+
+## Example Output
+
+```text
+Loading repository...
+Loaded 248 commits!
+Divided into 20 chapters:
+  🔄 Chapter 0: 混沌初开 (initial)
+  ⏳ Chapter 1: 修复时代 (fix)
+
+⚔️  混沌初开: fix bug [compact]
+T01 action=attack dealt=14 taken=3 hp=97/100 enemy=6/20
+T02 action=skill dealt=9 taken=0 hp=97/100 enemy=0/20 [KILL]
+   ✨[KILL] fix bug defeated
+📊 Metrics written: ./run_metrics.json
+```
+
 ## Current Version
 
 - `1.2.0`
 - Versioning strategy: [SemVer](https://semver.org/)
-- Upgrade notes: see `CHANGELOG.md` (`1.2.0`)
+- Upgrade notes: `CHANGELOG.md`
 
 ## Quickstart (3 Steps)
 
@@ -19,7 +57,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-2. Install from wheel (recommended for release validation).
+2. Install from wheel.
 
 ```bash
 python -m pip install --upgrade pip build
@@ -27,7 +65,7 @@ python -m build --wheel
 pip install dist/*.whl
 ```
 
-3. Run a reproducible auto demo (compact output + metrics).
+3. Run a reproducible demo.
 
 ```bash
 git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
@@ -36,16 +74,19 @@ git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
 ## Common Options
 
 - `--auto`: automatic combat decisions.
-- `--compact`: concise battle logs.
-- `--metrics-out <path>`: write run metrics JSON.
-- `--print-metrics`: print metrics summary to stdout.
+- `--compact`: concise per-turn battle summary.
+- `--metrics-out <path>`: write metrics JSON.
+- `--print-metrics`: print run summary.
 - `--seed <int>`: deterministic run seed.
 - `--ai=off|on --ai-provider=mock|gemini|openai`: AI flavor text control.
 
 ## Save Directory
 
-By default saves are written under `~/.local/share/git-dungeon`.
-Override with:
+Default:
+
+- `~/.local/share/git-dungeon`
+
+Override:
 
 ```bash
 export GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-saves
@@ -54,13 +95,8 @@ export GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-saves
 ## Demo Commands
 
 ```bash
-# Run current repository
 git-dungeon . --auto
-
-# Compact auto run with metrics summary
 git-dungeon . --seed 42 --auto --compact --print-metrics
-
-# Chinese UI
 git-dungeon . --auto --lang zh_CN
 ```
 
