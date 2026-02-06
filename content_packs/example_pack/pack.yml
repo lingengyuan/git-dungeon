@@ -1,0 +1,136 @@
+# Example community content pack for Git Dungeon M4
+# Load with:
+#   git-dungeon . --content-pack content_packs/example_pack --seed 42 --auto --compact
+
+pack_info:
+  id: example_pack
+  name_key: pack.example_pack.name
+  desc_key: pack.example_pack.desc
+  archetype: community
+  rarity: uncommon
+  points_cost: 120
+
+chapter_overrides:
+  feature:
+    name: "Plugin Bazaar"
+    description: "Community plugins erupt across branches."
+    boss_chance: 0.45
+    gold_bonus: 1.15
+  fix:
+    name: "Hotfix Gauntlet"
+    description: "Patch storms intensify and pressure rises."
+    enemy_atk_multiplier: 1.55
+    exp_bonus: 1.35
+
+cards:
+  - id: community_patch
+    name_key: card.community_patch.name
+    desc_key: card.community_patch.desc
+    type: skill
+    cost: 1
+    rarity: uncommon
+    effects:
+      - type: block
+        value: 10
+      - type: draw
+        value: 1
+    tags: ["community", "defense"]
+
+  - id: sponsor_push
+    name_key: card.sponsor_push.name
+    desc_key: card.sponsor_push.desc
+    type: attack
+    cost: 2
+    rarity: rare
+    effects:
+      - type: damage
+        value: 18
+    tags: ["community", "burst"]
+
+relics:
+  - id: merge_lantern
+    name_key: relic.merge_lantern.name
+    desc_key: relic.merge_lantern.desc
+    tier: uncommon
+    effects:
+      bonus_exp_rate: 0.08
+
+events:
+  - id: contributor_wave
+    name_key: event.contributor_wave.name
+    desc_key: event.contributor_wave.desc
+    choices:
+      - id: mentor
+        text_key: event.contributor_wave.choice.mentor
+        effects:
+          - opcode: gain_gold
+            value: 30
+      - id: review
+        text_key: event.contributor_wave.choice.review
+        effects:
+          - opcode: heal
+            value: 15
+
+  - id: stale_pr
+    name_key: event.stale_pr.name
+    desc_key: event.stale_pr.desc
+    choices:
+      - id: revive
+        text_key: event.stale_pr.choice.revive
+        effects:
+          - opcode: add_card
+            value: community_patch
+          - opcode: lose_gold
+            value: 20
+      - id: close
+        text_key: event.stale_pr.choice.close
+        effects:
+          - opcode: gain_gold
+            value: 10
+
+  - id: release_party
+    name_key: event.release_party.name
+    desc_key: event.release_party.desc
+    choices:
+      - id: celebrate
+        text_key: event.release_party.choice.celebrate
+        effects:
+          - opcode: heal
+            value: 25
+      - id: keep_shipping
+        text_key: event.release_party.choice.keep_shipping
+        effects:
+          - opcode: gain_gold
+            value: 20
+
+  - id: docs_sprint
+    name_key: event.docs_sprint.name
+    desc_key: event.docs_sprint.desc
+    choices:
+      - id: improve
+        text_key: event.docs_sprint.choice.improve
+        effects:
+          - opcode: add_card
+            value: random_common
+      - id: skip
+        text_key: event.docs_sprint.choice.skip
+        effects:
+          - opcode: take_damage
+            value: 8
+
+  - id: incident_drill
+    name_key: event.incident_drill.name
+    desc_key: event.incident_drill.desc
+    choices:
+      - id: run_drill
+        text_key: event.incident_drill.choice.run_drill
+        effects:
+          - opcode: add_relic
+            value: merge_lantern
+          - opcode: take_damage
+            value: 12
+      - id: postpone
+        text_key: event.incident_drill.choice.postpone
+        effects:
+          - opcode: gain_gold
+            value: 15

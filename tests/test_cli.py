@@ -35,6 +35,9 @@ def test_help_includes_ai_arguments():
     assert "--ai-cache" in result.stdout
     assert "--compact" in result.stdout
     assert "--metrics-out" in result.stdout
+    assert "--content-pack" in result.stdout
+    assert "--daily" in result.stdout
+    assert "--mutator" in result.stdout
 
 
 def test_invalid_lang_is_rejected():
@@ -51,6 +54,23 @@ def test_ai_args_are_parsed_by_real_cli():
         "/definitely/missing/repo",
         "--ai=on",
         "--ai-provider=mock",
+    )
+    assert result.returncode == 1
+    combined = f"{result.stdout}\n{result.stderr}"
+    assert "unrecognized arguments" not in combined
+
+
+def test_content_pack_daily_and_mutator_args_are_parsed() -> None:
+    result = _run_module(
+        "git_dungeon.main",
+        "/definitely/missing/repo",
+        "--content-pack",
+        "content_packs/example_pack",
+        "--daily",
+        "--daily-date",
+        "2026-02-06",
+        "--mutator",
+        "hard",
     )
     assert result.returncode == 1
     combined = f"{result.stdout}\n{result.stderr}"

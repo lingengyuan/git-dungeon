@@ -33,9 +33,18 @@ from git_dungeon.engine.auto_policy import (
     AutoPolicyConfig,
     RuleBasedAutoPolicy,
 )
+from git_dungeon.engine.daily import DailyChallengeInfo, build_shareable_run_id, resolve_run_seed
+from git_dungeon.engine.mutators import (
+    MutatorConfig,
+    apply_enemy_mutator,
+    apply_reward_mutator,
+    get_mutator_config,
+)
 from git_dungeon.engine.run_metrics import RunMetrics
+from git_dungeon.content.runtime_loader import load_runtime_content
 from git_dungeon.config import GameConfig
 from git_dungeon.core.git_parser import GitParser, CommitInfo
+from git_dungeon.engine.rules.chapter_rules import build_chapter_configs
 from git_dungeon.i18n import i18n, normalize_lang
 from git_dungeon.i18n.translations import get_translation
 
@@ -54,11 +63,23 @@ class GitDungeonCLI:
         print_metrics: bool = False,
         auto_policy: Optional[RuleBasedAutoPolicy] = None,
         auto_policy_config: Optional[AutoPolicyConfig] = None,
+        content_pack_args: Optional[list[str]] = None,
+        content_dir: Optional[str] = None,
+        mutator: str = "none",
+        daily_info: Optional[DailyChallengeInfo] = None,
     ):
         self.seed = seed
         self.lang = normalize_lang(lang)
         self.verbose = verbose
         self.compact = compact
+        self.daily_info = daily_info
+        self.mutator: MutatorConfig = get_mutator_config(mutator)
+        self.content_runtime = load_runtime_content(
+            content_dir=content_dir,
+            content_pack_args=content_pack_args,
+        )
+        self.loaded_content_packs = self.content_runtime.loaded_pack_ids
+        self.run_id: Optional[str] = None
         
         # Load language
         i18n.load_language(self.lang)
@@ -67,7 +88,10 @@ class GitDungeonCLI:
         self.engine = Engine(rng=self.rng)
         self.combat_rules = CombatRules(rng=self.rng)
         self.progression_rules = ProgressionRules(rng=self.rng)
-        self.chapter_system = ChapterSystem(rng=self.rng)
+        self.chapter_system = ChapterSystem(
+            rng=self.rng,
+            chapter_configs=build_chapter_configs(self.content_runtime.chapter_overrides),
+        )
         self.shop_system = ShopSystem(rng=self.rng)
         self.boss_system = BossSystem(rng=self.rng)
         
@@ -147,6 +171,24 @@ class GitDungeonCLI:
                 if not os.path.exists(repo_path):
                     print(f"❌ Repository not found: {repo_path}")
                     return False
+
+            self.run_id = build_shareable_run_id(
+                repository=repo_path,
+                seed=int(self.seed or 0),
+                mutator=self.mutator.id,
+                content_pack_ids=self.loaded_content_packs,
+                daily_date_iso=(self.daily_info.date_iso if self.daily_info else None),
+            )
+            if self.daily_info:
+                print(
+                    f"📅 Daily challenge {self.daily_info.date_iso} "
+                    f"(seed={self.daily_info.seed}) run_id={self.run_id}"
+                )
+            if self.mutator.id != "none":
+                print(f"⚙️  Mutator: {self.mutator.id} ({self.mutator.summary})")
+            if self.loaded_content_packs:
+                packs = ", ".join(self.loaded_content_packs)
+                print(f"🧩 Content packs: {packs}")
         
             # Load repository
             print(self._t("Loading repository..."))
@@ -713,17 +755,22 @@ MP: {player.current_mp}/{player.stats.mp.value}
     def _grant_boss_rewards(self, boss: BossState) -> None:
         """Grant rewards for defeating a boss."""
         rewards = self.boss_system.get_boss_rewards(boss)
+        reward_exp, reward_gold = apply_reward_mutator(
+            int(rewards["exp"]),
+            int(rewards["gold"]),
+            self.mutator,
+        )
         
-        self.state.player.gold += rewards['gold']  # type: ignore[union-attr]
-        self.inventory.gold += rewards['gold']  # Sync to inventory for shop
+        self.state.player.gold += reward_gold  # type: ignore[union-attr]
+        self.inventory.gold += reward_gold  # Sync to inventory for shop
         
-        did_level_up, new_level = self.state.player.character.gain_experience(rewards['exp'])  # type: ignore[union-attr]
+        did_level_up, new_level = self.state.player.character.gain_experience(reward_exp)  # type: ignore[union-attr]
         
-        print(f"\n   💰 +{rewards['gold']} Gold")
-        print(f"   ⭐ +{rewards['exp']} EXP")
+        print(f"\n   💰 +{reward_gold} Gold")
+        print(f"   ⭐ +{reward_exp} EXP")
         self.metrics.record_rewards(
-            exp=int(rewards["exp"]),
-            gold=int(rewards["gold"]),
+            exp=reward_exp,
+            gold=reward_gold,
             drops=len(rewards.get("items", [])),
             level_up=did_level_up,
         )
@@ -746,6 +793,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
         # Calculate rewards
         gold_reward = int(50 * chapter.config.gold_bonus * (1 + chapter.chapter_index * 0.2))
         exp_reward = int(100 * chapter.config.exp_bonus * (1 + chapter.chapter_index * 0.2))
+        exp_reward, gold_reward = apply_reward_mutator(exp_reward, gold_reward, self.mutator)
         
         self.state.player.gold += gold_reward  # type: ignore[union-attr]
         self.inventory.gold += gold_reward  # Sync to inventory for shop
@@ -834,6 +882,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
         # Apply chapter bonuses
         exp = int(enemy.exp_reward * chapter.config.exp_bonus)
         gold = int(enemy.gold_reward * chapter.config.gold_bonus)
+        exp, gold = apply_reward_mutator(exp, gold, self.mutator)
         
         self.state.player.gold += gold  # type: ignore[union-attr]
         self.inventory.gold += gold  # Sync to inventory for shop
@@ -875,6 +924,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
         # Apply chapter multipliers
         hp = int(diff["hp"] * chapter.config.enemy_hp_multiplier) if chapter else diff["hp"]
         atk = int(diff["attack"] * chapter.config.enemy_atk_multiplier) if chapter else diff["attack"]
+        hp, atk = apply_enemy_mutator(hp, atk, self.mutator)
         
         name = self._generate_name(commit)
         
@@ -931,6 +981,16 @@ MP: {player.current_mp}/{player.stats.mp.value}
         """Print banner."""
         if not self.state:
             return
+        extras = []
+        if self.mutator.id != "none":
+            extras.append(f"🧪 Mutator: {self.mutator.id}")
+        if self.daily_info and self.run_id:
+            extras.append(f"🧷 Daily Run ID: {self.run_id}")
+        elif self.loaded_content_packs and self.run_id:
+            extras.append(f"🧷 Run ID: {self.run_id}")
+        extras_block = "\n".join(extras)
+        if extras_block:
+            extras_block = "\n" + extras_block
         print(f"""
 ╔══════════════════════════════════════════════════════════╗
 ║              G I T   D U N G E O N                     ║
@@ -941,10 +1001,17 @@ MP: {player.current_mp}/{player.stats.mp.value}
 📍 Total Commits: {self.state.total_commits}
 📖 Chapters: {len(self.chapter_system.chapters)}
 🎯 Objective: Defeat all commits!
+{extras_block}
 """)
     
     def _print_chapter_intro(self, chapter: Any) -> None:
         """Print chapter introduction."""
+        event_hint = ""
+        if self.loaded_content_packs and self.content_runtime.registry.events:
+            event_ids = sorted(self.content_runtime.registry.events.keys())
+            seed = int(self.seed or 0)
+            index = (seed + chapter.chapter_index * 17) % len(event_ids)
+            event_hint = f"\n🔮 事件预兆: {event_ids[index]}"
         print(f"""
 {'='*50}
 📖 第 {chapter.chapter_index + 1} 章：{chapter.name}
@@ -954,6 +1021,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
 ⚔️  敌人数量: {chapter.enemy_count}
 🏆 Boss: {"是" if chapter.is_boss_chapter else "否"}
 🏪 商店: {"有" if chapter.config.shop_enabled else "无"}
+{event_hint}
 {'='*50}
 """)
     
@@ -1118,6 +1186,21 @@ def main() -> None:
     parser.add_argument("--auto", action="store_true", help="Auto-battle mode")
     parser.add_argument("--metrics-out", type=str, default=None, help="Write gameplay metrics JSON")
     parser.add_argument("--print-metrics", action="store_true", help="Print metrics summary")
+    parser.add_argument(
+        "--content-pack",
+        action="append",
+        default=[],
+        help="Content pack id/path (repeatable). Also supports GIT_DUNGEON_CONTENT_DIR",
+    )
+    parser.add_argument(
+        "--mutator",
+        type=str,
+        default="none",
+        choices=["none", "hard"],
+        help="Gameplay mutator preset",
+    )
+    parser.add_argument("--daily", action="store_true", help="Use daily challenge seed")
+    parser.add_argument("--daily-date", type=str, default=None, help="Daily date (YYYY-MM-DD)")
     parser.add_argument("--lang", "-l", type=str, default="en", 
                         choices=["en", "zh", "zh_CN"],
                         help="Language (en/zh_CN, zh alias)")
@@ -1134,17 +1217,26 @@ Usage:
 Examples:
     python src/main_cli_new.py username/repo --lang zh_CN
     python src/main_cli_new.py . --seed 12345 --lang zh_CN
+    python src/main_cli_new.py . --content-pack content_packs/example_pack --auto --compact
 """)
         return
     
-    game = GitDungeonCLI(
+    effective_seed, daily_info = resolve_run_seed(
         seed=args.seed,
+        daily=args.daily,
+        daily_date=args.daily_date,
+    )
+    game = GitDungeonCLI(
+        seed=effective_seed,
         verbose=args.verbose,
         auto_mode=args.auto,
         lang=args.lang,
         compact=args.compact,
         metrics_out=args.metrics_out,
         print_metrics=args.print_metrics,
+        content_pack_args=args.content_pack,
+        mutator=args.mutator,
+        daily_info=daily_info,
     )
     
     try:

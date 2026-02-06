@@ -128,8 +128,13 @@ def run_cli(
     ai_cache: str = ".git_dungeon_cache",
     ai_timeout: int = 5,
     ai_prefetch: str = "chapter",
+    content_pack: Optional[list[str]] = None,
+    mutator: str = "none",
+    daily: bool = False,
+    daily_date: Optional[str] = None,
 ) -> int:
     """Run the CLI game."""
+    from git_dungeon.engine.daily import resolve_run_seed
     # Add src to path for imports
     src_path = Path(__file__).parent
     project_root = src_path.parent.parent
@@ -143,18 +148,24 @@ def run_cli(
     log_level = logging.DEBUG if verbose else logging.INFO
     logger = setup_logging(log_level, log_file, json_log, no_color)
     logger.info(f"Starting Git Dungeon v{__version__}")
+    effective_seed, daily_info = resolve_run_seed(seed=seed, daily=daily, daily_date=daily_date)
+    if daily_info:
+        logger.info(f"Daily challenge active: date={daily_info.date_iso} seed={daily_info.seed}")
     
     try:
         if ai == "on":
             from git_dungeon.main_cli_ai import GitDungeonAICLI
             game = GitDungeonAICLI(
-                seed=seed,
+                seed=effective_seed,
                 verbose=verbose,
                 compact=compact,
                 auto_mode=auto,
                 metrics_out=metrics_out,
                 print_metrics=print_metrics,
                 lang=lang,
+                content_pack_args=content_pack,
+                mutator=mutator,
+                daily_info=daily_info,
                 ai_enabled=True,
                 ai_provider=ai_provider,
                 ai_cache_dir=ai_cache,
@@ -164,13 +175,16 @@ def run_cli(
         else:
             from git_dungeon.main_cli import GitDungeonCLI
             game = GitDungeonCLI(
-                seed=seed,
+                seed=effective_seed,
                 verbose=verbose,
                 compact=compact,
                 auto_mode=auto,
                 metrics_out=metrics_out,
                 print_metrics=print_metrics,
                 lang=lang,
+                content_pack_args=content_pack,
+                mutator=mutator,
+                daily_info=daily_info,
             )
         success = game.start(repository)
         logger.info(f"Game ended with success={success}")
@@ -218,6 +232,23 @@ def main() -> int:
                         help="Write gameplay metrics to JSON")
     parser.add_argument("--print-metrics", action="store_true",
                         help="Print gameplay metrics summary")
+    parser.add_argument(
+        "--content-pack",
+        action="append",
+        default=[],
+        help="Content pack id/path (repeatable). Also supports GIT_DUNGEON_CONTENT_DIR",
+    )
+    parser.add_argument(
+        "--mutator",
+        type=str,
+        default="none",
+        choices=["none", "hard"],
+        help="Gameplay mutator preset",
+    )
+    parser.add_argument("--daily", action="store_true",
+                        help="Use daily challenge seed based on date")
+    parser.add_argument("--daily-date", type=str, default=None,
+                        help="Daily challenge date (YYYY-MM-DD)")
     parser.add_argument("--lang", "-l", type=str, default="en",
                         choices=["en", "zh", "zh_CN"],
                         help="Language (en/zh_CN, zh alias)")
@@ -234,6 +265,8 @@ def main() -> int:
         print("  git-dungeon . --auto             # Auto-battle")
         print("  git-dungeon . --auto --compact   # Compact auto battle logs")
         print("  git-dungeon . --auto --metrics-out run_metrics.json")
+        print("  git-dungeon . --daily --mutator hard")
+        print("  git-dungeon . --content-pack content_packs/example_pack")
         print("  git-dungeon . --ai=on --ai-provider=mock")
         print("  git-dungeon . --json-log run.jsonl  # JSON logging")
         return 0
@@ -255,6 +288,10 @@ def main() -> int:
         ai_cache=args.ai_cache,
         ai_timeout=args.ai_timeout,
         ai_prefetch=args.ai_prefetch,
+        content_pack=args.content_pack,
+        mutator=args.mutator,
+        daily=args.daily,
+        daily_date=args.daily_date,
     )
 
 

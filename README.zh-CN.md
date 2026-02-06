@@ -97,6 +97,41 @@ git-dungeon . --seed 42 --auto --compact --print-metrics
 - `--seed <int>`：固定随机种子。
 - `--ai=off|on --ai-provider=mock|gemini|openai`：AI 文案开关与提供方。
 
+## 内容包与挑战模式
+
+通过路径加载示例内容包：
+
+```bash
+git-dungeon . --content-pack content_packs/example_pack --seed 42 --auto --compact
+```
+
+通过环境变量目录自动发现内容包（子目录）：
+
+```bash
+export GIT_DUNGEON_CONTENT_DIR=./content_packs
+git-dungeon . --content-pack example_pack --seed 42 --auto --compact
+```
+
+每日挑战（可分享 run id）：
+
+```bash
+git-dungeon . --daily --mutator hard --auto --compact
+```
+
+固定日期的每日挑战（便于复现）：
+
+```bash
+git-dungeon . --daily --daily-date 2026-02-06 --auto --compact
+```
+
+内容包合并优先级：
+
+- 后加载覆盖先加载（`cards/relics/events/chapter_overrides`）。
+- `--content-pack` 参数顺序即合并顺序。
+- `GIT_DUNGEON_CONTENT_DIR` 中的包会在 CLI 包之后按目录名排序合并。
+
+贡献说明见：`docs/CONTENT_PACKS.md`。
+
 ## AI 文案示例（可选）
 
 使用可复现的 mock 提供方开启 AI 文案：
@@ -149,6 +184,8 @@ export GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-saves
 git-dungeon . --auto
 git-dungeon . --seed 42 --auto --compact --print-metrics
 git-dungeon . --auto --lang zh_CN
+git-dungeon . --content-pack content_packs/example_pack --seed 42 --auto --compact
+git-dungeon . --daily --mutator hard --auto --compact
 ```
 
 ## 开发命令
@@ -166,6 +203,7 @@ make smoke-install
 
 - `CHANGELOG.md`
 - `docs/FAQ.md`
+- `docs/CONTENT_PACKS.md`
 - `docs/perf.md`
 - `docs/AI_TEXT.md`
 - `docs/TESTING_FRAMEWORK.md`

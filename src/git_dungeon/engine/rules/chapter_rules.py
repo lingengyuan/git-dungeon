@@ -18,9 +18,11 @@ Each chapter has:
 - Shop (after chapter completion)
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Dict, Any
 from enum import Enum
+import yaml
 
 from git_dungeon.engine.rng import RNG
 from git_dungeon.engine.events import GameEvent, EventType
@@ -54,8 +56,8 @@ class ChapterConfig:
     enemy_atk_multiplier: float = 1.0
 
 
-# Default chapter configurations
-CHAPTER_CONFIGS = {
+# Fallback chapter configurations (used if external defaults cannot be loaded)
+_CHAPTER_CONFIGS_FALLBACK = {
     ChapterType.INITIAL: ChapterConfig(
         chapter_type=ChapterType.INITIAL,
         name="混沌初开",
@@ -122,6 +124,88 @@ CHAPTER_CONFIGS = {
         enemy_atk_multiplier=1.2,
     ),
 }
+
+
+def _load_default_chapter_configs() -> Dict[ChapterType, ChapterConfig]:
+    """Load chapter configs from content defaults with safe fallback."""
+    default_configs = {chapter_type: replace(config) for chapter_type, config in _CHAPTER_CONFIGS_FALLBACK.items()}
+    chapters_file = Path(__file__).resolve().parents[2] / "content" / "defaults" / "chapters.yml"
+    if not chapters_file.exists():
+        return default_configs
+    try:
+        raw = yaml.safe_load(chapters_file.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return default_configs
+    chapters_raw = raw.get("chapters")
+    if not isinstance(chapters_raw, dict):
+        return default_configs
+
+    allowed_fields = {
+        "name",
+        "description",
+        "min_commits",
+        "max_commits",
+        "boss_chance",
+        "shop_enabled",
+        "gold_bonus",
+        "exp_bonus",
+        "enemy_hp_multiplier",
+        "enemy_atk_multiplier",
+    }
+    for chapter_key, values in chapters_raw.items():
+        if not isinstance(values, dict):
+            continue
+        try:
+            chapter_type = ChapterType(str(chapter_key).lower())
+        except ValueError:
+            continue
+        patch = {key: values[key] for key in allowed_fields if key in values}
+        if patch:
+            default_configs[chapter_type] = replace(default_configs[chapter_type], **patch)
+    return default_configs
+
+
+# Default chapter configurations (data-driven from content/defaults/chapters.yml)
+CHAPTER_CONFIGS = _load_default_chapter_configs()
+
+
+def build_chapter_configs(
+    overrides: Optional[Dict[str, Dict[str, Any]]] = None,
+) -> Dict[ChapterType, ChapterConfig]:
+    """Build a mutable chapter config map with optional external overrides."""
+    configs = {chapter_type: replace(config) for chapter_type, config in CHAPTER_CONFIGS.items()}
+    if not overrides:
+        return configs
+
+    for chapter_type_raw, patch in overrides.items():
+        if not patch:
+            continue
+        try:
+            chapter_type = ChapterType(str(chapter_type_raw).lower())
+        except ValueError as exc:
+            raise ValueError(f"Unknown chapter type override: {chapter_type_raw}") from exc
+
+        base = configs[chapter_type]
+        allowed_fields = {
+            "name",
+            "description",
+            "min_commits",
+            "max_commits",
+            "boss_chance",
+            "shop_enabled",
+            "gold_bonus",
+            "exp_bonus",
+            "enemy_hp_multiplier",
+            "enemy_atk_multiplier",
+        }
+        unknown = [key for key in patch if key not in allowed_fields]
+        if unknown:
+            raise ValueError(
+                f"Unsupported chapter override fields for {chapter_type.value}: {unknown}"
+            )
+        configs[chapter_type] = replace(base, **patch)
+
+    return configs
 
 
 @dataclass
@@ -205,10 +289,15 @@ class ChapterSystem:
     5. Award chapter rewards
     """
     
-    def __init__(self, rng: RNG):
+    def __init__(
+        self,
+        rng: RNG,
+        chapter_configs: Optional[Dict[ChapterType, ChapterConfig]] = None,
+    ):
         self.rng = rng
         self.chapters: List[Chapter] = []
         self.current_chapter_index: int = 0
+        self.chapter_configs = chapter_configs or build_chapter_configs()
     
     def parse_chapters(
         self,
@@ -323,7 +412,7 @@ class ChapterSystem:
         - Create new chapter every N commits for same type
         - Minimum commits per chapter
         """
-        config = CHAPTER_CONFIGS[current_type]
+        config = self.chapter_configs[current_type]
         
         # Different type - check minimum
         if current_type != new_type:
@@ -349,7 +438,7 @@ class ChapterSystem:
         chapter_num: int
     ) -> Chapter:
         """Create a chapter from commits."""
-        config = CHAPTER_CONFIGS[chapter_type]
+        config = self.chapter_configs[chapter_type]
         
         return Chapter(
             chapter_id=f"chapter_{chapter_num}",
@@ -535,5 +624,6 @@ __all__ = [
     "CHAPTER_CONFIGS",
     "Chapter",
     "ChapterSystem",
+    "build_chapter_configs",
     "get_chapter_config",
 ]

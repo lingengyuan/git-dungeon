@@ -43,6 +43,12 @@ package-dir = {"" = "src"}
 where = ["src"]
 include = ["git_dungeon*"]
 
+[tool.setuptools.package-data]
+git_dungeon = [
+    "content/defaults/*.yml",
+    "content/packs/*/*.yml",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

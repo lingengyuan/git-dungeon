@@ -15,6 +15,7 @@ from git_dungeon.ai.integration import (
     create_ai_client,
     get_ai_text as get_ai_text_direct,
 )
+from git_dungeon.engine.daily import DailyChallengeInfo, resolve_run_seed
 
 
 class GitDungeonAICLI:
@@ -29,6 +30,9 @@ class GitDungeonAICLI:
         metrics_out: Optional[str] = None,
         print_metrics: bool = False,
         lang: str = "en",
+        content_pack_args: Optional[list[str]] = None,
+        mutator: str = "none",
+        daily_info: Optional[DailyChallengeInfo] = None,
         ai_enabled: bool = False,
         ai_provider: str = "mock",
         ai_cache_dir: str = ".git_dungeon_cache",
@@ -59,6 +63,9 @@ class GitDungeonAICLI:
             metrics_out=metrics_out,
             print_metrics=print_metrics,
             lang=self.lang,
+            content_pack_args=content_pack_args,
+            mutator=mutator,
+            daily_info=daily_info,
         )
 
         provider = ai_provider if ai_enabled else "off"
@@ -427,14 +434,22 @@ def add_ai_args(parser: argparse.ArgumentParser) -> None:
 
 def create_ai_cli_from_args(args: argparse.Namespace) -> GitDungeonAICLI:
     """Factory from parsed CLI args."""
-    return GitDungeonAICLI(
+    effective_seed, daily_info = resolve_run_seed(
         seed=args.seed,
+        daily=getattr(args, "daily", False),
+        daily_date=getattr(args, "daily_date", None),
+    )
+    return GitDungeonAICLI(
+        seed=effective_seed,
         verbose=args.verbose,
         compact=getattr(args, "compact", False),
         auto_mode=getattr(args, "auto", False),
         metrics_out=getattr(args, "metrics_out", None),
         print_metrics=getattr(args, "print_metrics", False),
         lang=args.lang,
+        content_pack_args=getattr(args, "content_pack", []),
+        mutator=getattr(args, "mutator", "none"),
+        daily_info=daily_info,
         ai_enabled=(args.ai == "on"),
         ai_provider=args.ai_provider,
         ai_cache_dir=args.ai_cache,
