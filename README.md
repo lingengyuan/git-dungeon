@@ -26,7 +26,7 @@ This project is useful for:
 3. Fight battles (manual or `--auto` policy).
 4. Collect rewards and advance until clear or defeat.
 
-## Example Output
+## Example Output (No AI)
 
 ```text
 Loading repository...
@@ -43,6 +43,17 @@ T02 action=skill dealt=9 taken=0 hp=97/100 enemy=0/20 [KILL]
 ```
 
 If you run with `--lang zh_CN`, chapter names and UI text are shown in Chinese.
+
+## Example Output (AI On)
+
+```text
+[AI] enabled provider=mock
+🧠 A fix-typed enemy appears, carrying unstable energy.
+🧠 Battle starts. Prepare your next action.
+⚔️  Genesis of Chaos: fix parser bug
+T01 action=skill dealt=16 taken=0 hp=100/100 enemy=4/20 [CRIT]
+...
+```
 
 ## Current Version
 
@@ -73,6 +84,12 @@ pip install dist/*.whl
 git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
 ```
 
+Start here for a 1-minute first run:
+
+```bash
+git-dungeon . --seed 42 --auto --compact --print-metrics
+```
+
 ## Common Options
 
 - `--auto`: automatic combat decisions.
@@ -90,6 +107,20 @@ Enable AI text with deterministic mock provider:
 git-dungeon . --ai=on --ai-provider=mock --auto --compact
 ```
 
+Enable Gemini:
+
+```bash
+export GEMINI_API_KEY="your-key"
+git-dungeon . --ai=on --ai-provider=gemini --lang zh_CN
+```
+
+Enable OpenAI:
+
+```bash
+export OPENAI_API_KEY="your-key"
+git-dungeon . --ai=on --ai-provider=openai --lang zh_CN
+```
+
 Example AI lines:
 
 ```text
@@ -100,7 +131,8 @@ Example AI lines:
 ...
 ```
 
-`mock` is CI-safe and reproducible. For remote providers (`gemini`, `openai`), see `docs/AI_TEXT.md`.
+`mock` is CI-safe and reproducible. If remote providers hit rate limits, runtime falls back safely.
+Details: `docs/AI_TEXT.md`.
 
 ## Save Directory
 

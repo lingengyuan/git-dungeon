@@ -26,7 +26,7 @@
 3. 进行战斗（手动或 `--auto` 自动策略）。
 4. 结算奖励并推进直到通关或失败。
 
-## 输出示例
+## 输出示例（不启用 AI）
 
 ```text
 Loading repository...
@@ -40,6 +40,17 @@ T01 action=attack dealt=14 taken=3 hp=97/100 enemy=6/20
 T02 action=skill dealt=9 taken=0 hp=97/100 enemy=0/20 [KILL]
    ✨[KILL] fix bug defeated
 📊 Metrics written: ./run_metrics.json
+```
+
+## 输出示例（启用 AI）
+
+```text
+[AI] enabled provider=mock
+🧠 一个 fix 类型敌人正在逼近，能量波动异常。
+🧠 战斗开始，准备你的下一步行动。
+⚔️  混沌初开: fix parser bug
+T01 action=skill dealt=16 taken=0 hp=100/100 enemy=4/20 [CRIT]
+...
 ```
 
 ## 当前版本
@@ -71,6 +82,12 @@ pip install dist/*.whl
 git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
 ```
 
+推荐第一条体验命令（约 1 分钟）：
+
+```bash
+git-dungeon . --seed 42 --auto --compact --print-metrics
+```
+
 ## 常用参数
 
 - `--auto`：自动战斗决策。
@@ -88,6 +105,20 @@ git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
 git-dungeon . --ai=on --ai-provider=mock --auto --compact
 ```
 
+启用 Gemini：
+
+```bash
+export GEMINI_API_KEY="your-key"
+git-dungeon . --ai=on --ai-provider=gemini --lang zh_CN
+```
+
+启用 OpenAI：
+
+```bash
+export OPENAI_API_KEY="your-key"
+git-dungeon . --ai=on --ai-provider=openai --lang zh_CN
+```
+
 示例输出：
 
 ```text
@@ -98,7 +129,7 @@ git-dungeon . --ai=on --ai-provider=mock --auto --compact
 ...
 ```
 
-`mock` 适合 CI 与离线演示；如需 `gemini/openai`，见 `docs/AI_TEXT.md`。
+`mock` 适合 CI 与离线演示；远端 provider 限流时会安全降级。详见 `docs/AI_TEXT.md`。
 
 ## 存档目录
 
