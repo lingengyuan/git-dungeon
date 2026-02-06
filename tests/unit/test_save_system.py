@@ -7,6 +7,7 @@ import pytest
 from src.core.save_system import SaveSystem, SaveMetadata
 from src.core.game_engine import GameState
 from src.core.character import get_character
+from src.config.settings import GameConfig
 
 
 class TestSaveSystem:
@@ -123,6 +124,24 @@ class TestSaveSystem:
         for slot in range(10):
             path = save_system.get_save_path(slot)
             assert path == save_dir / f"save_{slot}.json"
+
+    def test_default_save_dir_can_be_injected_by_env(self, tmp_path, monkeypatch):
+        """Default save directory should honor GIT_DUNGEON_SAVE_DIR."""
+        save_dir = tmp_path / "env_saves"
+        monkeypatch.setenv("GIT_DUNGEON_SAVE_DIR", str(save_dir))
+
+        save_system = SaveSystem()
+
+        assert save_system.save_dir == save_dir
+        assert save_system.save_dir.exists()
+
+    def test_game_state_uses_config_save_dir(self, tmp_path):
+        """GameState should pass config.save_dir into SaveSystem."""
+        save_dir = tmp_path / "config_saves"
+        game = GameState(config=GameConfig(save_dir=str(save_dir)))
+
+        assert game.save_system is not None
+        assert game.save_system.save_dir == save_dir
 
 
 if __name__ == "__main__":

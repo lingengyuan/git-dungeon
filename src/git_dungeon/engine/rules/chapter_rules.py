@@ -139,6 +139,11 @@ class Chapter:
     gold_earned: int = 0
     exp_earned: int = 0
     _rng: Any = None  # RNG for boss probability
+    _is_boss_chapter: bool = False
+
+    def __post_init__(self) -> None:
+        """Resolve boss presence once at chapter creation for deterministic behavior."""
+        self._is_boss_chapter = self._roll_boss_once()
     
     @property
     def name(self) -> str:
@@ -161,6 +166,10 @@ class Chapter:
     @property
     def is_boss_chapter(self) -> bool:
         """Check if this chapter has a boss."""
+        return self._is_boss_chapter
+
+    def _roll_boss_once(self) -> bool:
+        """Roll boss chance once and cache the result in this chapter instance."""
         if self.config.boss_chance <= 0:
             return False
         # Roll for boss (only if we have an RNG)

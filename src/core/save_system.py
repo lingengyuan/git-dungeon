@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
@@ -79,7 +80,11 @@ class SaveSystem:
             save_dir: Directory for save files (Path or str)
         """
         if save_dir is None:
-            save_dir = Path.home() / ".local" / "share" / "git-dungeon"
+            env_save_dir = os.getenv("GIT_DUNGEON_SAVE_DIR")
+            if env_save_dir:
+                save_dir = Path(env_save_dir)
+            else:
+                save_dir = Path.home() / ".local" / "share" / "git-dungeon"
         elif isinstance(save_dir, str):
             save_dir = Path(save_dir)
 
