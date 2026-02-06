@@ -115,7 +115,7 @@ class OpenAIClient(AIClient):
     
     def _build_prompt_vars(self, request: TextRequest) -> Dict[str, Any]:
         """Build prompt variables from request."""
-        vars = {"repo_id": request.repo_id, "seed": request.seed, "lang": request.lang}
+        vars = {"repo_id": request.repo_id, "seed": request.seed}
         
         if request.kind == TextKind.ENEMY_INTRO:
             vars.update({"commit_type": request.extra_context.get("commit_type", "commit"), "commit_sha": request.commit_sha or "unknown", "enemy_id": request.enemy_id or "unknown", "tone": "neutral"})

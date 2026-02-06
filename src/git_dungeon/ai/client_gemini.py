@@ -6,7 +6,8 @@ Google Gemini-powered text generation for M6.
 
 import os
 import time
-from typing import List, Optional, Dict, Any
+from collections import deque
+from typing import Deque, List, Optional, Dict, Any
 from .types import TextRequest, TextResponse, TextKind
 from .client_base import AIClient
 from .prompts import get_prompt, get_system_prompt
@@ -44,6 +45,12 @@ class GeminiAIClient(AIClient):
         self.max_retries = max_retries
         self.batch_size = batch_size
         self.base_url = "https://generativelanguage.googleapis.com/v1beta"
+        # Free-tier safe defaults: keep below common 10 req/min limit.
+        self.max_requests_per_minute = max(1, int(os.environ.get("GEMINI_MAX_RPM", "8")))
+        self.rate_limit_cooldown_seconds = max(5, int(os.environ.get("GEMINI_RATE_LIMIT_COOLDOWN", "60")))
+        self._request_timestamps: Deque[float] = deque()
+        self._rate_limited_until = 0.0
+        self._rate_limit_notice_until = 0.0
         
         # Available models for Gemini Free tier
         self.available_models = [
@@ -60,21 +67,50 @@ class GeminiAIClient(AIClient):
     def generate_batch(self, requests: List[TextRequest]) -> List[TextResponse]:
         """Generate text for a batch of requests."""
         if not self.api_key:
-            return self._fallback_to_mock(len(requests))
+            return self._fallback_to_mock(requests, reason="missing_api_key")
         
         requests = requests[:self.batch_size]
         results = []
-        for req in requests:
+        for idx, req in enumerate(requests):
+            if self._is_in_cooldown():
+                results.extend(
+                    self._fallback_to_mock(
+                        requests[idx:],
+                        reason="rate_limited_cooldown",
+                    )
+                )
+                break
+            if not self._reserve_request_slot():
+                self._mark_rate_limited("local_rpm_budget")
+                results.extend(
+                    self._fallback_to_mock(
+                        requests[idx:],
+                        reason="local_rpm_budget",
+                    )
+                )
+                break
             try:
                 results.append(self._generate_one(req))
             except Exception as e:
+                if self._is_rate_limit_error(e):
+                    self._mark_rate_limited(str(e))
+                    results.extend(
+                        self._fallback_to_mock(
+                            requests[idx:],
+                            reason="http_429",
+                            error=str(e),
+                        )
+                    )
+                    break
                 print(f"[AI] Gemini generation error: {e}")
-                results.append(TextResponse(
-                    text="",
-                    provider=self.name,
-                    cached=False,
-                    meta={"error": str(e), "fallback": True}
-                ))
+                results.append(
+                    TextResponse(
+                        text="",
+                        provider=self.name,
+                        cached=False,
+                        meta={"error": str(e), "fallback": True},
+                    )
+                )
         return results
     
     def health_check(self) -> bool:
@@ -170,7 +206,6 @@ class GeminiAIClient(AIClient):
         vars = {
             "repo_id": request.repo_id,
             "seed": request.seed,
-            "lang": request.lang,
         }
         
         if request.kind == TextKind.ENEMY_INTRO:
@@ -214,14 +249,50 @@ class GeminiAIClient(AIClient):
         
         return vars
     
-    def _fallback_to_mock(self, count: int) -> List[TextResponse]:
-        """Fallback to mock responses when Gemini is unavailable."""
+    def _is_rate_limit_error(self, err: Exception) -> bool:
+        text = str(err).lower()
+        return "429" in text or "too many requests" in text or "rate limit" in text
+
+    def _is_in_cooldown(self) -> bool:
+        return time.time() < self._rate_limited_until
+
+    def _mark_rate_limited(self, reason: str) -> None:
+        now = time.time()
+        self._rate_limited_until = max(
+            self._rate_limited_until,
+            now + self.rate_limit_cooldown_seconds,
+        )
+        if now >= self._rate_limit_notice_until:
+            wait_s = int(max(1, self._rate_limited_until - now))
+            print(f"[AI] Gemini rate limit: {reason}. Falling back to mock for ~{wait_s}s")
+            self._rate_limit_notice_until = self._rate_limited_until
+
+    def _reserve_request_slot(self) -> bool:
+        """Local RPM guard to avoid hammering free-tier quotas."""
+        now = time.time()
+        window_start = now - 60
+        while self._request_timestamps and self._request_timestamps[0] < window_start:
+            self._request_timestamps.popleft()
+        if len(self._request_timestamps) >= self.max_requests_per_minute:
+            return False
+        self._request_timestamps.append(now)
+        return True
+
+    def _fallback_to_mock(
+        self,
+        requests: List[TextRequest],
+        reason: str = "fallback",
+        error: Optional[str] = None,
+    ) -> List[TextResponse]:
+        """Fallback to mock responses while preserving request kind/context."""
         from .client_mock import MockAIClient
+
         mock = MockAIClient()
-        responses = mock.generate_batch([
-            TextRequest(kind=TextKind.ENEMY_INTRO, lang="en", seed=0, repo_id="fallback")
-        ] * count)
+        responses = mock.generate_batch(requests)
         for r in responses:
             r.provider = "gemini/fallback"
             r.meta["fallback"] = True
+            r.meta["reason"] = reason
+            if error:
+                r.meta["error"] = error
         return responses

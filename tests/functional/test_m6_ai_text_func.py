@@ -78,6 +78,29 @@ class TestMockAIClient:
         responses = client.generate_batch([req1, req2])
         
         assert responses[0].text != responses[1].text
+
+    def test_different_context_different_text(self):
+        """Different extra_context should produce different text."""
+        client = MockAIClient()
+
+        req1 = TextRequest(
+            kind=TextKind.BATTLE_START,
+            lang="en",
+            seed=100,
+            repo_id="test",
+            extra_context={"commit_type": "fix", "tier": "normal"},
+        )
+        req2 = TextRequest(
+            kind=TextKind.BATTLE_START,
+            lang="en",
+            seed=100,
+            repo_id="test",
+            extra_context={"commit_type": "feat", "tier": "normal"},
+        )
+
+        responses = client.generate_batch([req1, req2])
+
+        assert responses[0].text != responses[1].text
     
     def test_all_text_kinds(self):
         """Mock client should support all text kinds."""
@@ -435,6 +458,56 @@ class TestCacheKeyGeneration:
             key2 = cache.build_cache_key("openai", request, content_version="1.0")
             
             assert key1 != key2
+
+    def test_different_extra_context_different_key(self):
+        """Different extra_context should produce different keys."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = TextCache(cache_dir=tmpdir, backend="json")
+
+            req1 = TextRequest(
+                kind=TextKind.ENEMY_INTRO,
+                lang="en",
+                seed=123,
+                repo_id="test",
+                extra_context={"commit_type": "feat"},
+            )
+            req2 = TextRequest(
+                kind=TextKind.ENEMY_INTRO,
+                lang="en",
+                seed=123,
+                repo_id="test",
+                extra_context={"commit_type": "fix"},
+            )
+
+            key1 = cache.build_cache_key("mock", req1, content_version="1.0")
+            key2 = cache.build_cache_key("mock", req2, content_version="1.0")
+
+            assert key1 != key2
+
+    def test_extra_context_dict_order_same_key(self):
+        """Dict key order in extra_context should not change key."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = TextCache(cache_dir=tmpdir, backend="json")
+
+            req1 = TextRequest(
+                kind=TextKind.EVENT_FLAVOR,
+                lang="en",
+                seed=123,
+                repo_id="test",
+                extra_context={"event_type": "shop", "tier": "elite"},
+            )
+            req2 = TextRequest(
+                kind=TextKind.EVENT_FLAVOR,
+                lang="en",
+                seed=123,
+                repo_id="test",
+                extra_context={"tier": "elite", "event_type": "shop"},
+            )
+
+            key1 = cache.build_cache_key("mock", req1, content_version="1.0")
+            key2 = cache.build_cache_key("mock", req2, content_version="1.0")
+
+            assert key1 == key2
 
 
 if __name__ == "__main__":
