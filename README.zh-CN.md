@@ -80,6 +80,26 @@ git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
 - `--seed <int>`：固定随机种子。
 - `--ai=off|on --ai-provider=mock|gemini|openai`：AI 文案开关与提供方。
 
+## AI 文案示例（可选）
+
+使用可复现的 mock 提供方开启 AI 文案：
+
+```bash
+git-dungeon . --ai=on --ai-provider=mock --auto --compact
+```
+
+示例输出：
+
+```text
+[AI] enabled provider=mock
+🧠 一个 fix 类型敌人正在逼近，能量波动异常。
+🧠 战斗开始，准备你的下一步行动。
+⚔️  混沌初开: fix parser bug
+...
+```
+
+`mock` 适合 CI 与离线演示；如需 `gemini/openai`，见 `docs/AI_TEXT.md`。
+
 ## 存档目录
 
 默认：

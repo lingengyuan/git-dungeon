@@ -82,6 +82,26 @@ git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
 - `--seed <int>`: deterministic run seed.
 - `--ai=off|on --ai-provider=mock|gemini|openai`: AI flavor text control.
 
+## AI Flavor Text (Optional)
+
+Enable AI text with deterministic mock provider:
+
+```bash
+git-dungeon . --ai=on --ai-provider=mock --auto --compact
+```
+
+Example AI lines:
+
+```text
+[AI] enabled provider=mock
+🧠 A fix-typed enemy appears, carrying unstable energy.
+🧠 Battle starts. Prepare your next action.
+⚔️  Genesis of Chaos: fix parser bug
+...
+```
+
+`mock` is CI-safe and reproducible. For remote providers (`gemini`, `openai`), see `docs/AI_TEXT.md`.
+
 ## Save Directory
 
 Default:
