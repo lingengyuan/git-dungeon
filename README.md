@@ -32,15 +32,17 @@ This project is useful for:
 Loading repository...
 Loaded 248 commits!
 Divided into 20 chapters:
-  🔄 Chapter 0: 混沌初开 (initial)
-  ⏳ Chapter 1: 修复时代 (fix)
+  🔄 Chapter 0: Genesis of Chaos (initial)
+  ⏳ Chapter 1: Fixing Era (fix)
 
-⚔️  混沌初开: fix bug [compact]
+⚔️  Genesis of Chaos: fix bug [compact]
 T01 action=attack dealt=14 taken=3 hp=97/100 enemy=6/20
 T02 action=skill dealt=9 taken=0 hp=97/100 enemy=0/20 [KILL]
    ✨[KILL] fix bug defeated
 📊 Metrics written: ./run_metrics.json
 ```
+
+If you run with `--lang zh_CN`, chapter names and UI text are shown in Chinese.
 
 ## Current Version
 
