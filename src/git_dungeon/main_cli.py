@@ -16,6 +16,7 @@ import subprocess
 import tempfile
 import argparse
 from typing import Optional, Any
+from types import SimpleNamespace
 
 from git_dungeon.engine import (
     Engine, GameState, EnemyState,
@@ -30,16 +31,27 @@ from git_dungeon.engine.auto_policy import (
     ACTION_ATTACK,
     ACTION_LABELS,
     AutoCombatContext,
+    AutoEventContext,
+    AutoEventOptionContext,
     AutoPolicyConfig,
+    AutoRestContext,
+    AutoShopContext,
+    AutoShopOptionContext,
+    REST_ACTION_FOCUS,
+    REST_ACTION_HEAL,
     RuleBasedAutoPolicy,
 )
 from git_dungeon.engine.daily import DailyChallengeInfo, build_shareable_run_id, resolve_run_seed
+from git_dungeon.engine.events import apply_event_choice
 from git_dungeon.engine.mutators import (
     MutatorConfig,
     apply_enemy_mutator,
     apply_reward_mutator,
     get_mutator_config,
 )
+from git_dungeon.engine.rng import DefaultRNG
+from git_dungeon.engine.node_flow import ChapterNodeGenerator, summarize_node_kinds
+from git_dungeon.engine.route import NodeKind, RouteNode
 from git_dungeon.engine.run_metrics import RunMetrics
 from git_dungeon.content.runtime_loader import load_runtime_content
 from git_dungeon.config import GameConfig
@@ -107,6 +119,9 @@ class GitDungeonCLI:
         self.metrics_out = metrics_out
         self.print_metrics = print_metrics
         self.metrics = RunMetrics(seed=seed, auto_mode=auto_mode)
+        self.node_generator = ChapterNodeGenerator()
+        self._chapter_nodes: dict[str, list[RouteNode]] = {}
+        self._chapter_node_cursor: dict[str, int] = {}
     
     def _t(self, text: str) -> str:
         """Translate text based on current language."""
@@ -217,7 +232,11 @@ class GitDungeonCLI:
                 f"{self._t('Divided into')} {len(self.chapter_system.chapters)} "
                 f"{self._t('chapters')}:"
             )
-            print(self.chapter_system.get_chapter_summary())
+            summary = self.chapter_system.get_chapter_summary()
+            if self.lang == "en":
+                for chapter_item in self.chapter_system.chapters:
+                    summary = summary.replace(chapter_item.name, self._t(chapter_item.name))
+            print(summary)
         
             # Initialize state
             self.state = GameState(
@@ -229,6 +248,12 @@ class GitDungeonCLI:
             )
             self.state.player.character.current_hp = 100
             self.state.player.character.current_mp = 50
+            self.state.route_state = {
+                "current_node_id": "",
+                "visited_nodes": [],
+                "route_flags": {},
+                "chapter_nodes": {},
+            }
         
             # Show banner
             self._print_banner()
@@ -246,58 +271,522 @@ class GitDungeonCLI:
                 self._finalize_metrics(run_success)
     
     def _game_loop(self) -> bool:
-        """Main game loop with chapter progression."""
+        """Main game loop with deterministic chapter-node progression."""
         while self.state and not self.state.is_game_over:
-            # Get current chapter
             chapter = self.chapter_system.get_current_chapter()
-            
             if not chapter:
-                # No more chapters - Victory!
                 self._print_victory()
                 return True
-            
-            # Check if we need to fight the boss
-            if chapter.enemies_defeated >= chapter.enemy_count and chapter.is_boss_chapter:
-                if not self._boss_combat(chapter):
-                    self._print_defeat()
-                    return False
-                # Boss defeated, complete chapter
+
+            chapter_id = chapter.chapter_id
+            if chapter_id not in self._chapter_nodes:
+                self._prepare_chapter_nodes(chapter)
+                self.metrics.record_chapter_started()
+
+            nodes = self._chapter_nodes.get(chapter_id, [])
+            cursor = self._chapter_node_cursor.get(chapter_id, 0)
+            if cursor >= len(nodes):
                 if not self._complete_chapter():
                     return False
                 continue
-            
-            # Get current commit
-            if self.state.current_commit_index >= self.state.total_commits:
-                # Chapter complete!
-                if not self._complete_chapter():
-                    return False
-                continue
-            
-            commit = self._get_current_commit()
-            if not commit:
-                break
-            
-            # Create enemy
-            enemy = self._create_enemy(commit)
-            
-            # Combat
-            if not self._combat(enemy, chapter):
+
+            node = nodes[cursor]
+            if self.state.route_state is not None:
+                self.state.route_state["current_node_id"] = node.node_id
+
+            if not self._resolve_node(chapter, node):
                 self._print_defeat()
                 return False
-            
-            # Enemy defeated
-            self.state.current_commit_index += 1
-            self.state.enemies_defeated.append(commit.hexsha[:7])
-            chapter.enemies_defeated += 1
-            
-            # Rewards
-            self._grant_rewards(enemy, chapter)
-            
-            # Check chapter complete
-            if chapter.enemies_defeated >= chapter.enemy_count:
-                if not self._complete_chapter():
-                    return False
-        
+
+            self._chapter_node_cursor[chapter_id] = cursor + 1
+            if self.state.route_state is not None:
+                visited = self.state.route_state.setdefault("visited_nodes", [])
+                visited.append(node.node_id)
+
+        return True
+
+    def _prepare_chapter_nodes(self, chapter: Any) -> None:
+        """Generate and cache deterministic nodes for one chapter."""
+        if not self.state:
+            return
+        seed = int(self.seed or 0)
+        chapter_id = chapter.chapter_id
+        nodes = self.node_generator.build_nodes(
+            seed=seed,
+            chapter_index=chapter.chapter_index,
+            chapter_enemy_count=len(getattr(chapter, "commits", [])),
+            difficulty=1.0,
+            has_boss=True,
+            has_events=bool(self.content_runtime.registry.events),
+        )
+        self._chapter_nodes[chapter_id] = nodes
+        self._chapter_node_cursor[chapter_id] = 0
+        chapter.enemies_defeated = 0
+
+        if self.state.route_state is not None:
+            chapter_nodes = self.state.route_state.setdefault("chapter_nodes", {})
+            chapter_nodes[chapter_id] = [node.kind.value for node in nodes]
+
+        counts = summarize_node_kinds(nodes)
+        if self._compact_mode:
+            parts = [f"{key}={value}" for key, value in counts.items()]
+            print(f"🧭 Chapter route: {', '.join(parts)}")
+        else:
+            print("🧭 Chapter nodes:")
+            for idx, node in enumerate(nodes, start=1):
+                print(f"   {idx:02d}. {node.kind.value}")
+
+    def _resolve_node(self, chapter: Any, node: RouteNode) -> bool:
+        """Resolve one chapter node."""
+        if not self.state:
+            return False
+
+        self.metrics.record_node(node.kind.value)
+
+        if node.kind == NodeKind.EVENT:
+            return self._handle_event_node(chapter, node)
+        if node.kind == NodeKind.REST:
+            return self._handle_rest_node(chapter, node)
+        if node.kind == NodeKind.SHOP:
+            return self._handle_shop_node(chapter, node)
+        if node.kind == NodeKind.BOSS:
+            return self._resolve_boss_node(chapter, node)
+        if node.kind == NodeKind.TREASURE:
+            return self._handle_event_node(chapter, node)
+        return self._resolve_combat_node(chapter, node)
+
+    def _resolve_combat_node(self, chapter: Any, node: RouteNode) -> bool:
+        """Run one battle/elite node."""
+        commit = self._resolve_commit_for_node(chapter, node)
+        if not commit:
+            return True
+
+        enemy = self._create_enemy(commit)
+        if node.kind == NodeKind.ELITE:
+            enemy.current_hp = int(enemy.current_hp * 1.35)
+            enemy.max_hp = enemy.current_hp
+            enemy.attack = int(enemy.attack * 1.25)
+            enemy.name = f"Elite {enemy.name}"
+            self._emit_key_event("ELITE", enemy.name)
+        if self._compact_mode:
+            print(f"N{node.position + 1:02d} node={node.kind.value} enemy={enemy.name}")
+        won = self._combat(enemy, chapter)
+        if not won:
+            return False
+
+        chapter.enemies_defeated += 1
+        self.state.enemies_defeated.append(commit.hexsha[:7])
+        self._grant_rewards(enemy, chapter)
+        return True
+
+    def _resolve_boss_node(self, chapter: Any, node: RouteNode) -> bool:
+        """Run chapter-end boss node."""
+        if chapter.is_boss_chapter:
+            if self._compact_mode:
+                print(f"N{node.position + 1:02d} node=boss enemy=chapter_boss")
+            return self._boss_combat(chapter)
+
+        commit = self._resolve_commit_for_node(chapter, node)
+        if not commit:
+            return True
+        enemy = self._create_enemy(commit)
+        enemy.current_hp = int(enemy.current_hp * 1.6)
+        enemy.max_hp = enemy.current_hp
+        enemy.attack = int(enemy.attack * 1.45)
+        enemy.name = f"{chapter.name} Guardian"
+        self._emit_key_event("BOSS_PHASE", f"{enemy.name} appears")
+        if self._compact_mode:
+            print(f"N{node.position + 1:02d} node=boss enemy={enemy.name}")
+        won = self._combat(enemy, chapter)
+        if not won:
+            return False
+        chapter.enemies_defeated += 1
+        self.state.enemies_defeated.append(commit.hexsha[:7])
+        self._grant_rewards(enemy, chapter)
+        return True
+
+    def _resolve_commit_for_node(self, chapter: Any, node: RouteNode) -> Any:
+        """Map a node to a representative chapter commit deterministically."""
+        if not self.state:
+            return None
+        commits = list(getattr(chapter, "commits", []))
+        if not commits:
+            return SimpleNamespace(
+                hexsha=f"synthetic_{chapter.chapter_index:02d}_{node.position:02d}",
+                message=f"chapter_{chapter.chapter_index}_node_{node.kind.value}",
+                total_changes=10,
+            )
+
+        chapter_id = chapter.chapter_id
+        nodes = self._chapter_nodes.get(chapter_id, [])
+        combat_nodes = [
+            n for n in nodes if n.kind in {NodeKind.BATTLE, NodeKind.ELITE, NodeKind.BOSS}
+        ]
+        if not combat_nodes:
+            commit_idx = 0
+        elif len(combat_nodes) == 1:
+            commit_idx = 0
+        else:
+            combat_index = 0
+            for idx, combat_node in enumerate(combat_nodes):
+                if combat_node.node_id == node.node_id:
+                    combat_index = idx
+                    break
+            commit_idx = int(
+                round((combat_index * (len(commits) - 1)) / (len(combat_nodes) - 1))
+            )
+
+        commit_idx = max(0, min(len(commits) - 1, commit_idx))
+        self.state.current_commit_index = int(chapter.start_index + commit_idx)
+        return commits[commit_idx]
+
+    def _select_event_for_node(self, chapter: Any, node: RouteNode) -> Any:
+        """Pick one deterministic event for a node."""
+        all_events = sorted(self.content_runtime.registry.events.values(), key=lambda item: item.id)
+        if not all_events:
+            return None
+
+        preferred_tags: set[str] = {tag.value for tag in node.tags}
+        if node.kind == NodeKind.SHOP:
+            preferred_tags.update({"shop", "greed"})
+        elif node.kind == NodeKind.REST:
+            preferred_tags.update({"safe"})
+        elif node.kind == NodeKind.ELITE:
+            preferred_tags.update({"risk"})
+
+        filtered = [
+            event
+            for event in all_events
+            if (
+                not event.route_tags
+                or not preferred_tags
+                or bool(preferred_tags.intersection(event.route_tags))
+            )
+        ]
+        candidates = filtered or all_events
+
+        chapter_type = getattr(getattr(chapter, "chapter_type", None), "value", "default")
+        weights = []
+        for event in candidates:
+            weight = event.weights.get(chapter_type, event.weights.get("default", 1))
+            weights.append(max(1, int(weight)))
+
+        seed = int(self.seed or 0) + chapter.chapter_index * 131 + node.position * 17
+        picker = DefaultRNG(seed=seed)
+        return picker.choices(candidates, weights=weights, k=1)[0]
+
+    def _build_event_option_context(self, choice: Any) -> AutoEventOptionContext:
+        """Build policy-scoring context for one event choice."""
+        hp_delta = 0
+        gold_delta = 0
+        resource_delta = 0.0
+        risk_level = 0
+        for effect in choice.effects:
+            opcode = str(effect.opcode)
+            value = effect.value
+            amount = int(value) if isinstance(value, (int, float)) else 0
+            if opcode == "heal":
+                hp_delta += amount
+            elif opcode == "take_damage":
+                hp_delta -= amount
+                risk_level += 1
+            elif opcode == "gain_gold":
+                gold_delta += amount
+            elif opcode == "lose_gold":
+                gold_delta -= amount
+            elif opcode in {"add_relic"}:
+                resource_delta += 1.2
+            elif opcode in {"add_card", "upgrade_card"}:
+                resource_delta += 0.8
+            elif opcode in {"apply_status", "trigger_battle"}:
+                risk_level += 2
+                resource_delta -= 0.4
+        return AutoEventOptionContext(
+            choice_id=choice.id,
+            hp_delta=hp_delta,
+            gold_delta=gold_delta,
+            resource_delta=resource_delta,
+            risk_level=risk_level,
+        )
+
+    def _choose_event_choice(self, chapter: Any, node: RouteNode, event: Any) -> int:
+        """Choose one event option (manual or auto)."""
+        if not event.choices:
+            return 0
+        if self.auto_mode and self.state:
+            player = self.state.player.character
+            option_ctx = tuple(
+                self._build_event_option_context(choice) for choice in event.choices
+            )
+            ctx = AutoEventContext(
+                seed=int(self.seed or 0),
+                chapter_index=chapter.chapter_index,
+                node_index=node.position,
+                player_hp=player.current_hp,
+                player_max_hp=player.stats.hp.value,
+                player_gold=self.state.player.gold,
+                options=option_ctx,
+            )
+            idx = self.auto_policy.choose_event_choice(ctx)
+            return max(0, min(len(event.choices) - 1, idx))
+
+        for idx, choice in enumerate(event.choices, start=1):
+            print(f"   [{idx}] {choice.id}")
+        print("> ", end="", flush=True)
+        raw = input().strip()
+        try:
+            picked = int(raw) - 1
+        except ValueError:
+            picked = 0
+        return max(0, min(len(event.choices) - 1, picked))
+
+    def _handle_event_node(self, chapter: Any, node: RouteNode) -> bool:
+        """Resolve event node and apply selected effects."""
+        if not self.state:
+            return False
+        event = self._select_event_for_node(chapter, node)
+        if event is None or not event.choices:
+            if self._compact_mode:
+                print(f"N{node.position + 1:02d} node=event event=none")
+            else:
+                print("🎲 Event node had no valid event definition.")
+            return True
+
+        player = self.state.player.character
+        before_hp = player.current_hp
+        before_gold = self.state.player.gold
+        choice_idx = self._choose_event_choice(chapter, node, event)
+        choice = event.choices[choice_idx]
+        effect_payload = [
+            {
+                "opcode": effect.opcode,
+                "value": effect.value,
+                "target": effect.target,
+                "condition": effect.condition,
+            }
+            for effect in choice.effects
+        ]
+        result = apply_event_choice(self.state, effect_payload, self.rng)
+        after_hp = player.current_hp
+        after_gold = self.state.player.gold
+
+        self.metrics.record_event_choice(event.id, choice.id)
+        hp_delta = after_hp - before_hp
+        gold_delta = after_gold - before_gold
+        hp_text = f"{hp_delta:+d}" if hp_delta else "0"
+        gold_text = f"{gold_delta:+d}" if gold_delta else "0"
+
+        if self._compact_mode:
+            print(
+                f"N{node.position + 1:02d} node=event event={event.id} choice={choice.id} "
+                f"hpΔ={hp_text} goldΔ={gold_text}"
+            )
+            messages = result.get("messages", [])
+            if messages:
+                print(f"   {' '.join(messages[:3])}")
+        else:
+            print(f"\n🎲 EVENT: {event.id}")
+            print(f"   choice={choice.id} hpΔ={hp_text} goldΔ={gold_text}")
+            for message in result.get("messages", []):
+                print(f"   - {message}")
+
+        if player.current_hp <= 0:
+            return False
+        return True
+
+    def _handle_rest_node(self, chapter: Any, node: RouteNode) -> bool:
+        """Resolve rest node with heal/focus choices."""
+        if not self.state:
+            return False
+        player = self.state.player.character
+        if self.auto_mode:
+            choice = self.auto_policy.choose_rest_action(
+                AutoRestContext(
+                    seed=int(self.seed or 0),
+                    chapter_index=chapter.chapter_index,
+                    node_index=node.position,
+                    player_hp=player.current_hp,
+                    player_max_hp=player.stats.hp.value,
+                )
+            )
+        else:
+            print("\n🛌 REST NODE")
+            print("   [1] heal")
+            print("   [2] focus")
+            print("> ", end="", flush=True)
+            raw = input().strip()
+            choice = REST_ACTION_HEAL if raw in {"1", "heal"} else REST_ACTION_FOCUS
+
+        if choice == REST_ACTION_HEAL:
+            heal_amount = max(10, int(player.stats.hp.value * 0.3))
+            actual = player.heal(heal_amount)
+            output = f"heal={actual}"
+        else:
+            player.stats.attack.value += 2
+            player.stats.hp.value += 5
+            player.current_hp = min(player.stats.hp.value, player.current_hp + 5)
+            output = "focus=atk+2 hp_max+5"
+
+        self.metrics.record_rest_choice(choice)
+        if self._compact_mode:
+            print(f"N{node.position + 1:02d} node=rest choice={choice} {output}")
+        else:
+            print(f"🛌 Rest: {choice} -> {output}")
+        return True
+
+    def _shop_offers_for_node(self, chapter: Any, node: RouteNode) -> list[dict[str, Any]]:
+        """Build deterministic light-weight shop offers for one node."""
+        seed = int(self.seed or 0) + chapter.chapter_index * 211 + node.position * 41
+        rng = DefaultRNG(seed=seed)
+        tier = chapter.chapter_index
+        templates = [
+            {
+                "id": "patch_kit",
+                "label": "Patch Kit",
+                "cost": 30 + tier * 5,
+                "heal": 18,
+                "atk": 0,
+                "mp": 0,
+            },
+            {
+                "id": "compiler_blade",
+                "label": "Compiler Blade",
+                "cost": 55 + tier * 8,
+                "heal": 0,
+                "atk": 2,
+                "mp": 0,
+            },
+            {
+                "id": "cache_tonic",
+                "label": "Cache Tonic",
+                "cost": 42 + tier * 6,
+                "heal": 8,
+                "atk": 0,
+                "mp": 12,
+            },
+            {
+                "id": "max_hp_patch",
+                "label": "MaxHP Patch",
+                "cost": 75 + tier * 10,
+                "heal": 10,
+                "atk": 1,
+                "mp": 0,
+                "hp_max": 10,
+            },
+        ]
+        picked_ids = rng.sample(list(range(len(templates))), k=min(3, len(templates)))
+        return [templates[index] for index in picked_ids]
+
+    def _apply_shop_offer(self, offer: dict[str, Any]) -> None:
+        """Apply one shop offer to current player state."""
+        if not self.state:
+            return
+        player = self.state.player.character
+        hp_max_gain = int(offer.get("hp_max", 0))
+        if hp_max_gain:
+            player.stats.hp.value += hp_max_gain
+            player.current_hp += hp_max_gain
+        atk_gain = int(offer.get("atk", 0))
+        if atk_gain:
+            player.stats.attack.value += atk_gain
+        mp_gain = int(offer.get("mp", 0))
+        if mp_gain:
+            player.current_mp = min(
+                player.stats.mp.value,
+                player.current_mp + mp_gain,
+            )
+        heal_gain = int(offer.get("heal", 0))
+        if heal_gain:
+            player.heal(heal_gain)
+
+    def _handle_shop_node(self, chapter: Any, node: RouteNode) -> bool:
+        """Resolve shop node with deterministic offers and auto policy support."""
+        if not self.state:
+            return False
+        offers = self._shop_offers_for_node(chapter, node)
+        player = self.state.player.character
+        gold = self.state.player.gold
+
+        selected_idx: int | None = None
+        if self.auto_mode:
+            option_ctx = tuple(
+                AutoShopOptionContext(
+                    option_id=offer["id"],
+                    cost=int(offer["cost"]),
+                    value_score=(
+                        int(offer.get("heal", 0)) * 0.12
+                        + int(offer.get("atk", 0)) * 2.0
+                        + int(offer.get("mp", 0)) * 0.10
+                        + int(offer.get("hp_max", 0)) * 0.25
+                    ),
+                    hp_delta=int(offer.get("heal", 0)),
+                )
+                for offer in offers
+            )
+            selected_idx = self.auto_policy.choose_shop_option(
+                AutoShopContext(
+                    seed=int(self.seed or 0),
+                    chapter_index=chapter.chapter_index,
+                    node_index=node.position,
+                    player_hp=player.current_hp,
+                    player_max_hp=player.stats.hp.value,
+                    player_gold=gold,
+                    options=option_ctx,
+                )
+            )
+        else:
+            print("\n🏪 SHOP NODE")
+            print(f"   gold={gold}")
+            for idx, offer in enumerate(offers, start=1):
+                print(
+                    f"   [{idx}] {offer['label']} cost={offer['cost']} "
+                    f"(heal={offer.get('heal', 0)} atk={offer.get('atk', 0)} mp={offer.get('mp', 0)})"
+                )
+            print("   [0] skip")
+            print("> ", end="", flush=True)
+            raw = input().strip()
+            try:
+                parsed = int(raw)
+            except ValueError:
+                parsed = 0
+            if parsed > 0:
+                selected_idx = parsed - 1
+
+        if selected_idx is None or selected_idx < 0 or selected_idx >= len(offers):
+            self.metrics.record_shop_choice("skip")
+            if self._compact_mode:
+                print(
+                    f"N{node.position + 1:02d} node=shop choice=skip "
+                    f"gold={self.state.player.gold}"
+                )
+            else:
+                print("🏪 Shop skipped.")
+            return True
+
+        offer = offers[selected_idx]
+        cost = int(offer["cost"])
+        if cost > self.state.player.gold:
+            self.metrics.record_shop_choice("insufficient_gold")
+            if self._compact_mode:
+                print(
+                    f"N{node.position + 1:02d} node=shop choice=none "
+                    "reason=insufficient_gold"
+                )
+            else:
+                print("🏪 Not enough gold.")
+            return True
+
+        self.state.player.gold -= cost
+        self.inventory.gold = self.state.player.gold
+        self._apply_shop_offer(offer)
+        self.metrics.record_shop_choice(str(offer["id"]))
+        if self._compact_mode:
+            print(
+                f"N{node.position + 1:02d} node=shop choice={offer['id']} "
+                f"cost={cost} gold={self.state.player.gold}"
+            )
+        else:
+            print(f"🏪 Purchased {offer['label']} for {cost} gold.")
         return True
     
     def _combat(self, enemy: EnemyState, chapter: Any) -> bool:
@@ -408,9 +897,7 @@ class GitDungeonCLI:
                     continue
 
             elif choice == "4":  # Escape/Shop
-                if chapter.config.shop_enabled and turn % 3 == 0:
-                    self._open_shop(chapter)
-                elif self.combat_rules.roll_escape(0.7):
+                if self.combat_rules.roll_escape(0.7):
                     if not self._compact_mode:
                         print("   🏃  Escaped!")
                     self.state.in_combat = False
@@ -787,8 +1274,10 @@ MP: {player.current_mp}/{player.stats.mp.value}
             self._emit_key_event("DROP", items_str)
     
     def _complete_chapter(self) -> bool:
-        """Handle chapter completion and shop."""
+        """Handle chapter completion and transition."""
         chapter = self.chapter_system.complete_current_chapter()
+        self._chapter_nodes.pop(chapter.chapter_id, None)
+        self._chapter_node_cursor.pop(chapter.chapter_id, None)
         
         # Calculate rewards
         gold_reward = int(50 * chapter.config.gold_bonus * (1 + chapter.chapter_index * 0.2))
@@ -816,12 +1305,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
             print(f"   🆙 LEVEL UP! Level {new_level}")
             print(f"      HP +{stats['hp_gain']}, MP +{stats['mp_gain']}, ATK +{stats['atk_gain']}")
             self._emit_key_event("LEVEL_UP", f"Level {new_level}")
-        
-        # Open shop if enabled
-        if chapter.config.shop_enabled:
-            print()
-            self._open_shop(chapter)
-        
+
         # Advance to next chapter
         if self.chapter_system.advance_chapter():
             next_chapter = self.chapter_system.get_current_chapter()
@@ -829,9 +1313,11 @@ MP: {player.current_mp}/{player.stats.mp.value}
                 print()
                 self._print_chapter_intro(next_chapter)
         else:
-            # No more chapters - Victory!
             self._print_victory()
-            return False
+            if self.state:
+                self.state.is_game_over = True
+                self.state.is_victory = True
+            return True
         
         return True
     
@@ -1006,24 +1492,54 @@ MP: {player.current_mp}/{player.stats.mp.value}
     
     def _print_chapter_intro(self, chapter: Any) -> None:
         """Print chapter introduction."""
+        preview_nodes = self._chapter_nodes.get(chapter.chapter_id)
+        if preview_nodes is None:
+            preview_nodes = self.node_generator.build_nodes(
+                seed=int(self.seed or 0),
+                chapter_index=chapter.chapter_index,
+                chapter_enemy_count=len(getattr(chapter, "commits", [])),
+                difficulty=1.0,
+                has_boss=True,
+                has_events=bool(self.content_runtime.registry.events),
+            )
+        node_summary = ", ".join(
+            f"{kind}={count}" for kind, count in summarize_node_kinds(preview_nodes).items()
+        )
         event_hint = ""
         if self.loaded_content_packs and self.content_runtime.registry.events:
             event_ids = sorted(self.content_runtime.registry.events.keys())
             seed = int(self.seed or 0)
             index = (seed + chapter.chapter_index * 17) % len(event_ids)
-            event_hint = f"\n🔮 事件预兆: {event_ids[index]}"
-        print(f"""
+            label = "Event omen" if self.lang == "en" else "事件预兆"
+            event_hint = f"\n🔮 {label}: {event_ids[index]}"
+
+        if self.lang == "en":
+            print(
+                f"""
+{'='*50}
+📖 Chapter {chapter.chapter_index + 1}: {chapter.name}
+{'='*50}
+📝 {chapter.description}
+🧭 Nodes: {node_summary}
+🏆 Boss chapter: {"yes" if chapter.is_boss_chapter else "no"} (final boss node always exists)
+{event_hint}
+{'='*50}
+"""
+            )
+            return
+
+        print(
+            f"""
 {'='*50}
 📖 第 {chapter.chapter_index + 1} 章：{chapter.name}
 {'='*50}
 📝 {chapter.description}
-
-⚔️  敌人数量: {chapter.enemy_count}
-🏆 Boss: {"是" if chapter.is_boss_chapter else "否"}
-🏪 商店: {"有" if chapter.config.shop_enabled else "无"}
+🧭 节点分布: {node_summary}
+🏆 Boss 章节: {"是" if chapter.is_boss_chapter else "否"}（章末固定 Boss 节点）
 {event_hint}
 {'='*50}
-""")
+"""
+        )
     
     def _print_combat_status(self, enemy: EnemyState) -> None:
         """Print combat status."""
@@ -1092,7 +1608,7 @@ MP: {player.current_mp}/{player.stats.mp.value}
         print("""
 🎯 YOUR TURN!
    [1] ⚔️  Attack    [2] 🛡️  Defend
-   [3] ✨  Skill     [4] 🏃  Escape/Shop
+   [3] ✨  Skill     [4] 🏃  Escape
 """)
         print("> ", end="", flush=True)
         try:

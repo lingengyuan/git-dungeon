@@ -54,6 +54,38 @@ relics: []
 events: []
 ```
 
+## Event Schema For Node Flow
+
+`event` nodes in chapter flow select from merged `events` definitions. Recommended fields:
+
+```yaml
+events:
+  - id: contributor_wave
+    name_key: event.contributor_wave.name
+    desc_key: event.contributor_wave.desc
+    route_tags: [safe]   # optional: safe/risk/shop/greed/debug_heavy/...
+    weights:
+      default: 10
+      fix: 12            # optional chapter-type override
+    choices:
+      - id: mentor
+        text_key: event.contributor_wave.choice.mentor
+        effects:
+          - opcode: gain_gold
+            value: 30
+      - id: review
+        text_key: event.contributor_wave.choice.review
+        effects:
+          - opcode: heal
+            value: 15
+```
+
+Notes:
+
+- Use at least `2` choices per event for meaningful node decisions.
+- Keep effects deterministic (avoid hidden runtime randomness in pack content).
+- With fixed `--seed`, node sequence and event selection remain reproducible.
+
 Supported `chapter_overrides` fields:
 
 - `name`

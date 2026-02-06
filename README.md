@@ -22,8 +22,8 @@ This project is useful for:
 ## Gameplay Loop
 
 1. Parse repository commits.
-2. Build chapters and enemies.
-3. Fight battles (manual or `--auto` policy).
+2. Build chapter nodes (`battle/event/rest/shop/.../boss`) with deterministic seed.
+3. Resolve each node (manual or `--auto` policy).
 4. Collect rewards and advance until clear or defeat.
 
 ## Example Output (No AI)
@@ -35,10 +35,15 @@ Divided into 20 chapters:
   🔄 Chapter 0: Genesis of Chaos (initial)
   ⏳ Chapter 1: Fixing Era (fix)
 
+🧭 Chapter route: battle=2, boss=1, event=1, rest=1, shop=1
+N01 node=battle enemy=fix bug
 ⚔️  Genesis of Chaos: fix bug [compact]
 T01 action=attack dealt=14 taken=3 hp=97/100 enemy=6/20
 T02 action=skill dealt=9 taken=0 hp=97/100 enemy=0/20 [KILL]
    ✨[KILL] fix bug defeated
+N02 node=event event=rest_site choice=rest hpΔ=+20 goldΔ=0
+N03 node=rest choice=heal heal=12
+N04 node=shop choice=patch_kit cost=35 gold=40
 📊 Metrics written: ./run_metrics.json
 ```
 
