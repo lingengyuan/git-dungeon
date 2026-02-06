@@ -99,6 +99,41 @@ git-dungeon . --seed 42 --auto --compact --print-metrics
 - `--seed <int>`: deterministic run seed.
 - `--ai=off|on --ai-provider=mock|gemini|openai`: AI flavor text control.
 
+## Content Packs and Challenges
+
+Load the built-in/example pack by path:
+
+```bash
+git-dungeon . --content-pack content_packs/example_pack --seed 42 --auto --compact
+```
+
+Load packs from env directory (auto-discovery of subfolders):
+
+```bash
+export GIT_DUNGEON_CONTENT_DIR=./content_packs
+git-dungeon . --content-pack example_pack --seed 42 --auto --compact
+```
+
+Daily shareable challenge:
+
+```bash
+git-dungeon . --daily --mutator hard --auto --compact
+```
+
+For fixed daily replay:
+
+```bash
+git-dungeon . --daily --daily-date 2026-02-06 --auto --compact
+```
+
+Pack merge rule:
+
+- Later packs override earlier IDs (`cards/relics/events/chapter_overrides`).
+- `--content-pack` order is preserved.
+- Packs from `GIT_DUNGEON_CONTENT_DIR` are merged after CLI packs in alphabetical folder order.
+
+Contribution guide: `docs/CONTENT_PACKS.md`.
+
 ## AI Flavor Text (Optional)
 
 Enable AI text with deterministic mock provider:
@@ -152,6 +187,8 @@ export GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-saves
 git-dungeon . --auto
 git-dungeon . --seed 42 --auto --compact --print-metrics
 git-dungeon . --auto --lang zh_CN
+git-dungeon . --content-pack content_packs/example_pack --seed 42 --auto --compact
+git-dungeon . --daily --mutator hard --auto --compact
 ```
 
 ## Development
@@ -169,6 +206,7 @@ make smoke-install
 
 - `CHANGELOG.md`
 - `docs/FAQ.md`
+- `docs/CONTENT_PACKS.md`
 - `docs/perf.md`
 - `docs/AI_TEXT.md`
 - `docs/TESTING_FRAMEWORK.md`

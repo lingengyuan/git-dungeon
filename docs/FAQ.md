@@ -54,3 +54,14 @@ See:
 - `docs/perf.md`
 
 It includes benchmark datasets, metric definitions, profiler commands, hotspot summary, and before/after optimization data.
+
+## How do I enable content packs?
+
+Use a pack path or built-in pack id:
+
+```bash
+git-dungeon . --content-pack content_packs/example_pack --seed 42 --auto --compact
+git-dungeon . --content-pack debug_pack --seed 42 --auto --compact
+```
+
+You can also point `GIT_DUNGEON_CONTENT_DIR` to a folder of packs.
