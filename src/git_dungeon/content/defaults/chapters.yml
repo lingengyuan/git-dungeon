@@ -1,0 +1,62 @@
+# Chapter baseline configs (data-driven defaults for chapter_rules.py)
+
+chapters:
+  initial:
+    name: "混沌初开"
+    description: "在代码的虚无中，第一个 commit 诞生了..."
+    min_commits: 1
+    max_commits: 3
+    boss_chance: 0.0
+    shop_enabled: false
+    gold_bonus: 0.8
+    exp_bonus: 0.8
+    enemy_hp_multiplier: 0.6
+    enemy_atk_multiplier: 0.6
+
+  feature:
+    name: "功能涌现"
+    description: "新功能如雨后春笋般涌现，代码库日益膨胀..."
+    min_commits: 5
+    max_commits: 30
+    boss_chance: 0.3
+    shop_enabled: true
+    gold_bonus: 1.0
+    exp_bonus: 1.0
+    enemy_hp_multiplier: 1.0
+    enemy_atk_multiplier: 1.0
+
+  fix:
+    name: "修复时代"
+    description: "随着功能增加，Bug 也开始蔓延..."
+    min_commits: 3
+    max_commits: 25
+    boss_chance: 0.4
+    shop_enabled: true
+    gold_bonus: 1.2
+    exp_bonus: 1.3
+    enemy_hp_multiplier: 1.1
+    enemy_atk_multiplier: 1.4
+
+  integration:
+    name: "整合之路"
+    description: "当多条分支汇聚之时，最强大的敌人出现了..."
+    min_commits: 1
+    max_commits: 10
+    boss_chance: 1.0
+    shop_enabled: true
+    gold_bonus: 2.0
+    exp_bonus: 2.0
+    enemy_hp_multiplier: 2.0
+    enemy_atk_multiplier: 1.5
+
+  legacy:
+    name: "版本传承"
+    description: "一切归于平静，但代码的传说将永存..."
+    min_commits: 1
+    max_commits: 15
+    boss_chance: 0.3
+    shop_enabled: true
+    gold_bonus: 1.5
+    exp_bonus: 1.5
+    enemy_hp_multiplier: 1.3
+    enemy_atk_multiplier: 1.2

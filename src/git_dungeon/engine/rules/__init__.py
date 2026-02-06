@@ -4,7 +4,7 @@ from .combat_rules import CombatRules
 from .progression_rules import ProgressionRules
 from .chapter_rules import (
     ChapterType, ChapterConfig, CHAPTER_CONFIGS,
-    Chapter, ChapterSystem, get_chapter_config
+    Chapter, ChapterSystem, build_chapter_configs, get_chapter_config
 )
 from .economy_rules import (
     ItemType, ItemRarity, Item,
@@ -35,6 +35,7 @@ __all__ = [
     "CHAPTER_CONFIGS",
     "Chapter",
     "ChapterSystem",
+    "build_chapter_configs",
     "get_chapter_config",
     # Economy
     "ItemType",
