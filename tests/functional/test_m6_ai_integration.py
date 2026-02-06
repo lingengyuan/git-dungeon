@@ -9,7 +9,7 @@ import os
 import tempfile
 from unittest.mock import patch
 
-from git_dungeon.ai import TextKind, NullAIClient, MockAIClient, TextCache
+from git_dungeon.ai import TextKind, TextResponse, NullAIClient, MockAIClient, TextCache
 from git_dungeon.ai.integration import (
     create_ai_client,
     get_ai_text,
@@ -116,6 +116,40 @@ class TestAIIntegration:
             # Second request with same params - should hit cache
             # Note: Implementation detail depends on cache key generation
             assert text1 != ""
+
+    def test_fallback_result_is_cached(self):
+        """Provider-empty fallback text should be cached to avoid repeated API hits."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache = TextCache(cache_dir=tmpdir, backend="sqlite")
+
+            class EmptyClient:
+                name = "gemini/test"
+
+                def __init__(self):
+                    self.calls = 0
+
+                def generate_batch(self, requests):
+                    self.calls += 1
+                    return [TextResponse(text="", provider=self.name, cached=False, meta={"reason": "empty"}) for _ in requests]
+
+            client = EmptyClient()
+            params = dict(
+                client=client,
+                cache=cache,
+                kind=TextKind.BATTLE_START,
+                lang="en",
+                seed=777,
+                repo_id="fallback-cache-test",
+                extra_context={"tier": "normal"},
+                content_version="1.0",
+            )
+
+            text1 = get_ai_text(**params)
+            text2 = get_ai_text(**params)
+
+            assert text1 != ""
+            assert text2 == text1
+            assert client.calls == 1
 
 
 class TestAIAggregator:

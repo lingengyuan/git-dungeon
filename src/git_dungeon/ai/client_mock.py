@@ -5,6 +5,7 @@ Generates deterministic pseudo-text for testing without network calls.
 """
 
 import hashlib
+import json
 from typing import List
 from .types import TextRequest, TextResponse, TextKind
 from .client_base import AIClient
@@ -32,8 +33,9 @@ class MockAIClient(AIClient):
     
     def _generate_one(self, request: TextRequest) -> TextResponse:
         """Generate pseudo-text for a single request."""
-        # Create deterministic hash from request
-        key = f"{request.kind.value}:{request.repo_id}:{request.seed}:{request.lang}"
+        # Create deterministic hash from request + context
+        context_blob = self._context_fingerprint(request)
+        key = f"{request.kind.value}:{request.repo_id}:{request.seed}:{request.lang}:{context_blob}"
         hash_val = hashlib.md5(key.encode()).hexdigest()[:8]
         
         # Generate pseudo-text based on text kind
@@ -131,6 +133,20 @@ class MockAIClient(AIClient):
             cached=False,
             meta={"mock": True}
         )
+
+    def _context_fingerprint(self, request: TextRequest) -> str:
+        """Stable context fingerprint to diversify fallback text by scenario."""
+        payload = {
+            "commit_sha": request.commit_sha,
+            "enemy_id": request.enemy_id,
+            "event_id": request.event_id,
+            "extra_context": request.extra_context,
+        }
+        try:
+            raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+        except Exception:
+            raw = str(payload)
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
     
     def _adjective(self, hash_val: str) -> str:
         adjectives = ["mysterious", "ancient", "dark", "brilliant", "chaotic", 

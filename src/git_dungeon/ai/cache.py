@@ -88,7 +88,8 @@ class TextCache:
         lang: str,
         content_version: str,
         kind: str,
-        specific_id: Optional[str] = None
+        specific_id: Optional[str] = None,
+        context_hash: Optional[str] = None,
     ) -> str:
         """Generate a unique cache key."""
         key_parts = {
@@ -101,9 +102,21 @@ class TextCache:
         }
         if specific_id:
             key_parts["specific_id"] = specific_id
+        if context_hash:
+            key_parts["context_hash"] = context_hash
         
         key_str = json.dumps(key_parts, sort_keys=True)
         return hashlib.sha256(key_str.encode()).hexdigest()[:32]
+
+    def _hash_extra_context(self, extra_context: Dict[str, Any]) -> str:
+        """Build stable hash for request context fields."""
+        if not extra_context:
+            return ""
+        try:
+            serialized = json.dumps(extra_context, sort_keys=True, separators=(",", ":"), default=str)
+        except Exception:
+            serialized = str(extra_context)
+        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:16]
     
     def get(self, cache_key: str) -> Optional[TextResponse]:
         """Get a cached text response."""
@@ -259,5 +272,6 @@ class TextCache:
             lang=request.lang,
             content_version=combined_version,
             kind=request.kind.value,
-            specific_id=request.enemy_id or request.event_id or request.commit_sha
+            specific_id=request.enemy_id or request.event_id or request.commit_sha,
+            context_hash=self._hash_extra_context(request.extra_context),
         )

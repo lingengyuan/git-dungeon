@@ -7,7 +7,7 @@ Adds --ai parameters to CLI and integrates AI text generation into game flow.
 import argparse
 from typing import Optional
 from git_dungeon.ai import (
-    TextKind, TextRequest,
+    TextKind, TextRequest, TextResponse,
     NullAIClient, MockAIClient, GeminiAIClient,
     TextCache
 )
@@ -164,6 +164,15 @@ def get_ai_text(
     
     # Fallback to template
     fallback_text = get_fallback_text(request)
+    cache.set(
+        cache_key,
+        TextResponse(
+            text=fallback_text,
+            provider=f"{client.name}/fallback",
+            cached=False,
+            meta={"fallback": True, "reason": "provider_empty"},
+        ),
+    )
     return fallback_text
 
 
@@ -219,15 +228,20 @@ class AIAggregator:
             if not text:
                 from git_dungeon.ai.fallbacks import get_fallback_text
                 text = get_fallback_text(request)
-            
-            # Cache if not cached
-            if response.text:
-                cache_key = self.cache.build_cache_key(
-                    provider=self.client.name,
-                    request=request,
-                    content_version=self.content_version
+                response = TextResponse(
+                    text=text,
+                    provider=f"{self.client.name}/fallback",
+                    cached=False,
+                    meta={"fallback": True, "reason": "provider_empty"},
                 )
-                self.cache.set(cache_key, response)
+            
+            # Cache both provider and fallback responses to reduce repeated calls.
+            cache_key = self.cache.build_cache_key(
+                provider=self.client.name,
+                request=request,
+                content_version=self.content_version
+            )
+            self.cache.set(cache_key, response)
             
             results[key] = text
         
@@ -270,4 +284,14 @@ class AIAggregator:
         
         # Fallback
         from git_dungeon.ai.fallbacks import get_fallback_text
-        return get_fallback_text(request)
+        fallback_text = get_fallback_text(request)
+        self.cache.set(
+            cache_key,
+            TextResponse(
+                text=fallback_text,
+                provider=f"{self.client.name}/fallback",
+                cached=False,
+                meta={"fallback": True, "reason": "provider_empty"},
+            ),
+        )
+        return fallback_text
