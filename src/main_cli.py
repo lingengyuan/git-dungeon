@@ -167,7 +167,8 @@ def parse_github_url(url: str) -> str:
         if match:
             repo_path = match.group(1)
             # 移除 .git 后缀
-            repo_path = repo_path.rstrip('.git')
+            if repo_path.endswith(".git"):
+                repo_path = repo_path[:-4]
             
             # 创建临时目录
             temp_dir = tempfile.mkdtemp(prefix='git-dungeon-')

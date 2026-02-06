@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "git-dungeon"
 version = "0.1.0"
 description = "A Git commit history based roguelike game"
-readme = "docs/README.md"
+readme = "README.md"
 license = {text = "MIT"}
 authors = [
     {name = "OpenClaw", email = "claw@openclaw.ai"}
@@ -36,8 +36,11 @@ dev = [
 [project.scripts]
 git-dungeon = "git_dungeon.main:main"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 include = ["git_dungeon*"]
 
 [tool.pytest.ini_options]
@@ -47,6 +50,11 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
 addopts = "-v --tb=short"
+markers = [
+    "functional: functional gameplay flow tests",
+    "golden: deterministic snapshot/replay tests",
+    "slow: long-running tests",
+]
 
 [tool.black]
 line-length = 100
