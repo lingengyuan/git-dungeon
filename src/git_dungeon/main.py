@@ -6,8 +6,17 @@ import json
 import logging
 from pathlib import Path
 from typing import Optional
+from importlib.metadata import PackageNotFoundError, version
 
-__version__ = "1.0.0"
+
+def _get_version() -> str:
+    try:
+        return version("git-dungeon")
+    except PackageNotFoundError:
+        return "0.0.0+dev"
+
+
+__version__ = _get_version()
 
 
 def _setup_src_path() -> None:
@@ -110,7 +119,12 @@ def run_cli(
     json_log: Optional[str] = None,
     no_color: bool = False,
     auto: bool = False,
-    lang: str = "en"
+    lang: str = "en",
+    ai: str = "off",
+    ai_provider: str = "mock",
+    ai_cache: str = ".git_dungeon_cache",
+    ai_timeout: int = 5,
+    ai_prefetch: str = "chapter",
 ) -> int:
     """Run the CLI game."""
     # Add src to path for imports
@@ -120,14 +134,27 @@ def run_cli(
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     
-    from git_dungeon.main_cli import GitDungeonCLI
-    
     log_level = logging.DEBUG if verbose else logging.INFO
     logger = setup_logging(log_level, log_file, json_log, no_color)
     logger.info(f"Starting Git Dungeon v{__version__}")
     
     try:
-        game = GitDungeonCLI(seed=seed, verbose=verbose, auto_mode=auto, lang=lang)
+        if ai == "on":
+            from git_dungeon.main_cli_ai import GitDungeonAICLI
+            game = GitDungeonAICLI(
+                seed=seed,
+                verbose=verbose,
+                auto_mode=auto,
+                lang=lang,
+                ai_enabled=True,
+                ai_provider=ai_provider,
+                ai_cache_dir=ai_cache,
+                ai_timeout=ai_timeout,
+                ai_prefetch=ai_prefetch,
+            )
+        else:
+            from git_dungeon.main_cli import GitDungeonCLI
+            game = GitDungeonCLI(seed=seed, verbose=verbose, auto_mode=auto, lang=lang)
         success = game.start(repository)
         logger.info(f"Game ended with success={success}")
         return 0 if success else 1
@@ -145,6 +172,7 @@ def run_cli(
 def main() -> int:
     """Main entry point for CLI."""
     import argparse
+    from git_dungeon.main_cli_ai import add_ai_args
     
     parser = argparse.ArgumentParser(
         description="Git Dungeon - Battle through your commits!",
@@ -165,11 +193,12 @@ def main() -> int:
                         help="Write plain text log to file")
     parser.add_argument("--json-log", type=str, default=None,
                         help="Write JSON log to file (JSONL format)")
-    parser.add_argument("--auto", "-a", action="store_true",
+    parser.add_argument("--auto", action="store_true",
                         help="Auto-battle mode (automatic combat)")
     parser.add_argument("--lang", "-l", type=str, default="en",
                         choices=["en", "zh", "zh_CN"],
                         help="Language (en/zh_CN)")
+    add_ai_args(parser)
     
     args = parser.parse_args()
     
@@ -180,6 +209,7 @@ def main() -> int:
         print("  git-dungeon username/repo        # GitHub repo")
         print("  git-dungeon . --seed 12345       # With seed")
         print("  git-dungeon . --auto             # Auto-battle")
+        print("  git-dungeon . --ai=on --ai-provider=mock")
         print("  git-dungeon . --json-log run.jsonl  # JSON logging")
         return 0
     
@@ -191,7 +221,12 @@ def main() -> int:
         json_log=args.json_log,
         no_color=args.no_color,
         auto=args.auto,
-        lang=args.lang
+        lang=args.lang,
+        ai=args.ai,
+        ai_provider=args.ai_provider,
+        ai_cache=args.ai_cache,
+        ai_timeout=args.ai_timeout,
+        ai_prefetch=args.ai_prefetch,
     )
 
 

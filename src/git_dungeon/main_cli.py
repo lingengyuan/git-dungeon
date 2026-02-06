@@ -733,7 +733,9 @@ MP: {player.current_mp}/{player.stats.mp.value}
         else:
             repo_path = repo_input
         
-        repo_path = repo_path.rstrip('/').rstrip('.git')
+        repo_path = repo_path.rstrip("/")
+        if repo_path.endswith(".git"):
+            repo_path = repo_path[:-4]
         temp_dir = tempfile.mkdtemp(prefix='git-dungeon-')
         clone_path = os.path.join(temp_dir, repo_path.split('/')[-1])
         

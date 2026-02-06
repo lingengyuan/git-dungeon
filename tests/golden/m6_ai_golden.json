@@ -1,0 +1,164 @@
+{
+  "description": "M6 AI Text Generation - Golden Tests",
+  "version": "1.0.0",
+  "tests": {
+    "m6_ai_cache_keys": {
+      "description": "Cache key generation must be deterministic",
+      "cases": [
+        {
+          "name": "same_inputs_same_key",
+          "input": {
+            "provider": "mock",
+            "repo_id": "test-repo",
+            "seed": 123,
+            "lang": "en",
+            "content_version": "1.0",
+            "kind": "enemy_intro",
+            "enemy_id": "enemy_fix"
+          },
+          "expected_key_hash": "sha256"
+        },
+        {
+          "name": "different_seed_different_key",
+          "input": {
+            "provider": "mock",
+            "repo_id": "test-repo",
+            "seed": 123,
+            "lang": "en",
+            "content_version": "1.0",
+            "kind": "enemy_intro"
+          },
+          "assertion": "key_must_differ_from_seed_456"
+        },
+        {
+          "name": "different_lang_different_key",
+          "input": {
+            "provider": "mock",
+            "repo_id": "test-repo",
+            "seed": 789,
+            "lang": "zh_CN",
+            "content_version": "1.0",
+            "kind": "battle_start"
+          },
+          "assertion": "key_must_differ_from_lang_en"
+        },
+        {
+          "name": "prompt_version_affects_key",
+          "input": {
+            "provider": "mock",
+            "repo_id": "test-repo",
+            "seed": 999,
+            "lang": "en",
+            "content_version": "1.0:1.0",
+            "kind": "event_flavor"
+          },
+          "assertion": "key_must_differ_from_prompt_version_1.1"
+        }
+      ]
+    },
+    "m6_ai_fallback_texts": {
+      "description": "Fallback templates by kind and language",
+      "kinds": {
+        "enemy_intro": {
+          "zh_CN": {
+            "feat": ["新功能", "潜力", "光芒"],
+            "fix": ["BUG", "潜伏", "修复"],
+            "docs": ["文档", "古老", "睿智"],
+            "refactor": ["重构", "重塑", "形态"],
+            "test": ["测试", "环绕", "精确"],
+            "chore": ["维护", "背景", "嗡鸣"],
+            "perf": ["性能", "隐藏", "力量"],
+            "merge": ["合并", "冲突", "纠缠"],
+            "default": ["神秘", "悬浮", "提交"]
+          },
+          "en": {
+            "feat": ["feature", "potential", "emerges"],
+            "fix": ["bug", "lurks", "strike"],
+            "docs": ["documentation", "ancient", "wise"],
+            "refactor": ["refactored", "reshapes"],
+            "test": ["tests", "vigilant", "precise"],
+            "chore": ["maintenance", "humming"],
+            "perf": ["performance", "hidden", "power"],
+            "merge": ["merge", "conflict", "tangled"],
+            "default": ["mysterious", "hover", "commit"]
+          }
+        },
+        "battle_start": {
+          "zh_CN": {
+            "normal": ["战斗", "开始"],
+            "elite": ["精英", "来袭"],
+            "boss": ["BOSS", "遭遇战"],
+            "default": ["对手", "准备就绪"]
+          },
+          "en": {
+            "normal": ["battle", "begins"],
+            "elite": ["elite", "approaches"],
+            "boss": ["boss", "encounter"],
+            "default": ["opponent", "readies"]
+          }
+        },
+        "battle_end": {
+          "zh_CN": {
+            "victory": ["胜利", "战利品"],
+            "defeat": ["失败", "撤退"],
+            "default": ["战斗", "结束"]
+          },
+          "en": {
+            "victory": ["victory", "triumph", "loot"],
+            "defeat": ["defeat", "retreat"],
+            "default": ["battle", "concludes"]
+          }
+        },
+        "event_flavor": {
+          "zh_CN": {
+            "rest": ["宁静", "避风港", "疲惫"],
+            "shop": ["神秘", "商品", "货架"],
+            "treasure": ["有价值", "闪烁"],
+            "mystery": ["未知", "选择"],
+            "challenge": ["考验", "前方"],
+            "default": ["奇怪", "能量", "旋转"]
+          },
+          "en": {
+            "rest": ["peaceful", "haven", "weary"],
+            "shop": ["mysterious", "wares", "shelves"],
+            "treasure": ["valuable", "gleams"],
+            "mystery": ["unknown", "choice"],
+            "challenge": ["test", "ahead"],
+            "default": ["strange", "energies", "swirl"]
+          }
+        },
+        "boss_phase": {
+          "zh_CN": {
+            "default": ["BOSS", "阶段", "转换"]
+          },
+          "en": {
+            "default": ["boss", "phase", "shift"]
+          }
+        }
+      }
+    },
+    "m6_ai_length_limits": {
+      "description": "Character length limits by text kind",
+      "limits": {
+        "enemy_intro": 60,
+        "battle_start": 80,
+        "battle_end": 80,
+        "event_flavor": 80,
+        "boss_phase": 80
+      }
+    },
+    "m6_ai_prompt_versions": {
+      "description": "Prompt template versions for cache invalidation",
+      "current_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "enemy_intro": "Initial prompt templates",
+          "battle_start": "Initial prompt templates",
+          "battle_end": "Initial prompt templates",
+          "event_flavor": "Initial prompt templates",
+          "boss_phase": "Initial prompt templates"
+        }
+      }
+    }
+  }
+}

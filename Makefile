@@ -1,7 +1,7 @@
 # Git Dungeon Makefile
 # 简化开发、测试、发布流程
 
-.PHONY: help test test-unit test-functional test-all test-golden test-golden-update run lint format clean
+.PHONY: help test test-unit test-functional test-all test-golden test-golden-update run lint format clean test-m6 ai-cache-clear
 
 # 默认帮助
 help:
@@ -10,10 +10,15 @@ help:
 	@echo "运行命令:"
 	@echo "  make run          - 运行游戏"
 	@echo "  make test         - 单元测试 (快速)"
-	@echo "  make test-func    - 功能测试 (门禁同款)"
+	@echo "  make test-func    - 功能测试 (门禁同款，包含 M6)"
+	@echo "  make test-m6      - M6 AI 模块测试"
 	@echo "  make test-all     - 全部测试"
 	@echo "  make test-golden  - 运行 golden tests"
 	@echo "  make test-golden-update - 更新 golden 快照"
+	@echo ""
+	@echo "AI/Cache 命令:"
+	@echo "  make test-m6              - 运行 M6 AI 测试"
+	@echo "  make ai-cache-clear      - 清理 AI 缓存"
 	@echo ""
 	@echo "开发命令:"
 	@echo "  make lint         - 代码检查"
@@ -67,6 +72,22 @@ clean:
 	find . -type f -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".venv" -exec rm -rf {} + 2>/dev/null || true
 	@echo "✅ Cleaned cache files"
+
+# M6 AI 测试
+test-m6:
+	PYTHONPATH=src python3 -m pytest tests/functional/test_m6_ai_text_func.py \
+		-v --tb=short
+	@echo ""
+	@echo "✅ M6 tests passed - Remember to run: make test-func"
+
+# 清理 AI 缓存
+ai-cache-clear:
+	@if [ -d ".git_dungeon_cache" ]; then \
+		rm -rf .git_dungeon_cache/ai_text.sqlite; \
+		echo "✅ AI cache cleared"; \
+	else \
+		echo "No AI cache found"; \
+	fi
 
 # 安装开发依赖
 dev-install:

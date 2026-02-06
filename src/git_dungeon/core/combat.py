@@ -120,7 +120,7 @@ class CombatSystem:
         is_critical = False
         crit_chance = critical_chance if critical_chance is not None else 0
 
-        if attacker_char.stats:
+        if critical_chance is None and attacker_char.stats:
             crit_chance = attacker_char.stats.critical.value / 100
 
         import random

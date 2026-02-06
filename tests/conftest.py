@@ -2,9 +2,12 @@
 
 import sys
 from pathlib import Path
+import pytest
 
-# Add src directory to path
-src_path = Path(__file__).parent.parent
+# Add repository root and src directory to path
+repo_root = Path(__file__).resolve().parent.parent
+src_path = repo_root / "src"
+sys.path.insert(0, str(repo_root))
 sys.path.insert(0, str(src_path))
 
 
@@ -28,6 +31,12 @@ class TestResult:
 def pytest_configure(config):
     """Configure pytest."""
     config.addinivalue_line(
+        "markers", "functional: marks functional gameplay tests"
+    )
+    config.addinivalue_line(
+        "markers", "golden: marks deterministic snapshot/replay tests"
+    )
+    config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
     config.addinivalue_line(
@@ -40,3 +49,16 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "m3: marks M3 automation tests"
     )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Auto-tag tests by location so marker filtering stays reliable."""
+    for item in items:
+        item_path = Path(str(item.fspath))
+        parts = item_path.parts
+
+        if "functional" in parts:
+            item.add_marker(pytest.mark.functional)
+
+        if "golden" in parts or item_path.name in {"golden_test.py", "test_golden.py"}:
+            item.add_marker(pytest.mark.golden)

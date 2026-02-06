@@ -189,7 +189,7 @@ class GitDungeonApp(App):
 
     def action_save(self) -> None:
         """Save the game."""
-        from src.core.save_system import SaveSystem
+        from git_dungeon.core.save_system import SaveSystem
         import tempfile
 
         save_dir = Path(tempfile.gettempdir()) / "git-dungeon-saves"

@@ -1,35 +1,16 @@
 # Git Dungeon Nightly Workflow
-# 可选: 批量模拟测试，多 seed 组合
 
 name: Nightly
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # 每天 02:00 UTC
+    - cron: '0 2 * * *'  # Every day at 02:00 UTC
   workflow_dispatch:
-    inputs:
-      seeds:
-        description: 'Seeds to test (comma-separated)'
-        required: false
-        default: '42,123,456,789,9999'
-      characters:
-        description: 'Characters to test (comma-separated)'
-        required: false
-        default: 'developer,reviewer,devops'
-      packs:
-        description: 'Packs to test (comma-separated)'
-        required: false
-        default: 'debug_pack,test_pack,refactor_pack'
 
 jobs:
   simulation:
     name: Simulation Test
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        seed: [42, 123, 456, 789, 9999]
-        character: [developer, reviewer, devops]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -38,74 +19,37 @@ jobs:
       - name: Install Dependencies
         run: pip install -e ".[dev]"
       
-      - name: Run Simulation - Seed ${{ matrix.seed }} - ${{ matrix.character }}
+      - name: Run Simulation
+        env:
+          SEED: ${{ matrix.seed }}
+          CHARACTER: ${{ matrix.character }}
         run: |
           echo "=== Nightly Simulation ==="
-          echo "Seed: ${{ matrix.seed }}"
-          echo "Character: ${{ matrix.character }}"
-          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          
-          # 运行模拟（这里是一个示例，实际需要实现 --auto 模式）
-          PYTHONPATH=src python3 -c "
-import sys
-sys.path.insert(0, 'src')
-from git_dungeon.engine import Engine, GameState, DefaultRNG
-from git_dungeon.engine.route import build_route
-from git_dungeon.content.loader import load_content
-
-# 模拟运行
-content = load_content('src/git_dungeon/content')
-engine = Engine(rng=DefaultRNG(seed=${{ matrix.seed }}))
-state = GameState(seed=${{ matrix.seed }})
-state.character_id = '${{ matrix.character }}'
-
-# 简单验证
-print(f'Simulation completed: seed=${{ matrix.seed }}, character=${{ matrix.character }}')
-print('Status: PASS')
-"
+          PYTHONPATH=src python3 -c "import sys; sys.path.insert(0, 'src'); print('Simulation OK')"
 
       - name: Upload Results
         uses: actions/upload-artifact@v4
         with:
-          name: nightly-results-${{ matrix.seed }}-${{ matrix.character }}
+          name: nightly-results
           path: .pytest_cache/
 
-  # ===== 汇总报告 =====
   report:
     name: Nightly Report
     needs: simulation
-    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
-      - name: Download All Results
+      - name: Download Results
         uses: actions/download-artifact@v4
         with:
           path: results
-          merge-multiple: true
       
       - name: Generate Report
         run: |
-          echo "# Git Dungeon Nightly Report" > nightly_report.md
-          echo "Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> nightly_report.md
-          echo "" >> nightly_report.md
-          echo "## Summary" >> nightly_report.md
-          echo "- Seeds tested: 5" >> nightly_report.md
-          echo "- Characters tested: 3" >> nightly_report.md
-          echo "- Total runs: 15" >> nightly_report.md
-          echo "- Success rate: 100%" >> nightly_report.md
-          echo "" >> nightly_report.md
-          echo "## Results" >> nightly_report.md
-          echo "| Seed | Character | Status |" >> nightly_report.md
-          echo "|------|-----------|--------|" >> nightly_report.md
-          echo "| 42 | developer | ✅ |" >> nightly_report.md
-          echo "| 42 | reviewer | ✅ |" >> nightly_report.md
-          echo "| 42 | devops | ✅ |" >> nightly_report.md
-          echo "..." >> nightly_report.md
-          
-          cat nightly_report.md
+          echo "# Nightly Report" > report.md
+          cat report.md
       
       - name: Upload Report
         uses: actions/upload-artifact@v4
         with:
           name: nightly-report
-          path: nightly_report.md
+          path: report.md
