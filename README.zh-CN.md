@@ -2,58 +2,31 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-将 Git 提交历史映射为可游玩的命令行 Roguelike 战斗游戏。
+将 Git 提交历史映射为可游玩的命令行 Roguelike。
 
-## 这个项目是做什么的
+## 项目是做什么的
 
-`Git Dungeon` 会把一个 Git 仓库的提交历史转换为“章节 + 敌人”战斗流程：
+`Git Dungeon` 会把仓库历史转换成一局可战斗流程：
 
-- 每个 commit 会映射为一场战斗敌人。
-- commit 类型（`feat`、`fix`、`merge`）会影响敌人风格和章节节奏。
-- 你通过战斗获得经验与金币，推进章节，最终通关整局。
-- 可选开启 M6 AI 文案，让章节/战斗/Boss 有动态旁白。
+- 每个 commit 对应一个敌人遭遇。
+- commit 类型（`feat`、`fix`、`docs`、`merge`）影响章节风格和节奏。
+- 战斗后获得 EXP/金币，升级并推进章节。
+- 可选 AI 文案增强叙事，同时保留可复现与降级能力。
 
-适合场景：
+适用场景：
 
-- 用游戏化方式浏览仓库历史。
-- 做 CLI / 规则引擎 / YAML 内容系统实验。
-- 作为测试驱动的 Python CLI 项目参考。
+- 以游戏化方式浏览项目历史。
+- 演示 Python CLI 中可复现玩法系统。
+- 作为测试驱动 roguelike 架构参考实现。
 
-## 当前能力
+## 玩法流程
 
-- 主流程已可用：仓库解析、章节推进、战斗、奖励结算。
-- 内容系统可用：`YAML` 默认内容 + `packs` 扩展。
-- 测试分层完整：`unit` / `functional` / `golden`。
-- M6 AI 文案已接入章节、战斗、商店、Boss 输出，具备缓存与回退策略。
+1. 解析仓库 commits。
+2. 构建章节与敌人。
+3. 进行战斗（手动或 `--auto` 自动策略）。
+4. 结算奖励并推进直到通关或失败。
 
-## 安装
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-```
-
-## 快速开始
-
-```bash
-# 运行当前目录仓库
-python -m git_dungeon.main .
-
-# 自动战斗 + 中文（支持 zh 别名）
-python -m git_dungeon.main . --auto --lang zh_CN
-# 或
-python -m git_dungeon.main . --auto --lang zh
-
-# 自动战斗（紧凑日志）+ 指标输出
-python -m git_dungeon.main . --auto --compact --metrics-out ./run_metrics.json
-python -m git_dungeon.main . --auto --compact --print-metrics
-
-# 安装后直接运行
-git-dungeon . --auto
-```
-
-## 实际输出示例（无 AI）
+## 输出示例（不启用 AI）
 
 ```text
 Loading repository...
@@ -62,74 +35,138 @@ Divided into 20 chapters:
   🔄 Chapter 0: 混沌初开 (initial)
   ⏳ Chapter 1: 修复时代 (fix)
 
-📖 第 1 章：混沌初开
-⚔️  混沌初开: fix bug
-👤 DEVELOPER (Lv.1)          👾 fix bug
-⚔️  You attack fix bug for 14 damage!
-💀 fix bug defeated!
-⭐ +19 EXP  |  💰 +9 Gold
+⚔️  混沌初开: fix bug [compact]
+T01 action=attack dealt=14 taken=3 hp=97/100 enemy=6/20
+T02 action=skill dealt=9 taken=0 hp=97/100 enemy=0/20 [KILL]
+   ✨[KILL] fix bug defeated
+📊 Metrics written: ./run_metrics.json
 ```
 
-## AI 文案（可选）
-
-```bash
-# 可复现（推荐 CI）
-python -m git_dungeon.main . --ai=on --ai-provider=mock
-
-# Gemini
-export GEMINI_API_KEY="your-key"
-python -m git_dungeon.main . --ai=on --ai-provider=gemini --lang zh_CN
-
-# OpenAI
-export OPENAI_API_KEY="your-key"
-python -m git_dungeon.main . --ai=on --ai-provider=openai --lang zh_CN
-```
-
-AI 输出示例：
+## 输出示例（启用 AI）
 
 ```text
-[AI] enabled provider=gemini
-[AI] prefetch auto-adjusted: chapter -> off (gemini free-tier safety)
-🧠 一个 BUG 修复潜伏在此。
-🧠 战斗开始！
-⚔️  修复时代: fix unit test bug
+[AI] enabled provider=mock
+🧠 一个 fix 类型敌人正在逼近，能量波动异常。
+🧠 战斗开始，准备你的下一步行动。
+⚔️  混沌初开: fix parser bug
+T01 action=skill dealt=16 taken=0 hp=100/100 enemy=4/20 [CRIT]
 ...
-[AI] Gemini rate limit: HTTP Error 429: Too Many Requests. Falling back to mock for ~60s
-🧠 你踏入量子领域，四周弥漫着脉动气息。
 ```
 
-如果看不到 `🧠` 文案：
+## 当前版本
 
-- 确认参数包含 `--ai=on`。
-- 中文建议显式传 `--lang zh_CN`（或 `--lang zh`）。
-- 如缓存了旧结果可先执行 `make ai-cache-clear`。
+- `1.2.0`
+- 版本策略：`SemVer`
+- 升级说明：`CHANGELOG.md`
 
-Gemini 说明：
+## 快速开始（3 步）
 
-- 免费层保护：prefetch 会自动降级为 `off`。
-- 遇到 HTTP 429：会进入冷却窗口并临时回退到 mock 文案。
-- 可调环境变量：`GEMINI_MAX_RPM`（默认 `8`）、`GEMINI_RATE_LIMIT_COOLDOWN`（默认 `60`）。
+1. 创建并激活干净虚拟环境。
 
-## 开发与测试
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+2. 从 wheel 安装。
+
+```bash
+python -m pip install --upgrade pip build
+python -m build --wheel
+pip install dist/*.whl
+```
+
+3. 运行可复现 demo。
+
+```bash
+git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
+```
+
+推荐第一条体验命令（约 1 分钟）：
+
+```bash
+git-dungeon . --seed 42 --auto --compact --print-metrics
+```
+
+## 常用参数
+
+- `--auto`：自动战斗决策。
+- `--compact`：每回合紧凑摘要输出。
+- `--metrics-out <path>`：输出指标 JSON。
+- `--print-metrics`：打印本局指标摘要。
+- `--seed <int>`：固定随机种子。
+- `--ai=off|on --ai-provider=mock|gemini|openai`：AI 文案开关与提供方。
+
+## AI 文案示例（可选）
+
+使用可复现的 mock 提供方开启 AI 文案：
+
+```bash
+git-dungeon . --ai=on --ai-provider=mock --auto --compact
+```
+
+启用 Gemini：
+
+```bash
+export GEMINI_API_KEY="your-key"
+git-dungeon . --ai=on --ai-provider=gemini --lang zh_CN
+```
+
+启用 OpenAI：
+
+```bash
+export OPENAI_API_KEY="your-key"
+git-dungeon . --ai=on --ai-provider=openai --lang zh_CN
+```
+
+示例输出：
+
+```text
+[AI] enabled provider=mock
+🧠 一个 fix 类型敌人正在逼近，能量波动异常。
+🧠 战斗开始，准备你的下一步行动。
+⚔️  混沌初开: fix parser bug
+...
+```
+
+`mock` 适合 CI 与离线演示；远端 provider 限流时会安全降级。详见 `docs/AI_TEXT.md`。
+
+## 存档目录
+
+默认：
+
+- `~/.local/share/git-dungeon`
+
+可覆盖：
+
+```bash
+export GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-saves
+```
+
+## Demo 命令
+
+```bash
+git-dungeon . --auto
+git-dungeon . --seed 42 --auto --compact --print-metrics
+git-dungeon . --auto --lang zh_CN
+```
+
+## 开发命令
 
 ```bash
 make lint
 make test
 make test-func
 make test-golden
-```
-
-## 目录结构
-
-```text
-src/git_dungeon/     # 主代码
-tests/               # unit / functional / golden / integration
-docs/                # 当前有效文档
-Makefile             # 常用命令
+make build-wheel
+make smoke-install
 ```
 
 ## 文档
 
+- `CHANGELOG.md`
+- `docs/FAQ.md`
+- `docs/perf.md`
 - `docs/AI_TEXT.md`
 - `docs/TESTING_FRAMEWORK.md`
 

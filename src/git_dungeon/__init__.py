@@ -8,4 +8,4 @@ try:
     from importlib.metadata import version
     __version__ = version("git-dungeon")
 except Exception:
-    __version__ = "1.0.0"  # Fallback
+    __version__ = "1.2.0+dev"  # Fallback

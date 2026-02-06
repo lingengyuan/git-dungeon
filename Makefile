@@ -1,7 +1,7 @@
 # Git Dungeon Makefile
 # 简化开发、测试、发布流程
 
-.PHONY: help test test-unit test-functional test-all test-golden test-golden-update run lint format clean test-m6 ai-cache-clear bench perf-smoke
+.PHONY: help test test-unit test-functional test-all test-golden test-golden-update run lint format clean test-m6 ai-cache-clear bench perf-smoke build-wheel smoke-install
 
 # 默认帮助
 help:
@@ -17,6 +17,8 @@ help:
 	@echo "  make test-golden-update - 更新 golden 快照"
 	@echo "  make bench        - 运行性能基线 benchmark"
 	@echo "  make perf-smoke   - 小数据集性能烟雾检测"
+	@echo "  make build-wheel  - 构建 wheel 包"
+	@echo "  make smoke-install - wheel 安装烟雾测试"
 	@echo ""
 	@echo "AI/Cache 命令:"
 	@echo "  make test-m6              - 运行 M6 AI 测试"
@@ -100,6 +102,17 @@ bench:
 perf-smoke:
 	PYTHONPATH=src python3 -m benchmarks.run --dataset small --iterations 2 \
 		--output-json benchmarks/output/perf_smoke.json --perf-smoke
+
+build-wheel:
+	python3 -m pip install --upgrade pip
+	python3 -m pip install build
+	python3 -m build --wheel
+
+smoke-install: build-wheel
+	python3 -m venv .venv-smoke
+	.venv-smoke/bin/python -m pip install --upgrade pip
+	.venv-smoke/bin/pip install dist/*.whl
+	bash scripts/ci_smoke_demo.sh .venv-smoke/bin/git-dungeon
 
 # 安装开发依赖
 dev-install:
