@@ -22,6 +22,7 @@ class GameConfig(BaseModel):
 
     # Base settings
     repo_path: str = "./"
+    save_dir: Optional[str] = None
     difficulty: Difficulty = Difficulty.NORMAL
 
     # Resource limits

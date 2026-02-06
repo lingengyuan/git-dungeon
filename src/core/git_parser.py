@@ -368,59 +368,64 @@ class GitParser:
                 deletions=0,
                 files_changed=0,
             )
-        
-        def _get_file_changes_fast(self, commit_hash: str) -> list[FileChange]:
-            """Get file changes using subprocess (faster)."""
-            file_changes = []
-            
-            try:
-                cmd = [
-                    'git', 'show',
-                    '--name-status',
-                    '--pretty=format:',
-                    '-1',
-                    commit_hash,
-                ]
-                
-                result = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    cwd=self._repo.working_tree_dir,
-                    timeout=2,
-                )
-                
-                for line in result.stdout.split('\n'):
-                    if not line or line.startswith(':'):
-                        continue
-                    
-                    parts = line.split(maxsplit=1)
-                    if len(parts) >= 2:
-                        status = parts[0]
-                        filepath = parts[1]
-                        
-                        if status == 'A':
-                            change_type = 'A'
-                        elif status == 'D':
-                            change_type = 'D'
-                        elif status == 'M':
-                            change_type = 'M'
-                        elif status.startswith('R'):
-                            change_type = 'R'
-                        else:
-                            change_type = 'M'
-                        
-                        file_changes.append(FileChange(
+
+    def _get_file_changes_fast(self, commit_hash: str) -> list[FileChange]:
+        """Get file changes using subprocess (faster)."""
+        if self._repo is None:
+            return []
+
+        file_changes = []
+
+        try:
+            cmd = [
+                "git", "show",
+                "--name-status",
+                "--pretty=format:",
+                "-1",
+                commit_hash,
+            ]
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=self._repo.working_tree_dir,
+                timeout=2,
+            )
+
+            for line in result.stdout.split("\n"):
+                if not line or line.startswith(":"):
+                    continue
+
+                parts = line.split(maxsplit=1)
+                if len(parts) >= 2:
+                    status = parts[0]
+                    filepath = parts[1]
+
+                    if status == "A":
+                        change_type = "A"
+                    elif status == "D":
+                        change_type = "D"
+                    elif status == "M":
+                        change_type = "M"
+                    elif status.startswith("R"):
+                        change_type = "R"
+                    else:
+                        change_type = "M"
+
+                    file_changes.append(
+                        FileChange(
                             filepath=filepath,
                             change_type=change_type,
                             additions=0,  # Would need another call
                             deletions=0,
-                        ))
-            
-            except Exception:
-                pass
-            
-            return file_changes
+                        )
+                    )
+
+        except Exception:
+            pass
+
+        return file_changes
 
 
 def parse_commit_info(

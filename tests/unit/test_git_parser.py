@@ -1,5 +1,6 @@
 """Unit tests for git_parser module."""
 
+import subprocess
 import pytest
 from unittest.mock import patch, MagicMock
 
@@ -138,6 +139,41 @@ class TestGitParser:
 
         assert result.message == "Test commit message"
         assert result.author == "Test Author"
+
+    def test_include_file_changes_loads_changes_from_repo(self, tmp_path):
+        """include_file_changes=True should load non-empty file changes."""
+        repo_path = tmp_path / "repo"
+        repo_path.mkdir()
+
+        def git(*args: str) -> None:
+            subprocess.run(["git", *args], cwd=repo_path, check=True, capture_output=True, text=True)
+
+        git("init")
+        git("config", "user.email", "test@example.com")
+        git("config", "user.name", "Test User")
+
+        file_path = repo_path / "story.txt"
+        file_path.write_text("line 1\n", encoding="utf-8")
+        git("add", "story.txt")
+        git("commit", "-m", "feat: add story")
+
+        file_path.write_text("line 1\nline 2\n", encoding="utf-8")
+        git("add", "story.txt")
+        git("commit", "-m", "fix: update story")
+
+        parser = GitParser()
+        assert parser.load_repository(str(repo_path)) is True
+
+        commits = parser.get_commit_history(include_file_changes=True)
+        all_changes = [change for commit in commits for change in commit.get_file_changes()]
+
+        assert len(commits) >= 2
+        assert all_changes, "Expected at least one file change when include_file_changes=True"
+
+        sample = all_changes[0]
+        assert isinstance(sample, FileChange)
+        assert sample.filepath
+        assert sample.change_type in {"A", "M", "D", "R"}
 
 
 class TestFileChange:

@@ -56,7 +56,7 @@ class GameState:
         # Initialize systems
         self.resource_manager = ResourceManager(self.config)
         self.combat_system = CombatSystem(self.config)
-        self.save_system = SaveSystem()
+        self.save_system = SaveSystem(save_dir=self.config.save_dir)
 
         # Create player if not exists
         if self.player is None:

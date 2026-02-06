@@ -135,39 +135,49 @@ def test_save_and_load_game():
     print("\n=== Save/Load Game Test ===")
     
     with tempfile.TemporaryDirectory() as tmpdir:
+        save_dir = os.path.join(tmpdir, "saves")
+        prev_save_dir = os.environ.get("GIT_DUNGEON_SAVE_DIR")
+        os.environ["GIT_DUNGEON_SAVE_DIR"] = save_dir
+
         repo_path = os.path.join(tmpdir, "test_repo")
         create_test_repo(repo_path)
-        
-        # Load and play a bit
-        state = GameState()
-        state.load_repository(repo_path)
-        
-        # Get initial player stats
-        char = state.player.get_component(CharacterComponent)
-        
-        # Gain some experience
-        char.gain_experience(150)
-        print(f"  Before save: Level {char.level}, Exp {char._total_exp_gained}")
-        
-        # Save
-        result = state.save_game(0)
-        print(f"  Save result: {result}")
-        assert result, "Save should succeed"
-        
-        # Load into new state
-        new_state = GameState()
-        result = new_state.load_game(0)
-        print(f"  Load result: {result}")
-        assert result, "Load should succeed"
-        
-        new_char = new_state.player.get_component(CharacterComponent)
-        print(f"  After load: Level {new_char.level}, Exp {new_char._total_exp_gained}")
-        
-        # Check progress was saved
-        assert new_char.level == char.level, "Level should be preserved"
-        assert new_char._total_exp_gained == char._total_exp_gained, "Exp should be preserved"
-        
-        print("  ✓ Save/load game test passed!")
+        try:
+            # Load and play a bit
+            state = GameState()
+            state.load_repository(repo_path)
+
+            # Get initial player stats
+            char = state.player.get_component(CharacterComponent)
+
+            # Gain some experience
+            char.gain_experience(150)
+            print(f"  Before save: Level {char.level}, Exp {char._total_exp_gained}")
+
+            # Save
+            result = state.save_game(0)
+            print(f"  Save result: {result}")
+            assert result, "Save should succeed"
+            assert os.path.exists(os.path.join(save_dir, "save_0.json"))
+
+            # Load into new state
+            new_state = GameState()
+            result = new_state.load_game(0)
+            print(f"  Load result: {result}")
+            assert result, "Load should succeed"
+
+            new_char = new_state.player.get_component(CharacterComponent)
+            print(f"  After load: Level {new_char.level}, Exp {new_char._total_exp_gained}")
+
+            # Check progress was saved
+            assert new_char.level == char.level, "Level should be preserved"
+            assert new_char._total_exp_gained == char._total_exp_gained, "Exp should be preserved"
+
+            print("  ✓ Save/load game test passed!")
+        finally:
+            if prev_save_dir is None:
+                os.environ.pop("GIT_DUNGEON_SAVE_DIR", None)
+            else:
+                os.environ["GIT_DUNGEON_SAVE_DIR"] = prev_save_dir
 
 
 def test_combat_edge_cases():

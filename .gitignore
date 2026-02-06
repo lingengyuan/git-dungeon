@@ -67,5 +67,6 @@ test_screenshots.txt
 # Git Dungeon specific
 .git_dungeon_cache/
 AGENTS.md
-plan.md
 .env
+docs/
+
