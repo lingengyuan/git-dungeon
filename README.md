@@ -45,6 +45,10 @@ python -m git_dungeon.main . --auto --lang zh_CN
 # or
 python -m git_dungeon.main . --auto --lang zh
 
+# Auto battle with compact logs + metrics
+python -m git_dungeon.main . --auto --compact --metrics-out ./run_metrics.json
+python -m git_dungeon.main . --auto --compact --print-metrics
+
 # Installed command
 git-dungeon . --auto
 ```

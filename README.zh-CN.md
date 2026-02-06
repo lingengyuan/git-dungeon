@@ -45,6 +45,10 @@ python -m git_dungeon.main . --auto --lang zh_CN
 # 或
 python -m git_dungeon.main . --auto --lang zh
 
+# 自动战斗（紧凑日志）+ 指标输出
+python -m git_dungeon.main . --auto --compact --metrics-out ./run_metrics.json
+python -m git_dungeon.main . --auto --compact --print-metrics
+
 # 安装后直接运行
 git-dungeon . --auto
 ```
