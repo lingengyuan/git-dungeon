@@ -33,6 +33,8 @@ def test_help_includes_ai_arguments():
     assert result.returncode == 0, result.stderr
     assert "--ai-provider" in result.stdout
     assert "--ai-cache" in result.stdout
+    assert "--compact" in result.stdout
+    assert "--metrics-out" in result.stdout
 
 
 def test_invalid_lang_is_rejected():

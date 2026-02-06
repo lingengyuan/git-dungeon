@@ -24,7 +24,10 @@ class GitDungeonAICLI:
         self,
         seed: Optional[int] = None,
         verbose: bool = False,
+        compact: bool = False,
         auto_mode: bool = False,
+        metrics_out: Optional[str] = None,
+        print_metrics: bool = False,
         lang: str = "en",
         ai_enabled: bool = False,
         ai_provider: str = "mock",
@@ -51,7 +54,10 @@ class GitDungeonAICLI:
         self._base_cli: Any = GitDungeonCLI(
             seed=seed,
             verbose=verbose,
+            compact=compact,
             auto_mode=auto_mode,
+            metrics_out=metrics_out,
+            print_metrics=print_metrics,
             lang=self.lang,
         )
 
@@ -424,7 +430,10 @@ def create_ai_cli_from_args(args: argparse.Namespace) -> GitDungeonAICLI:
     return GitDungeonAICLI(
         seed=args.seed,
         verbose=args.verbose,
+        compact=getattr(args, "compact", False),
         auto_mode=getattr(args, "auto", False),
+        metrics_out=getattr(args, "metrics_out", None),
+        print_metrics=getattr(args, "print_metrics", False),
         lang=args.lang,
         ai_enabled=(args.ai == "on"),
         ai_provider=args.ai_provider,
