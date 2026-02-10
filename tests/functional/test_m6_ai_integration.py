@@ -39,6 +39,21 @@ class TestCLIArgs:
         # Client is created but will fallback when used
         assert client is not None
 
+    def test_copilot_client_no_key(self):
+        """Copilot client should work without token (falls back to mock internally)."""
+        client = create_ai_client("copilot", api_key=None)
+        assert client is not None
+
+    def test_copilot_model_override(self):
+        """Copilot client should accept explicit model override."""
+        client = create_ai_client("copilot", api_key="ghp-test", model="openai/o4-mini")
+        assert client.name == "copilot/openai/o4-mini"
+
+    def test_gemini_model_override(self):
+        """Gemini client should accept explicit model override."""
+        client = create_ai_client("gemini", api_key="test-key", model="gemini-2.0-flash")
+        assert client.name == "gemini/gemini-2.0-flash"
+
 
 class TestAIIntegration:
     """Test AI integration with game flow."""
@@ -250,6 +265,12 @@ class TestEnvironmentVariables:
         with patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test-123"}):
             # This will fallback to mock if openai package not installed
             client = create_ai_client("openai", api_key=None)
+            assert client is not None
+
+    def test_copilot_key_from_env(self):
+        """Test Copilot token is read from environment."""
+        with patch.dict(os.environ, {"GITHUB_TOKEN": "ghp_test_123"}):
+            client = create_ai_client("copilot", api_key=None)
             assert client is not None
     
     def test_no_hardcoded_keys(self):

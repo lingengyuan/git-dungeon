@@ -147,17 +147,29 @@ def _trim_to_limit(text: str, limit: int) -> str:
 
 def _clean_special_chars(text: str) -> str:
     """Remove problematic special characters."""
-    keep_chars = set(
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "0123456789"
-        " \t!@#$%^&*()_+-=[]{};':\",./<>?°•·—"
-        "中文汉字繁体简体"
-    )
+    zh_punctuation = set("，。！？；：（）《》【】、“”‘’—…·「」『』")
     result = []
     for char in text:
-        if char in keep_chars or ord(char) < 128:
-            if char in "，。！？；：" :
-                result.append(char)
-            else:
-                result.append(" " if ord(char) >= 128 else char)
+        code = ord(char)
+        if code < 128:
+            result.append(char)
+            continue
+        if _is_cjk_char(code) or char in zh_punctuation:
+            result.append(char)
+            continue
+        if char.isspace():
+            result.append(" ")
     return "".join(result)
+
+
+def _is_cjk_char(codepoint: int) -> bool:
+    """Return True for common CJK blocks used by zh_CN output."""
+    return (
+        0x4E00 <= codepoint <= 0x9FFF  # CJK Unified Ideographs
+        or 0x3400 <= codepoint <= 0x4DBF  # CJK Extension A
+        or 0x20000 <= codepoint <= 0x2A6DF  # CJK Extension B
+        or 0x2A700 <= codepoint <= 0x2B73F  # CJK Extension C
+        or 0x2B740 <= codepoint <= 0x2B81F  # CJK Extension D
+        or 0x2B820 <= codepoint <= 0x2CEAF  # CJK Extension E/F
+        or 0xF900 <= codepoint <= 0xFAFF  # CJK Compatibility Ideographs
+    )

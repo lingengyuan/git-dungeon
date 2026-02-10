@@ -43,6 +43,9 @@ Enable remote providers:
 ```bash
 git-dungeon . --ai=on --ai-provider=gemini
 git-dungeon . --ai=on --ai-provider=openai
+git-dungeon . --ai=on --ai-provider=copilot
+# optional: override provider model id
+git-dungeon . --ai=on --ai-provider=copilot --ai-model=openai/o4-mini
 ```
 
 If rate limit is hit (for example HTTP 429), the system degrades to safe fallback text temporarily.

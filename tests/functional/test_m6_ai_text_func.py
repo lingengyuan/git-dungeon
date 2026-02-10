@@ -269,6 +269,13 @@ class TestSanitization:
         assert result == ""
         assert meta["reason"] == "empty_input"
 
+    def test_keep_zh_cn_content(self):
+        """Chinese output should be preserved instead of stripped."""
+        text = "神秘的商品陈列在货架上。"
+        result, meta = sanitize_text(text, TextKind.EVENT_FLAVOR)
+        assert result == text
+        assert meta["sanitized"] is True
+
 
 class TestFallbacks:
     """Test fallback template system."""

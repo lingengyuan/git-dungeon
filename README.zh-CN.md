@@ -95,7 +95,8 @@ git-dungeon . --seed 42 --auto --compact --print-metrics
 - `--metrics-out <path>`：输出指标 JSON。
 - `--print-metrics`：打印本局指标摘要。
 - `--seed <int>`：固定随机种子。
-- `--ai=off|on --ai-provider=mock|gemini|openai`：AI 文案开关与提供方。
+- `--ai=off|on --ai-provider=mock|gemini|openai|copilot`：AI 文案开关与提供方。
+- `--ai-model <id>`：覆盖远端 provider 默认模型，例如 `openai/o4-mini`。
 
 ## 内容包与挑战模式
 
@@ -152,6 +153,15 @@ git-dungeon . --ai=on --ai-provider=gemini --lang zh_CN
 ```bash
 export OPENAI_API_KEY="your-key"
 git-dungeon . --ai=on --ai-provider=openai --lang zh_CN
+```
+
+启用 Copilot / GitHub Models：
+
+```bash
+export GITHUB_TOKEN="ghp_xxx"
+# 可选：指定 GitHub Models 模型 ID
+export GITHUB_MODELS_MODEL="openai/gpt-4.1-mini"
+git-dungeon . --ai=on --ai-provider=copilot --ai-model=openai/o4-mini --lang zh_CN
 ```
 
 示例输出：

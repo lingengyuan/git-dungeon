@@ -17,9 +17,10 @@ python -m git_dungeon . --ai=on --ai-provider=mock
 可用参数：
 
 - `--ai`: `on/off`（默认 `off`）
-- `--ai-provider`: `mock/gemini/openai`（默认 `mock`）
+- `--ai-provider`: `mock/gemini/openai/copilot`（默认 `mock`）
 - `--ai-cache`: 缓存目录（默认 `.git_dungeon_cache`）
 - `--ai-timeout`: API 超时（默认 `5`）
+- `--ai-model`: 覆盖 provider 默认模型（可选）
 - `--ai-prefetch`: `chapter/run/off`（文案预取策略）
 
 ### 2) Providers
@@ -28,6 +29,16 @@ python -m git_dungeon . --ai=on --ai-provider=mock
 - `mock`: 确定性伪随机文本（CI 推荐）
 - `gemini`: 读取 `GEMINI_API_KEY`
 - `openai`: 读取 `OPENAI_API_KEY`（依赖 `openai` 包）
+- `copilot`: 读取 `GITHUB_TOKEN`/`GH_TOKEN`/`GITHUB_MODELS_TOKEN`，调用 GitHub Models 接口
+
+Copilot 示例：
+
+```bash
+export GITHUB_TOKEN="ghp_xxx"
+# 可选：指定模型（默认 openai/gpt-4.1-mini）
+export GITHUB_MODELS_MODEL="openai/gpt-4.1-mini"
+python -m git_dungeon . --ai=on --ai-provider=copilot --ai-model=openai/o4-mini
+```
 
 ### 3) Runtime Integration（已接入主流程）
 

@@ -35,6 +35,7 @@ class GitDungeonAICLI:
         daily_info: Optional[DailyChallengeInfo] = None,
         ai_enabled: bool = False,
         ai_provider: str = "mock",
+        ai_model: Optional[str] = None,
         ai_cache_dir: str = ".git_dungeon_cache",
         ai_timeout: int = 5,
         ai_prefetch: str = "chapter",
@@ -43,6 +44,7 @@ class GitDungeonAICLI:
         self.lang = normalize_lang(lang)
         self.ai_enabled = ai_enabled
         self.ai_provider = ai_provider
+        self.ai_model = ai_model
         self.ai_cache_dir = ai_cache_dir
         self.ai_prefetch_requested = ai_prefetch
         self.ai_prefetch_auto_adjusted = False
@@ -69,7 +71,11 @@ class GitDungeonAICLI:
         )
 
         provider = ai_provider if ai_enabled else "off"
-        self.ai_client = create_ai_client(provider=provider, timeout=ai_timeout)
+        self.ai_client = create_ai_client(
+            provider=provider,
+            timeout=ai_timeout,
+            model=ai_model,
+        )
         self.ai_cache = TextCache(cache_dir=ai_cache_dir, backend="sqlite")
         self.ai_aggregator: Optional[AIAggregator] = None
 
@@ -407,6 +413,8 @@ class GitDungeonAICLI:
     def print_ai_status(self) -> None:
         if self.ai_enabled:
             print(f"\n[AI] enabled provider={self.ai_provider}")
+            if self.ai_model:
+                print(f"[AI] model={self.ai_model}")
             stats = self.ai_cache.get_stats()
             print(f"[AI] cache entries={stats.get('entries', 0)} backend={stats.get('backend')}")
             print(f"[AI] content_version={self._content_version}")
@@ -452,6 +460,7 @@ def create_ai_cli_from_args(args: argparse.Namespace) -> GitDungeonAICLI:
         daily_info=daily_info,
         ai_enabled=(args.ai == "on"),
         ai_provider=args.ai_provider,
+        ai_model=getattr(args, "ai_model", None),
         ai_cache_dir=args.ai_cache,
         ai_timeout=args.ai_timeout,
         ai_prefetch=args.ai_prefetch,
