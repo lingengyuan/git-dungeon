@@ -32,6 +32,8 @@ def test_help_includes_ai_arguments():
     result = _run_module("git_dungeon.main", "--help")
     assert result.returncode == 0, result.stderr
     assert "--ai-provider" in result.stdout
+    assert "--ai-model" in result.stdout
+    assert "copilot" in result.stdout
     assert "--ai-cache" in result.stdout
     assert "--compact" in result.stdout
     assert "--metrics-out" in result.stdout
@@ -54,6 +56,7 @@ def test_ai_args_are_parsed_by_real_cli():
         "/definitely/missing/repo",
         "--ai=on",
         "--ai-provider=mock",
+        "--ai-model=gemini-2.0-flash",
     )
     assert result.returncode == 1
     combined = f"{result.stdout}\n{result.stderr}"

@@ -102,7 +102,8 @@ git-dungeon . --seed 42 --auto --compact --print-metrics
 - `--metrics-out <path>`: write metrics JSON.
 - `--print-metrics`: print run summary.
 - `--seed <int>`: deterministic run seed.
-- `--ai=off|on --ai-provider=mock|gemini|openai`: AI flavor text control.
+- `--ai=off|on --ai-provider=mock|gemini|openai|copilot`: AI flavor text control.
+- `--ai-model <id>`: override remote provider model id, e.g. `openai/o4-mini`.
 
 ## Content Packs and Challenges
 
@@ -159,6 +160,15 @@ Enable OpenAI:
 ```bash
 export OPENAI_API_KEY="your-key"
 git-dungeon . --ai=on --ai-provider=openai --lang zh_CN
+```
+
+Enable Copilot/GitHub Models:
+
+```bash
+export GITHUB_TOKEN="ghp_xxx"
+# Optional: pick your GitHub Models model id
+export GITHUB_MODELS_MODEL="openai/gpt-4.1-mini"
+git-dungeon . --ai=on --ai-provider=copilot --ai-model=openai/o4-mini --lang zh_CN
 ```
 
 Example AI lines:

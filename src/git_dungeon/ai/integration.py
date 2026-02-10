@@ -26,7 +26,7 @@ def add_ai_args(parser: argparse.ArgumentParser) -> None:
     )
     ai_group.add_argument(
         "--ai-provider",
-        choices=["mock", "gemini", "openai"],
+        choices=["mock", "gemini", "openai", "copilot"],
         default="mock",
         help="AI provider (default: mock)"
     )
@@ -43,6 +43,12 @@ def add_ai_args(parser: argparse.ArgumentParser) -> None:
         help="AI API timeout in seconds (default: 5)"
     )
     ai_group.add_argument(
+        "--ai-model",
+        type=str,
+        default=None,
+        help="AI model id override for remote providers (default: provider preset)"
+    )
+    ai_group.add_argument(
         "--ai-prefetch",
         choices=["chapter", "run", "off"],
         default="chapter",
@@ -53,15 +59,17 @@ def add_ai_args(parser: argparse.ArgumentParser) -> None:
 def create_ai_client(
     provider: str,
     api_key: Optional[str] = None,
-    timeout: int = 5
+    timeout: int = 5,
+    model: Optional[str] = None,
 ):
     """
     Create AI client based on provider.
     
     Args:
-        provider: Provider name (mock/gemini/openai)
+        provider: Provider name (mock/gemini/openai/copilot)
         api_key: API key (reads from env if not provided)
         timeout: Request timeout
+        model: Optional provider model override
         
     Returns:
         AIClient instance
@@ -84,7 +92,8 @@ def create_ai_client(
         elif api_key:
             actual_key = api_key
         
-        return GeminiAIClient(api_key=actual_key, timeout=timeout)
+        gemini_model = model or "gemini-2.5-flash"
+        return GeminiAIClient(api_key=actual_key, timeout=timeout, model=gemini_model)
     
     elif provider == "openai":
         import os
@@ -92,9 +101,28 @@ def create_ai_client(
         
         try:
             from git_dungeon.ai.client_openai import OpenAIClient
-            return OpenAIClient(api_key=openai_key, timeout=timeout)
+            openai_model = model or "gpt-4o-mini"
+            return OpenAIClient(api_key=openai_key, timeout=timeout, model=openai_model)
         except ImportError:
             print("[AI] Warning: openai package not installed, falling back to mock")
+            return MockAIClient()
+
+    elif provider == "copilot":
+        import os
+        copilot_key = (
+            api_key
+            or os.environ.get("GITHUB_TOKEN")
+            or os.environ.get("GH_TOKEN")
+            or os.environ.get("GITHUB_MODELS_TOKEN")
+        )
+
+        try:
+            from git_dungeon.ai.client_copilot import CopilotAIClient
+
+            copilot_model = model or "openai/gpt-4.1-mini"
+            return CopilotAIClient(api_key=copilot_key, timeout=timeout, model=copilot_model)
+        except ImportError:
+            print("[AI] Warning: copilot client unavailable, falling back to mock")
             return MockAIClient()
     
     else:

@@ -3,6 +3,7 @@
 from types import SimpleNamespace
 
 from git_dungeon.ai import TextKind, TextRequest, TextResponse
+from git_dungeon.ai.client_copilot import CopilotAIClient
 from git_dungeon.ai.client_gemini import GeminiAIClient
 from git_dungeon.ai.client_openai import OpenAIClient
 
@@ -25,6 +26,12 @@ def test_gemini_prompt_vars_exclude_lang():
 
 def test_openai_prompt_vars_exclude_lang():
     client = OpenAIClient(api_key="dummy-key")
+    vars = client._build_prompt_vars(_battle_start_request())
+    assert "lang" not in vars
+
+
+def test_copilot_prompt_vars_exclude_lang():
+    client = CopilotAIClient(api_key="dummy-key")
     vars = client._build_prompt_vars(_battle_start_request())
     assert "lang" not in vars
 
@@ -55,6 +62,16 @@ def test_openai_generate_one_no_lang_conflict():
 
     assert response.text != ""
     assert response.provider.startswith("openai/")
+
+
+def test_copilot_generate_one_no_lang_conflict(monkeypatch):
+    client = CopilotAIClient(api_key="dummy-key")
+    monkeypatch.setattr(client, "_call_api", lambda _messages: "The battle begins.")
+
+    response = client._generate_one(_battle_start_request())
+
+    assert response.text != ""
+    assert response.provider.startswith("copilot/")
 
 
 def test_gemini_429_enters_cooldown_and_fallbacks(monkeypatch):

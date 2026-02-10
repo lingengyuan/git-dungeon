@@ -115,3 +115,30 @@ def test_lang_alias_zh_normalized_to_zh_cn():
     cli = GitDungeonAICLI(ai_enabled=True, ai_provider="mock", lang="zh")
     assert cli.lang == "zh_CN"
     assert cli._base_cli.lang == "zh_CN"
+
+
+def test_ai_model_is_forwarded_to_client_factory(monkeypatch):
+    """`ai_model` should be passed to `create_ai_client`."""
+    captured: dict[str, str | None] = {}
+
+    class DummyClient:
+        @property
+        def name(self) -> str:
+            return "dummy"
+
+        def generate_batch(self, requests):
+            return []
+
+        def health_check(self) -> bool:
+            return True
+
+    def _fake_create_ai_client(provider, api_key=None, timeout=5, model=None):
+        captured["provider"] = provider
+        captured["model"] = model
+        return DummyClient()
+
+    monkeypatch.setattr("git_dungeon.main_cli_ai.create_ai_client", _fake_create_ai_client)
+
+    GitDungeonAICLI(ai_enabled=True, ai_provider="copilot", ai_model="openai/o4-mini")
+    assert captured["provider"] == "copilot"
+    assert captured["model"] == "openai/o4-mini"
