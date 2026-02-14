@@ -67,7 +67,6 @@ lint:
 # 代码格式化
 format:
 	PYTHONPATH=src python3 -m ruff format src/ tests/
-	PYTHONPATH=src python3 -m black src/ tests/
 
 # 清理
 clean:
@@ -117,7 +116,7 @@ smoke-install: build-wheel
 # 安装开发依赖
 dev-install:
 	pip install -e ".[dev]"
-	pip install ruff mypy black pytest pytest-asyncio
+	pip install ruff mypy pytest pytest-asyncio
 
 # 安装预提交 hook
 pre-commit-install:
