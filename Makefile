@@ -120,4 +120,5 @@ dev-install:
 
 # 安装预提交 hook
 pre-commit-install:
-	pre-commit install
+	pre-commit install --hook-type pre-commit
+	pre-commit install --hook-type pre-push

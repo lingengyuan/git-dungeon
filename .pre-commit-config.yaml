@@ -1,5 +1,5 @@
 # Pre-commit hooks for Git Dungeon
-# 安装: pip install pre-commit && pre-commit install
+# 安装: pip install pre-commit && pre-commit install --hook-type pre-commit --hook-type pre-push
 
 repos:
   # ===== 代码质量 =====
@@ -9,7 +9,7 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
-  
+
   # ===== 类型检查 =====
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
@@ -18,7 +18,7 @@ repos:
         additional_dependencies:
           - pydantic>=2.0
         args: [--ignore-missing-imports, --strict]
-  
+
   # ===== YAML 检查 =====
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -29,20 +29,27 @@ repos:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
-      - id: name-files-test
-        args: ['tests/**/*.py']
-  
+      - id: name-tests-test
+
   # ===== 测试相关 =====
   - repo: local
     hooks:
       # 检查测试文件有对应的 golden 快照（如果需要）
       - id: check-test-structure
         name: Check Test Structure
-        entry: python tests/harness/check_test_structure.py
+        entry: bash -lc 'PYTHONPATH=. python3 tests/harness/check_test_structure.py'
         language: system
         pass_filenames: false
         always_run: true
-  
+      # 推送前强制运行快速单元测试
+      - id: run-unit-tests-pre-push
+        name: Run Unit Tests Before Push
+        entry: make test
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
   # ===== 安全检查 =====
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -51,7 +58,7 @@ repos:
       - id: check-ast
         files: '\.py$'
       - id: forbid-new-submodules
-  
+
   # ===== Git 相关 =====
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -69,7 +76,7 @@ exclude: |
 
 # 默认配置
 default_language_version:
-  python: python3.11
+  python: python3
 
 # Stages（可选）
 # stages: [pre-commit, pre-push, manual]
