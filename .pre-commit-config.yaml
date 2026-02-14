@@ -44,7 +44,7 @@ repos:
       # 推送前强制运行快速单元测试
       - id: run-unit-tests-pre-push
         name: Run Unit Tests Before Push
-        entry: make test
+        entry: bash -lc 'PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not golden and not slow" -v --tb=short -q'
         language: system
         pass_filenames: false
         always_run: true
