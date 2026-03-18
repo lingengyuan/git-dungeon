@@ -46,9 +46,10 @@ class GameConfig(BaseModel):
 def load_config(config_path: Optional[Path] = None) -> GameConfig:
     """Load configuration from file or use defaults."""
     if config_path and config_path.exists():
-        import toml
+        import tomllib
 
-        config_data = toml.load(config_path)
+        with open(config_path, "rb") as f:
+            config_data = tomllib.load(f)
         return GameConfig(**config_data)
 
     return GameConfig()

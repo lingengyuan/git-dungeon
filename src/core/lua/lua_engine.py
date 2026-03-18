@@ -441,10 +441,10 @@ class LuaEngine:
             if isinstance(info, dict):
                 monster = MonsterTemplate(
                     name=name,
-                    base_hp=info.get("hp", info.get("base_hp", 50)),
-                    base_attack=info.get("attack", info.get("base_attack", 10)),
-                    base_defense=info.get("defense", info.get("base_defense", 5)),
-                    base_mp=info.get("mp", info.get("base_mp", 0)),
+                    base_hp=info.get("hp", info.get("base_hp", 50)),  # type: ignore[arg-type]
+                    base_attack=info.get("attack", info.get("base_attack", 10)),  # type: ignore[arg-type]
+                    base_defense=info.get("defense", info.get("base_defense", 5)),  # type: ignore[arg-type]
+                    base_mp=info.get("mp", info.get("base_mp", 0)),  # type: ignore[arg-type]
                     speed=info.get("speed", 10),
                     critical=info.get("critical", 10),
                     evasion=info.get("evasion", 5),

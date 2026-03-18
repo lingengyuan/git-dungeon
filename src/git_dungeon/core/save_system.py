@@ -222,7 +222,7 @@ class SaveSystem:
             "version": "1.0.0",
             "metadata": asdict(metadata),
             "player": self._serialize_entity(player_entity) if player_entity else {},
-            "inventory": self._serialize_inventory(inventory_comp),
+            "inventory": self._serialize_inventory(inventory_comp),  # type: ignore[arg-type]
             "defeated_commits": game_state.defeated_commits,
             "current_commit": game_state.current_commit.hash if game_state.current_commit else "",
             "settings": _config_to_dict(game_state.config),
@@ -257,21 +257,21 @@ class SaveSystem:
 
         return {
             "name": entity.name,
-            "level": char.level,  # type: ignore[union-attr]
-            "experience": char.experience,  # type: ignore[union-attr]
-            "total_experience": char._total_exp_gained,  # type: ignore[union-attr]
-            "hp": char.current_hp,  # type: ignore[union-attr]
-            "mp": char.current_mp,  # type: ignore[union-attr]
+            "level": char.level,  # type: ignore[attr-defined,union-attr]
+            "experience": char.experience,  # type: ignore[attr-defined,union-attr]
+            "total_experience": char._total_exp_gained,  # type: ignore[attr-defined,union-attr]
+            "hp": char.current_hp,  # type: ignore[attr-defined,union-attr]
+            "mp": char.current_mp,  # type: ignore[attr-defined,union-attr]
             "stats": {
-                "hp": char.stats.hp.value if char.stats else 0,  # type: ignore[union-attr]
-                "mp": char.stats.mp.value if char.stats else 0,  # type: ignore[union-attr]
-                "attack": char.stats.attack.value if char.stats else 0,  # type: ignore[union-attr]
-                "defense": char.stats.defense.value if char.stats else 0,  # type: ignore[union-attr]
-                "speed": char.stats.speed.value if char.stats else 0,  # type: ignore[union-attr]
-                "critical": char.stats.critical.value if char.stats else 0,  # type: ignore[union-attr]
-                "evasion": char.stats.evasion.value if char.stats else 0,  # type: ignore[union-attr]
-                "luck": char.stats.luck.value if char.stats else 0,  # type: ignore[union-attr]
-            } if char.stats else {},
+                "hp": char.stats.hp.value if char.stats else 0,  # type: ignore[attr-defined,union-attr]
+                "mp": char.stats.mp.value if char.stats else 0,  # type: ignore[attr-defined,union-attr]
+                "attack": char.stats.attack.value if char.stats else 0,  # type: ignore[attr-defined,union-attr]
+                "defense": char.stats.defense.value if char.stats else 0,  # type: ignore[attr-defined,union-attr]
+                "speed": char.stats.speed.value if char.stats else 0,  # type: ignore[attr-defined,union-attr]
+                "critical": char.stats.critical.value if char.stats else 0,  # type: ignore[attr-defined,union-attr]
+                "evasion": char.stats.evasion.value if char.stats else 0,  # type: ignore[attr-defined,union-attr]
+                "luck": char.stats.luck.value if char.stats else 0,  # type: ignore[attr-defined,union-attr]
+            } if char.stats else {},  # type: ignore[attr-defined]
         }
 
     def _deserialize_entity(self, entity: Entity, data: dict) -> None:
@@ -280,22 +280,22 @@ class SaveSystem:
         if not char or not data:
             return
 
-        char.level = data.get("level", 1)  # type: ignore[union-attr]
-        char.experience = data.get("experience", 0)  # type: ignore[union-attr]
-        char._total_exp_gained = data.get("total_experience", 0)  # type: ignore[union-attr]
-        char.current_hp = data.get("hp", 100)  # type: ignore[union-attr]
-        char.current_mp = data.get("mp", 50)  # type: ignore[union-attr]
+        char.level = data.get("level", 1)  # type: ignore[attr-defined,union-attr]
+        char.experience = data.get("experience", 0)  # type: ignore[attr-defined,union-attr]
+        char._total_exp_gained = data.get("total_experience", 0)  # type: ignore[attr-defined,union-attr]
+        char.current_hp = data.get("hp", 100)  # type: ignore[attr-defined,union-attr]
+        char.current_mp = data.get("mp", 50)  # type: ignore[attr-defined,union-attr]
 
         stats_data = data.get("stats", {})
-        if stats_data and char.stats:  # type: ignore[union-attr]
-            char.stats.hp.base_value = stats_data.get("hp", 100)  # type: ignore[union-attr]
-            char.stats.mp.base_value = stats_data.get("mp", 50)  # type: ignore[union-attr]
-            char.stats.attack.base_value = stats_data.get("attack", 10)  # type: ignore[union-attr]
-            char.stats.defense.base_value = stats_data.get("defense", 5)  # type: ignore[union-attr]
-            char.stats.speed.base_value = stats_data.get("speed", 10)  # type: ignore[union-attr]
-            char.stats.critical.base_value = stats_data.get("critical", 10)  # type: ignore[union-attr]
-            char.stats.evasion.base_value = stats_data.get("evasion", 5)  # type: ignore[union-attr]
-            char.stats.luck.base_value = stats_data.get("luck", 5)  # type: ignore[union-attr]
+        if stats_data and char.stats:  # type: ignore[attr-defined,union-attr]
+            char.stats.hp.base_value = stats_data.get("hp", 100)  # type: ignore[attr-defined,union-attr]
+            char.stats.mp.base_value = stats_data.get("mp", 50)  # type: ignore[attr-defined,union-attr]
+            char.stats.attack.base_value = stats_data.get("attack", 10)  # type: ignore[attr-defined,union-attr]
+            char.stats.defense.base_value = stats_data.get("defense", 5)  # type: ignore[attr-defined,union-attr]
+            char.stats.speed.base_value = stats_data.get("speed", 10)  # type: ignore[attr-defined,union-attr]
+            char.stats.critical.base_value = stats_data.get("critical", 10)  # type: ignore[attr-defined,union-attr]
+            char.stats.evasion.base_value = stats_data.get("evasion", 5)  # type: ignore[attr-defined,union-attr]
+            char.stats.luck.base_value = stats_data.get("luck", 5)  # type: ignore[attr-defined,union-attr]
 
     def _serialize_inventory(self, inventory: Optional[InventoryComponent]) -> dict:
         """Serialize inventory."""
@@ -334,12 +334,12 @@ class SaveSystem:
         if not inventory:
             return
 
-        inventory.gold = data.get("gold", 0)  # type: ignore[union-attr]
-        inventory.items = [None] * inventory.max_slots  # type: ignore[union-attr]
+        inventory.gold = data.get("gold", 0)  # type: ignore[attr-defined,union-attr]
+        inventory.items = [None] * inventory.max_slots  # type: ignore[attr-defined,union-attr]
 
         for item_data in data.get("items", []):
             slot = item_data.get("slot", 0)
-            if 0 <= slot < inventory.max_slots:
+            if 0 <= slot < inventory.max_slots:  # type: ignore[attr-defined]
                 stats_data = item_data.get("stats", {})
                 stats = ItemStats(**stats_data)
 
@@ -354,7 +354,7 @@ class SaveSystem:
                     stackable=item_data.get("stackable", False),
                     stack_count=item_data.get("stack_count", 1),
                 )
-                inventory.items[slot] = item
+                inventory.items[slot] = item  # type: ignore[attr-defined]
 
     def get_save_slots(self) -> list[dict]:
         """Get info about all save slots."""

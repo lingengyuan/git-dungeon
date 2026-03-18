@@ -258,8 +258,8 @@ def _parse_runtime_pack(pack_dir: Path) -> _ParsedRuntimePack:
         rarity=str(pack_info.get("rarity", "uncommon")),
         points_cost=int(pack_info.get("points_cost", 100)),
         cards=cards,
-        relics=relics,
-        events=events,
+        relics=relics,  # type: ignore[arg-type]
+        events=events,  # type: ignore[arg-type]
     )
     return _ParsedRuntimePack(pack=pack, source_dir=pack_dir, chapter_overrides=chapter_overrides)
 

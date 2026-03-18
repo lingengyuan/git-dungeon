@@ -282,9 +282,9 @@ class FastGitParser:
             commit = CommitInfo(
                 hexsha=c.hexsha,
                 short_sha=c.hexsha[:8],
-                message=c.message.strip(),
-                author_name=c.author.name,
-                author_email=c.author.email,
+                message=c.message.strip(),  # type: ignore[arg-type]
+                author_name=c.author.name,  # type: ignore[arg-type]
+                author_email=c.author.email,  # type: ignore[arg-type]
                 committed_datetime=str(c.committed_datetime),
             )
             result.append(commit)

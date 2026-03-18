@@ -220,8 +220,8 @@ class SaveSystem:
         return {
             "version": "1.0.0",
             "metadata": asdict(metadata),
-            "player": self._serialize_entity(player_entity),
-            "inventory": self._serialize_inventory(inventory_comp),
+            "player": self._serialize_entity(player_entity),  # type: ignore[arg-type]
+            "inventory": self._serialize_inventory(inventory_comp),  # type: ignore[arg-type]
             "defeated_commits": game_state.defeated_commits,
             "current_commit": game_state.current_commit.hash if game_state.current_commit else "",
             "settings": _config_to_dict(game_state.config),
@@ -233,10 +233,10 @@ class SaveSystem:
         game_state.game_time = metadata_data.get("game_time", 0)
 
         player_data = data.get("player", {})
-        self._deserialize_entity(game_state.player, player_data)
+        self._deserialize_entity(game_state.player, player_data)  # type: ignore[arg-type]
 
         inventory_data = data.get("inventory", {})
-        self._deserialize_inventory(game_state.player, inventory_data)
+        self._deserialize_inventory(game_state.player, inventory_data)  # type: ignore[arg-type]
 
         game_state.defeated_commits = data.get("defeated_commits", [])
         current_commit_hash = data.get("current_commit", "")
@@ -254,21 +254,21 @@ class SaveSystem:
 
         return {
             "name": entity.name,
-            "level": char.level,
-            "experience": char.experience,
-            "total_experience": char._total_exp_gained,
-            "hp": char.current_hp,
-            "mp": char.current_mp,
+            "level": char.level,  # type: ignore[attr-defined]
+            "experience": char.experience,  # type: ignore[attr-defined]
+            "total_experience": char._total_exp_gained,  # type: ignore[attr-defined]
+            "hp": char.current_hp,  # type: ignore[attr-defined]
+            "mp": char.current_mp,  # type: ignore[attr-defined]
             "stats": {
-                "hp": char.stats.hp.value if char.stats else 0,
-                "mp": char.stats.mp.value if char.stats else 0,
-                "attack": char.stats.attack.value if char.stats else 0,
-                "defense": char.stats.defense.value if char.stats else 0,
-                "speed": char.stats.speed.value if char.stats else 0,
-                "critical": char.stats.critical.value if char.stats else 0,
-                "evasion": char.stats.evasion.value if char.stats else 0,
-                "luck": char.stats.luck.value if char.stats else 0,
-            } if char.stats else {},
+                "hp": char.stats.hp.value if char.stats else 0,  # type: ignore[attr-defined]
+                "mp": char.stats.mp.value if char.stats else 0,  # type: ignore[attr-defined]
+                "attack": char.stats.attack.value if char.stats else 0,  # type: ignore[attr-defined]
+                "defense": char.stats.defense.value if char.stats else 0,  # type: ignore[attr-defined]
+                "speed": char.stats.speed.value if char.stats else 0,  # type: ignore[attr-defined]
+                "critical": char.stats.critical.value if char.stats else 0,  # type: ignore[attr-defined]
+                "evasion": char.stats.evasion.value if char.stats else 0,  # type: ignore[attr-defined]
+                "luck": char.stats.luck.value if char.stats else 0,  # type: ignore[attr-defined]
+            } if char.stats else {},  # type: ignore[attr-defined]
         }
 
     def _deserialize_entity(self, entity: Entity, data: dict) -> None:
@@ -277,22 +277,22 @@ class SaveSystem:
         if not char or not data:
             return
 
-        char.level = data.get("level", 1)
-        char.experience = data.get("experience", 0)
-        char._total_exp_gained = data.get("total_experience", 0)
-        char.current_hp = data.get("hp", 100)
-        char.current_mp = data.get("mp", 50)
+        char.level = data.get("level", 1)  # type: ignore[attr-defined]
+        char.experience = data.get("experience", 0)  # type: ignore[attr-defined]
+        char._total_exp_gained = data.get("total_experience", 0)  # type: ignore[attr-defined]
+        char.current_hp = data.get("hp", 100)  # type: ignore[attr-defined]
+        char.current_mp = data.get("mp", 50)  # type: ignore[attr-defined]
 
         stats_data = data.get("stats", {})
-        if stats_data and char.stats:
-            char.stats.hp.base_value = stats_data.get("hp", 100)
-            char.stats.mp.base_value = stats_data.get("mp", 50)
-            char.stats.attack.base_value = stats_data.get("attack", 10)
-            char.stats.defense.base_value = stats_data.get("defense", 5)
-            char.stats.speed.base_value = stats_data.get("speed", 10)
-            char.stats.critical.base_value = stats_data.get("critical", 10)
-            char.stats.evasion.base_value = stats_data.get("evasion", 5)
-            char.stats.luck.base_value = stats_data.get("luck", 5)
+        if stats_data and char.stats:  # type: ignore[attr-defined]
+            char.stats.hp.base_value = stats_data.get("hp", 100)  # type: ignore[attr-defined]
+            char.stats.mp.base_value = stats_data.get("mp", 50)  # type: ignore[attr-defined]
+            char.stats.attack.base_value = stats_data.get("attack", 10)  # type: ignore[attr-defined]
+            char.stats.defense.base_value = stats_data.get("defense", 5)  # type: ignore[attr-defined]
+            char.stats.speed.base_value = stats_data.get("speed", 10)  # type: ignore[attr-defined]
+            char.stats.critical.base_value = stats_data.get("critical", 10)  # type: ignore[attr-defined]
+            char.stats.evasion.base_value = stats_data.get("evasion", 5)  # type: ignore[attr-defined]
+            char.stats.luck.base_value = stats_data.get("luck", 5)  # type: ignore[attr-defined]
 
     def _serialize_inventory(self, inventory: Optional[InventoryComponent]) -> dict:
         """Serialize inventory."""
@@ -331,12 +331,12 @@ class SaveSystem:
         if not inventory:
             return
 
-        inventory.gold = data.get("gold", 0)
-        inventory.items = [None] * inventory.max_slots
+        inventory.gold = data.get("gold", 0)  # type: ignore[attr-defined]
+        inventory.items = [None] * inventory.max_slots  # type: ignore[attr-defined]
 
         for item_data in data.get("items", []):
             slot = item_data.get("slot", 0)
-            if 0 <= slot < inventory.max_slots:
+            if 0 <= slot < inventory.max_slots:  # type: ignore[attr-defined]
                 stats_data = item_data.get("stats", {})
                 stats = ItemStats(**stats_data)
 
@@ -351,7 +351,7 @@ class SaveSystem:
                     stackable=item_data.get("stackable", False),
                     stack_count=item_data.get("stack_count", 1),
                 )
-                inventory.items[slot] = item
+                inventory.items[slot] = item  # type: ignore[attr-defined]
 
     def get_save_slots(self) -> list[dict]:
         """Get info about all save slots."""

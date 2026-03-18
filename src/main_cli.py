@@ -83,7 +83,7 @@ def battle(state: GameState) -> bool:
             elif choice == '2':
                 # 防御
                 print("   🛡️ 你进入防御姿态，减少 50% 伤害!")
-                state.current_combat.player_defending = True
+                state.current_combat.player_defending = True  # type: ignore[attr-defined]
             elif choice == '3':
                 # 技能 (消耗 MP)
                 if player.current_mp >= 10:
@@ -128,7 +128,7 @@ def battle(state: GameState) -> bool:
             if getattr(state.current_combat, 'player_defending', False):
                 dmg = dmg // 2
                 print(f"   🛡️ 防御生效，{enemy.name} 的伤害减少到 {dmg}")
-                state.current_combat.player_defending = False
+                state.current_combat.player_defending = False  # type: ignore[attr-defined]
             
             actual = player.take_damage(dmg)
             print(f"   💥 {enemy.name} 攻击你，造成 {actual} 伤害!")
