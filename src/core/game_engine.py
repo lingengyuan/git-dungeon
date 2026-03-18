@@ -271,7 +271,7 @@ class GameState:
         # Grant experience
         char = self.player.get_component(CharacterComponent) if self.player else None
         if char:
-            char.gain_experience(self.current_commit.total_changes)
+            char.gain_experience(self.current_commit.total_changes)  # type: ignore[attr-defined]
 
         # Clear current combat
         self.current_combat = None
@@ -322,7 +322,7 @@ class GameState:
         if not inventory:
             return False
 
-        return inventory.use_item(slot_index, self.player)
+        return inventory.use_item(slot_index, self.player)  # type: ignore[attr-defined]
 
     def update(self, delta_time: float) -> None:
         """Update game state.

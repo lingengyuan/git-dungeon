@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import random as _random
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
-from .character import get_character, StatType, Stat
+from .character import get_character, StatType, Stat, CharacterType
 from .entity import Entity
 from git_dungeon.config import GameConfig
 from git_dungeon.utils.exceptions import GameError
@@ -51,13 +52,15 @@ class CombatAction:
 class CombatSystem:
     """System for handling combat between entities."""
 
-    def __init__(self, config: Optional[GameConfig] = None):
+    def __init__(self, config: Optional[GameConfig] = None, rng: Optional[_random.Random] = None):
         """Initialize combat system.
 
         Args:
             config: Game configuration
+            rng: Random number generator instance for deterministic combat
         """
         self.config = config or GameConfig()
+        self.rng = rng if rng is not None else _random.Random()
         self.combat_log: list[CombatAction] = []
         self.current_combat: Optional[CombatEncounter] = None
 
@@ -123,9 +126,7 @@ class CombatSystem:
         if critical_chance is None and attacker_char.stats:
             crit_chance = attacker_char.stats.critical.value / 100
 
-        import random
-
-        if random.random() < crit_chance:
+        if self.rng.random() < crit_chance:
             damage = round(damage * 1.5)
             is_critical = True
 
@@ -152,9 +153,8 @@ class CombatSystem:
             return False
 
         evasion = defender_char.stats.evasion.value
-        import random
 
-        return random.random() < (evasion / 100)
+        return self.rng.random() < (evasion / 100)
 
     def execute_action(
         self,
@@ -178,7 +178,9 @@ class CombatSystem:
         # Apply damage
         if action.damage > 0:
             target_char = get_character(action.target)
-            target_char.take_damage(action.damage)
+            defense = target_char.stats.defense.value if target_char.stats else 0
+            final_damage = max(1, action.damage - defense)
+            target_char.take_damage(final_damage)
 
         # Apply healing
         if action.healing > 0:
@@ -188,7 +190,11 @@ class CombatSystem:
         # Check if target is dead
         target_char = get_character(action.target)
         if target_char.is_dead:
-            return CombatResult.PLAYER_WIN
+            source_char = get_character(action.source)
+            if source_char.char_type == CharacterType.PLAYER:
+                return CombatResult.PLAYER_WIN
+            else:
+                return CombatResult.ENEMY_WIN
 
         return CombatResult.DRAW
 
@@ -258,11 +264,11 @@ class CombatEncounter:
         # Create action - use kwargs for source/target if provided
         combat_action = CombatAction(
             action_type=action,
-            source=kwargs.get("source", self.player),
-            target=kwargs.get("target", self.enemy),
-            damage=kwargs.get("damage", 0),
-            healing=kwargs.get("healing", 0),
-            description=kwargs.get("description", ""),
+            source=kwargs.get("source", self.player),  # type: ignore[arg-type]
+            target=kwargs.get("target", self.enemy),  # type: ignore[arg-type]
+            damage=kwargs.get("damage", 0),  # type: ignore[arg-type]
+            healing=kwargs.get("healing", 0),  # type: ignore[arg-type]
+            description=kwargs.get("description", ""),  # type: ignore[arg-type]
         )
 
         # Execute action
@@ -301,8 +307,7 @@ class CombatEncounter:
 
         result = self.combat_system.execute_action(combat_action)
 
-        if result == CombatResult.PLAYER_WIN:
-            # Enemy won, so player lost
+        if result == CombatResult.ENEMY_WIN:
             self.end_combat(CombatResult.ENEMY_WIN)
             return CombatResult.ENEMY_WIN
 

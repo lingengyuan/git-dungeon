@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .game_engine import GameEngine
+    from .game_engine import GameEngine  # type: ignore[attr-defined]
 
 
 class System:

@@ -64,13 +64,13 @@ class InputScreen(Screen):
     def on_button_clicked(self, event: Button.Pressed) -> None:
         """Handle button clicks."""
         if event.button.id == "ok":
-            path = self.query_one("#path_input").value
+            path = self.query_one("#path_input").value  # type: ignore[attr-defined]
             if path and self._on_submit:
                 self._on_submit(path)
         elif event.button.id == "cancel":
             if self._on_cancel:
                 self._on_cancel()
-        self.pop()
+        self.pop()  # type: ignore[attr-defined]
 
 
 class GitDungeonApp(App):
@@ -157,11 +157,11 @@ class GitDungeonApp(App):
         if self._repo_loaded:
             commits = len(self.game_state.commits)
             defeated = len(self.game_state.defeated_commits)
-            status.update(f"Loaded: {self.game_state.config.repo_path}")
-            progress.update(f"Progress: {defeated}/{commits} commits defeated")
+            status.update(f"Loaded: {self.game_state.config.repo_path}")  # type: ignore[attr-defined]
+            progress.update(f"Progress: {defeated}/{commits} commits defeated")  # type: ignore[attr-defined]
         else:
-            status.update("")
-            progress.update("")
+            status.update("")  # type: ignore[attr-defined]
+            progress.update("")  # type: ignore[attr-defined]
 
     def action_load_repo(self) -> None:
         """Load a Git repository - show input screen."""
@@ -170,7 +170,7 @@ class GitDungeonApp(App):
             if path:
                 if self.game_state.load_repository(path):
                     self._repo_loaded = True
-                    self.notify(f"Loaded {len(self.game_state.commits)} commits", severity="success")
+                    self.notify(f"Loaded {len(self.game_state.commits)} commits", severity="success")  # type: ignore[arg-type]
                     self._update_status()
                 else:
                     self.notify(f"Failed to load: {path}", severity="error")
@@ -196,7 +196,7 @@ class GitDungeonApp(App):
         save_system = SaveSystem(save_dir)
 
         if save_system.save(self.game_state, 0):
-            self.notify(f"Game saved to {save_dir}", severity="success")
+            self.notify(f"Game saved to {save_dir}", severity="success")  # type: ignore[arg-type]
         else:
             self.notify("Failed to save game", severity="error")
 

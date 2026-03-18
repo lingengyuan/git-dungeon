@@ -175,8 +175,9 @@ class TestInventoryComponent:
         inv.add_item(potion)
 
         # Use potion
-        char.take_damage(50)
-        # Defense 10, actual damage = max(1, 50-10) = 40
+        char.take_damage(40)
+        # take_damage treats amount as final (defense already handled by caller)
+        # damage = 40, HP = 100 - 40 = 60
         assert char.current_hp == 60
 
         success = inv.use_item(0, entity)

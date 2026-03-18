@@ -131,9 +131,9 @@ class TestCharacterComponent:
 
         damage_taken = char.take_damage(20)
 
-        # Damage = 20 - defense (5) = 15
-        assert damage_taken == 15
-        assert char.current_hp == 85
+        # take_damage treats amount as final damage (defense handled by caller)
+        assert damage_taken == 20
+        assert char.current_hp == 80
 
     def test_take_fatal_damage(self):
         """Test taking fatal damage."""
@@ -153,8 +153,8 @@ class TestCharacterComponent:
         char = CharacterComponent(CharacterType.PLAYER, "Player")
         char.initialize_stats(hp=100, mp=50, attack=20, defense=10)
 
-        # Defense: 10, damage taken = max(1, 40-10) = 30
-        char.take_damage(40)
+        # take_damage treats amount as final; pass pre-calculated damage
+        char.take_damage(30)
         # HP: 100 - 30 = 70
         assert char.current_hp == 70
 
@@ -168,8 +168,8 @@ class TestCharacterComponent:
         char = CharacterComponent(CharacterType.PLAYER, "Player")
         char.initialize_stats(hp=100, mp=50, attack=20, defense=10)
 
-        # Defense: 10, damage taken = max(1, 10-10) = 1
-        char.take_damage(10)
+        # take_damage treats amount as final; pass pre-calculated damage
+        char.take_damage(1)
         # HP: 100 - 1 = 99
 
         healed = char.heal(50)

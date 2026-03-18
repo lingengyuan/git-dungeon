@@ -73,7 +73,6 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 	find . -type f -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".venv" -exec rm -rf {} + 2>/dev/null || true
 	@echo "✅ Cleaned cache files"
 
 # M6 AI 测试

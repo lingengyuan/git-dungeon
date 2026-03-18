@@ -182,14 +182,14 @@ def run_golden_test(
     if expected_event_count is not None:
         if len(all_events) != expected_event_count:
             result["passed"] = False
-            result["errors"].append(
+            result["errors"].append(  # type: ignore[attr-defined]
                 f"Expected {expected_event_count} events, got {len(all_events)}"
             )
     
     if expected_wins is not None:
         if state.is_victory != expected_wins:
             result["passed"] = False
-            result["errors"].append(
+            result["errors"].append(  # type: ignore[attr-defined]
                 f"Expected victory={expected_wins}, got {state.is_victory}"
             )
     

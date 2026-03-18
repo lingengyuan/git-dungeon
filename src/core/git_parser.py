@@ -195,33 +195,30 @@ class CommitInfo:
 class GitParser:
     """Git parser with lazy file changes loading."""
     
-    # Cache for Repo objects
-    _repo_cache: dict[str, Repo] = {}
-    _max_cache_size: int = 5
-    
     def __init__(self, config: Optional[GameConfig] = None):
         self.config = config or GameConfig()
         self._repo: Optional[Repo] = None
         self._commits_cache: list[CommitInfo] = []  # For backward compatibility
+        self._repo_cache: dict[str, Repo] = {}
+        self._max_cache_size: int = 5
     
-    @classmethod
-    def _get_repo(cls, path: str) -> Repo:
+    def _get_repo(self, path: str) -> Repo:
         """Get cached Repo object."""
         path = str(path)
         
-        if path in cls._repo_cache:
+        if path in self._repo_cache:
             try:
-                if cls._repo_cache[path].head.is_valid():
-                    return cls._repo_cache[path]
+                if self._repo_cache[path].head.is_valid():
+                    return self._repo_cache[path]
             except Exception:
-                del cls._repo_cache[path]
+                del self._repo_cache[path]
         
         repo = Repo(path, search_parent_directories=True)
         
-        if len(cls._repo_cache) >= cls._max_cache_size:
-            cls._repo_cache.pop(next(iter(cls._repo_cache)))
+        if len(self._repo_cache) >= self._max_cache_size:
+            self._repo_cache.pop(next(iter(self._repo_cache)))
         
-        cls._repo_cache[path] = repo
+        self._repo_cache[path] = repo
         return repo
     
     def load_repository(self, path: str) -> bool:
