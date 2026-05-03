@@ -8,7 +8,7 @@ from typing import Optional, List, Dict, Any
 from .schema import (
     CardDef, RelicDef, EnemyDef, ArchetypeDef, EventDef, StatusDef,
     CardType, CardRarity, RelicTier, EnemyType, EnemyTier, StatusType,
-    ContentRegistry, Effect, EventChoice, CharacterAbility, CharacterStats, CharacterDef
+    ContentRegistry, Effect, EventChoice, EventEffect, CharacterAbility, CharacterStats, CharacterDef
 )
 
 
@@ -294,15 +294,24 @@ class ContentLoader:
             ):
                 continue
             
-            # 解析 choices 为 EventChoice 对象列表
+            # 解析 choices 为 EventChoice 对象列表，effects 规范为 EventEffect（与 packs.py 对齐）
             choices = []
             for j, choice_data in enumerate(event_data.get("choices", [])):
                 choice_id = choice_data.get("id", f"choice_{j}")
+                effects = [
+                    EventEffect(
+                        opcode=effect_data.get("opcode", ""),
+                        value=effect_data.get("value", 0),
+                        target=effect_data.get("target", "player"),
+                        condition=effect_data.get("condition"),
+                    )
+                    for effect_data in choice_data.get("effects", [])
+                ]
                 choice = EventChoice(
                     id=choice_id,
                     text_key=choice_data.get("text_key", ""),
-                    effects=choice_data.get("effects", []),  # List[Dict] - effects
-                    condition=choice_data.get("condition")
+                    effects=effects,
+                    condition=choice_data.get("condition"),
                 )
                 choices.append(choice)
             
