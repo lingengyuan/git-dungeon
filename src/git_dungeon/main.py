@@ -205,13 +205,11 @@ def run_cli(
 def run_pixel(
     repository: str,
     seed: Optional[int] = None,
-    lang: str = "en",
+    lang: Optional[str] = None,
     content_pack: Optional[list[str]] = None,
     smoke_frames: Optional[int] = None,
 ) -> int:
     """Run the pixel UI."""
-    from git_dungeon.i18n import normalize_lang
-
     try:
         from git_dungeon.ui_pixel import run as run_pixel_ui
     except RuntimeError as e:
@@ -222,7 +220,7 @@ def run_pixel(
         return run_pixel_ui(
             repo_path=repository,
             seed=seed,
-            lang=normalize_lang(lang),
+            lang=lang,
             content_pack_args=content_pack,
             smoke_frames=smoke_frames,
         )
@@ -284,7 +282,7 @@ def main() -> int:
                         help="Use daily challenge seed based on date")
     parser.add_argument("--daily-date", type=str, default=None,
                         help="Daily challenge date (YYYY-MM-DD)")
-    parser.add_argument("--lang", "-l", type=str, default="en",
+    parser.add_argument("--lang", "-l", type=str, default=None,
                         choices=["en", "zh", "zh_CN"],
                         help="Language (en/zh_CN, zh alias)")
     add_ai_args(parser)
@@ -327,7 +325,7 @@ def main() -> int:
         auto=args.auto,
         metrics_out=args.metrics_out,
         print_metrics=args.print_metrics,
-        lang=args.lang,
+        lang=args.lang or "en",
         ai=args.ai,
         ai_provider=args.ai_provider,
         ai_model=args.ai_model,

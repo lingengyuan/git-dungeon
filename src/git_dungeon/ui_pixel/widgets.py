@@ -36,10 +36,11 @@ class Button:
         pygame.draw.rect(surface, color, self.rect)
         pygame.draw.rect(surface, border, self.rect, 1)
         text_color = TEXT if self.enabled else MUTED
-        label_width = fonts.measure(self.label, 15)
+        label = fonts.fit(self.label, self.rect[2] - 8, 15) if hasattr(fonts, "fit") else self.label
+        label_width = fonts.measure(label, 15)
         x = self.rect[0] + max(4, (self.rect[2] - label_width) // 2)
         y = self.rect[1] + max(2, (self.rect[3] - 15) // 2)
-        fonts.draw(surface, self.label, (x, y), text_color, 15)
+        fonts.draw(surface, label, (x, y), text_color, 15)
 
 
 def draw_panel(

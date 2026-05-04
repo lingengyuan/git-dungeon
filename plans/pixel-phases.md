@@ -1,7 +1,7 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：进行中（截至 2026-05-04 完成 Phase 0-4，准备进入 Phase 5）
+> **状态**：进行中（截至 2026-05-04 完成 Phase 0-5，准备进入 Phase 6）
 > **作用**：Phase 0-7 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
@@ -24,7 +24,7 @@
 | Phase 2 | 非战斗屏幕（Map/Rest/Event/Shop） | Day 3 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-2-handoff.md) |
 | Phase 3 | 战斗 & Boss | Day 4-5 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-3-handoff.md) |
 | Phase 4 | 美术 & 音频接入 | Day 6 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-4-handoff.md) |
-| Phase 5 | 设置 & 中文 & 布局 | Day 7 | 待开始 | — |
+| Phase 5 | 设置 & 中文 & 布局 | Day 7 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-5-handoff.md) |
 | Phase 6 | 自动化测试 & 打磨 & 打包 | Day 8-10 | 待开始 | — |
 | Phase 7 | 真正的像素地牢化 | 源 plan §15 | 暂缓 | — |
 
@@ -167,6 +167,8 @@ PYTHONPATH=src python3 -m git_dungeon . --pixel --seed 42 --lang zh_CN
 # 重启后 settings 保留
 ```
 
+**实际收口说明**：窗口模式保存后下次启动生效；动态长文本以宽度裁切保证不溢出，完整 TextBox/wrap 打磨进入 Phase 6。
+
 **MiMo 参与**：可参与 `settings.py`。
 
 ---
@@ -237,3 +239,4 @@ make test && make test-func && make test-golden
 | 2026-05-04 | Phase 2 收口，回填 handoff 链接 | Map/Rest/Event/Shop 屏幕完成，非战斗规则与 CLI 共享，回归验证完成 |
 | 2026-05-04 | Phase 3 收口，回填 handoff 链接 | Battle/Elite/Boss 战斗屏完成，Boss 禁逃和 MP 禁用状态验证完成 |
 | 2026-05-04 | Phase 4 收口，回填 handoff 链接 | BGM/SFX、音频状态、战斗反馈接入；gpt-image-2 建 prompt/card 并明确 pending |
+| 2026-05-04 | Phase 5 收口，回填 handoff 链接 | 设置页、settings.toml、中文字体/文案、布局防溢出和错误可见状态完成 |

@@ -6,6 +6,7 @@ from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
 from git_dungeon.ui_pixel.screens.map import MapScreen
+from git_dungeon.ui_pixel.text import tr
 from git_dungeon.ui_pixel.widgets import ACCENT, BG, GOOD, MUTED, TEXT, Button, draw_panel
 
 
@@ -17,12 +18,14 @@ class RestScreen(Screen):
         runner: Any,
         assets: Any,
         audio: Any | None = None,
+        settings: Any | None = None,
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.runner = runner
         self.assets = assets
         self.audio = audio
+        self.settings = settings
         self.hover_pos: tuple[int, int] | None = None
         self.result = ""
 
@@ -32,7 +35,14 @@ class RestScreen(Screen):
                 if self.audio is not None:
                     self.audio.play_sfx("ui_cancel")
                 return ScreenAction.replace(
-                    MapScreen(self.pygame, self.fonts, self.runner, self.assets, audio=self.audio)
+                    MapScreen(
+                        self.pygame,
+                        self.fonts,
+                        self.runner,
+                        self.assets,
+                        audio=self.audio,
+                        settings=self.settings,
+                    )
                 )
             if event.key in (self.pygame.K_1, self.pygame.K_h):
                 return self._choose("heal")
@@ -42,7 +52,14 @@ class RestScreen(Screen):
                 if self.audio is not None:
                     self.audio.play_sfx("ui_confirm")
                 return ScreenAction.replace(
-                    MapScreen(self.pygame, self.fonts, self.runner, self.assets, audio=self.audio)
+                    MapScreen(
+                        self.pygame,
+                        self.fonts,
+                        self.runner,
+                        self.assets,
+                        audio=self.audio,
+                        settings=self.settings,
+                    )
                 )
         if event.type == self.pygame.MOUSEMOTION:
             self.hover_pos = getattr(event, "logical_pos", None)
@@ -55,27 +72,29 @@ class RestScreen(Screen):
 
     def draw(self, surface: Any) -> None:
         surface.fill(BG)
+        lang = self._lang()
         draw_panel(self.pygame, surface, (14, 18, 292, 144))
         self.assets.draw(surface, "node_rest", (28, 32, 24, 24))
-        self.fonts.draw(surface, "REST NODE", (62, 34), ACCENT, 22)
-        self.fonts.draw(surface, "Pick one real state change", (62, 56), MUTED, 14)
+        self.fonts.draw(surface, tr("REST NODE", lang), (62, 34), ACCENT, 22)
+        self.fonts.draw_fit(surface, tr("Pick one real state change", lang), (62, 56), 194, MUTED, 14)
 
         for option in self.runner.rest_options():
-            self.fonts.draw(surface, option.label, (32, 82 if option.action == "heal" else 116), TEXT, 16)
-            self.fonts.draw(surface, option.detail, (84, 82 if option.action == "heal" else 116), MUTED, 14)
+            y = 82 if option.action == "heal" else 116
+            self.fonts.draw(surface, tr(option.label, lang), (32, y), TEXT, 16)
+            self.fonts.draw_fit(surface, _rest_detail(option.detail, lang), (84, y), 128, MUTED, 14)
 
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
 
         if self.result:
-            self.fonts.draw(surface, self.result[:34], (32, 144), GOOD, 14)
+            self.fonts.draw_fit(surface, self.result, (32, 144), 232, GOOD, 14)
         else:
-            self.fonts.draw(surface, "1/H: Heal   2/F: Focus", (32, 144), MUTED, 14)
+            self.fonts.draw(surface, tr("1/H: Heal   2/F: Focus", lang), (32, 144), MUTED, 14)
 
     def _buttons(self) -> dict[str, Button]:
         return {
-            "heal": Button((220, 78, 60, 20), "Heal"),
-            "focus": Button((220, 112, 60, 20), "Focus"),
+            "heal": Button((220, 78, 60, 20), tr("Heal", self._lang())),
+            "focus": Button((220, 112, 60, 20), tr("Focus", self._lang())),
         }
 
     def _choose(self, action: str) -> ScreenAction | None:
@@ -90,5 +109,15 @@ class RestScreen(Screen):
                 self.assets,
                 message=f"Rest: {result.message}",
                 audio=self.audio,
+                settings=self.settings,
             )
         )
+
+    def _lang(self) -> str:
+        return getattr(self.settings, "lang", "en")
+
+
+def _rest_detail(detail: str, lang: str) -> str:
+    if detail.startswith("Restore ") and detail.endswith(" HP"):
+        return detail.replace("Restore", tr("Restore", lang), 1)
+    return tr(detail, lang)

@@ -6,6 +6,7 @@ from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
 from git_dungeon.ui_pixel.screens.map import MapScreen
+from git_dungeon.ui_pixel.text import tr
 from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, Button, draw_panel
 
 
@@ -17,12 +18,14 @@ class EventScreen(Screen):
         runner: Any,
         assets: Any,
         audio: Any | None = None,
+        settings: Any | None = None,
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.runner = runner
         self.assets = assets
         self.audio = audio
+        self.settings = settings
         self.hover_pos: tuple[int, int] | None = None
         self.event = runner.event_for_node()
         self.error = "" if self.event else "No event definition"
@@ -33,7 +36,14 @@ class EventScreen(Screen):
                 if self.audio is not None:
                     self.audio.play_sfx("ui_cancel")
                 return ScreenAction.replace(
-                    MapScreen(self.pygame, self.fonts, self.runner, self.assets, audio=self.audio)
+                    MapScreen(
+                        self.pygame,
+                        self.fonts,
+                        self.runner,
+                        self.assets,
+                        audio=self.audio,
+                        settings=self.settings,
+                    )
                 )
             if self.event:
                 for idx, key in enumerate((self.pygame.K_1, self.pygame.K_2, self.pygame.K_3)):
@@ -50,30 +60,31 @@ class EventScreen(Screen):
 
     def draw(self, surface: Any) -> None:
         surface.fill(BG)
+        lang = self._lang()
         draw_panel(self.pygame, surface, (14, 14, 292, 152))
         self.assets.draw(surface, "node_event", (28, 28, 24, 24))
-        self.fonts.draw(surface, "EVENT", (62, 28), ACCENT, 22)
+        self.fonts.draw(surface, tr("EVENT", lang), (62, 28), ACCENT, 22)
 
         if not self.event:
-            self.fonts.draw(surface, self.error, (32, 78), BAD, 16)
+            self.fonts.draw(surface, tr(self.error, lang), (32, 78), BAD, 16)
             return
 
-        self.fonts.draw(surface, self.event.event_id[:28], (62, 50), TEXT, 15)
+        self.fonts.draw_fit(surface, self.event.event_id, (62, 50), 190, TEXT, 15)
         for choice in self.event.choices:
             y = 76 + choice.index * 28
-            self.fonts.draw(surface, f"{choice.index + 1}. {choice.choice_id}", (32, y), TEXT, 15)
-            detail = ", ".join(choice.effects) or "no effect"
-            self.fonts.draw(surface, detail[:28], (48, y + 13), MUTED, 13)
+            self.fonts.draw_fit(surface, f"{choice.index + 1}. {choice.choice_id}", (32, y), 176, TEXT, 15)
+            detail = ", ".join(choice.effects) or tr("no effect", lang)
+            self.fonts.draw_fit(surface, detail, (48, y + 13), 168, MUTED, 13)
 
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
-        self.fonts.draw(surface, "Choose visibly; effects apply once", (32, 148), GOOD, 13)
+        self.fonts.draw_fit(surface, tr("Choose visibly; effects apply once", lang), (32, 148), 248, GOOD, 13)
 
     def _buttons(self) -> dict[int, Button]:
         if not self.event:
             return {}
         return {
-            choice.index: Button((234, 74 + choice.index * 28, 48, 18), "Pick")
+            choice.index: Button((234, 74 + choice.index * 28, 48, 18), tr("Pick", self._lang()))
             for choice in self.event.choices[:3]
         }
 
@@ -91,5 +102,9 @@ class EventScreen(Screen):
                 self.assets,
                 message=f"Event: {result.choice_id} {hp_text} {gold_text}",
                 audio=self.audio,
+                settings=self.settings,
             )
         )
+
+    def _lang(self) -> str:
+        return getattr(self.settings, "lang", "en")

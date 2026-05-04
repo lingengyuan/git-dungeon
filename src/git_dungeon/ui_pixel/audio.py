@@ -51,6 +51,8 @@ class AudioManager:
         self._pygame = pygame_module
         self._root = root or Path(__file__).resolve().parents[3]
         self._sounds: dict[str, Any] = {}
+        self._bgm_volume = 0.45
+        self._sfx_volume = 0.70
         self._status = AudioStatus(enabled=False, muted=True, reason="not loaded")
 
     def load(self) -> None:
@@ -86,6 +88,19 @@ class AudioManager:
 
         self._status = AudioStatus(enabled=True, muted=False, reason="")
 
+    def set_volumes(self, bgm: int, sfx: int) -> None:
+        self._bgm_volume = max(0.0, min(1.0, bgm / 100))
+        self._sfx_volume = max(0.0, min(1.0, sfx / 100))
+        for sound in self._sounds.values():
+            try:
+                sound.set_volume(self._sfx_volume)
+            except Exception:
+                pass
+        try:
+            self._pygame.mixer.music.set_volume(self._bgm_volume)
+        except Exception:
+            pass
+
     def status(self) -> AudioStatus:
         return self._status
 
@@ -99,7 +114,7 @@ class AudioManager:
         path = self._root / rel_path
         try:
             self._pygame.mixer.music.load(str(path))
-            self._pygame.mixer.music.set_volume(0.45)
+            self._pygame.mixer.music.set_volume(self._bgm_volume)
             self._pygame.mixer.music.play(-1)
         except Exception as exc:
             self._mute(str(exc)[:48])
