@@ -110,6 +110,10 @@ class MapScreen(Screen):
         if current is None:
             self.message = "No current node"
             return None
+        if current.kind.value in {"battle", "elite", "boss"}:
+            from git_dungeon.ui_pixel.screens.battle import BattleScreen
+
+            return ScreenAction.replace(BattleScreen(self.pygame, self.fonts, self.runner, self.assets))
         if current.kind.value == "event":
             from git_dungeon.ui_pixel.screens.event import EventScreen
 
@@ -122,5 +126,5 @@ class MapScreen(Screen):
             from git_dungeon.ui_pixel.screens.shop import ShopScreen
 
             return ScreenAction.replace(ShopScreen(self.pygame, self.fonts, self.runner, self.assets))
-        self.message = f"{current.kind.value.title()} waits for Phase 3"
+        self.message = f"{current.kind.value.title()} is not playable yet"
         return None

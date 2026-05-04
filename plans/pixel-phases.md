@@ -1,7 +1,7 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：进行中（截至 2026-05-04 完成 Phase 0-2，准备进入 Phase 3）
+> **状态**：进行中（截至 2026-05-04 完成 Phase 0-3，准备进入 Phase 4）
 > **作用**：Phase 0-7 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
@@ -22,7 +22,7 @@
 | Phase 0 | 基线 & 资源准备 | Day 0 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-0-handoff.md) |
 | Phase 1 | GameRunner & `--pixel` 入口 | Day 1-2 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-1-handoff.md) |
 | Phase 2 | 非战斗屏幕（Map/Rest/Event/Shop） | Day 3 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-2-handoff.md) |
-| Phase 3 | 战斗 & Boss | Day 4-5 | 待开始 | — |
+| Phase 3 | 战斗 & Boss | Day 4-5 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-3-handoff.md) |
 | Phase 4 | 美术 & 音频接入 | Day 6 | 待开始 | — |
 | Phase 5 | 设置 & 中文 & 布局 | Day 7 | 待开始 | — |
 | Phase 6 | 自动化测试 & 打磨 & 打包 | Day 8-10 | 待开始 | — |
@@ -235,3 +235,4 @@ make test && make test-func && make test-golden
 | 2026-05-04 | Phase 0 收口，回填 handoff 链接 | Phase 0 验收命令全绿，详见 handoff |
 | 2026-05-04 | Phase 1 收口，回填 handoff 链接 | Pixel 入口、GameRunner 最小闭环、headless smoke 与 CLI 回归验证完成 |
 | 2026-05-04 | Phase 2 收口，回填 handoff 链接 | Map/Rest/Event/Shop 屏幕完成，非战斗规则与 CLI 共享，回归验证完成 |
+| 2026-05-04 | Phase 3 收口，回填 handoff 链接 | Battle/Elite/Boss 战斗屏完成，Boss 禁逃和 MP 禁用状态验证完成 |

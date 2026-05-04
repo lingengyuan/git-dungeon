@@ -4,13 +4,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 from git_dungeon.config import GameConfig
 from git_dungeon.content.runtime_loader import load_runtime_content
 from git_dungeon.core.git_parser import CommitInfo, GitParser
-from git_dungeon.engine import GameState, create_rng
+from git_dungeon.engine import EnemyState, GameState, create_rng
 from git_dungeon.engine.auto_policy import REST_ACTION_FOCUS, REST_ACTION_HEAL
+from git_dungeon.engine.combat_actions import CombatStepResult, resolve_combat_step
+from git_dungeon.engine.mutators import (
+    MutatorConfig,
+    apply_enemy_mutator,
+    apply_reward_mutator,
+    get_mutator_config,
+)
 from git_dungeon.engine.node_actions import (
     EventResolution,
     RestResolution,
@@ -23,7 +31,7 @@ from git_dungeon.engine.node_actions import (
 )
 from git_dungeon.engine.node_flow import ChapterNodeGenerator
 from git_dungeon.engine.route import NodeKind, RouteNode
-from git_dungeon.engine.rules import ChapterSystem
+from git_dungeon.engine.rules import BossState, BossSystem, ChapterSystem, CombatRules, ProgressionRules
 from git_dungeon.engine.rules.economy_rules import PlayerInventory
 from git_dungeon.engine.rules.chapter_rules import build_chapter_configs
 from git_dungeon.i18n import i18n, normalize_lang
@@ -94,6 +102,37 @@ class ShopOfferSnapshot:
     affordable: bool
 
 
+@dataclass(frozen=True)
+class EnemySnapshot:
+    name: str
+    hp: int
+    max_hp: int
+    attack: int
+    is_boss: bool
+    is_elite: bool
+    phase: str = ""
+
+
+@dataclass(frozen=True)
+class BattleSnapshot:
+    player: PlayerSnapshot
+    enemy: EnemySnapshot
+    turn: int
+    can_escape: bool
+    skill_cost: int
+    message: str
+    battle_over: bool
+    won: bool
+
+
+@dataclass(frozen=True)
+class RewardSnapshot:
+    exp: int
+    gold: int
+    level_up: bool
+    new_level: int
+
+
 class GameRunner:
     """Owns non-interactive repository loading for the pixel UI."""
 
@@ -104,26 +143,38 @@ class GameRunner:
         lang: str = "en",
         content_pack_args: list[str] | None = None,
         content_dir: str | None = None,
+        mutator: str = "none",
     ) -> None:
         self.repo_path = repo_path
         self.seed = seed
         self.lang = normalize_lang(lang)
         i18n.load_language(self.lang)
+        self.mutator: MutatorConfig = get_mutator_config(mutator)
 
         self.content_runtime = load_runtime_content(
             content_dir=content_dir,
             content_pack_args=content_pack_args,
         )
         self.rng = create_rng(seed)
+        self.combat_rules = CombatRules(rng=self.rng)
+        self.progression_rules = ProgressionRules(rng=self.rng)
         self.chapter_system = ChapterSystem(
             rng=self.rng,
             chapter_configs=build_chapter_configs(self.content_runtime.chapter_overrides),
         )
+        self.boss_system = BossSystem(rng=self.rng)
         self.node_generator = ChapterNodeGenerator()
         self.parser: GitParser | None = None
         self.commits: list[CommitInfo] = []
         self.state: GameState | None = None
         self.inventory = PlayerInventory()
+        self.current_enemy: EnemyState | BossState | None = None
+        self.current_battle_node: RouteNode | None = None
+        self.current_battle_commit: Any = None
+        self.current_battle_is_boss = False
+        self.current_battle_is_elite = False
+        self.current_battle_turn = 0
+        self.last_reward: RewardSnapshot | None = None
         self._chapter_nodes: dict[str, list[RouteNode]] = {}
         self._chapter_node_cursor: dict[str, int] = {}
         self.loaded = False
@@ -241,7 +292,10 @@ class GameRunner:
                 label=f"{node.position + 1:02d} {node.kind.value.upper()}",
                 is_current=index == cursor,
                 is_visited=node.node_id in visited,
-                is_playable_now=index == cursor and node.kind in self.non_combat_kinds(),
+                is_playable_now=(
+                    index == cursor
+                    and node.kind in self.non_combat_kinds().union(self.combat_kinds())
+                ),
             )
             for index, node in enumerate(nodes)
         )
@@ -367,9 +421,260 @@ class GameRunner:
         self._mark_current_node_resolved()
         return result
 
+    def start_current_battle(self) -> BattleSnapshot:
+        """Create the enemy for the current battle/elite/boss node."""
+        node = self.current_node()
+        if node is None:
+            raise RuntimeError("No current route node")
+        if node.kind not in {NodeKind.BATTLE, NodeKind.ELITE, NodeKind.BOSS}:
+            raise RuntimeError(f"Current node is not combat: {node.kind.value}")
+        chapter = self._require_chapter()
+        enemy: EnemyState | BossState
+        commit: Any = None
+        is_boss = node.kind == NodeKind.BOSS
+        is_elite = node.kind == NodeKind.ELITE
+
+        if is_boss and getattr(chapter, "is_boss_chapter", False):
+            boss = self.chapter_system.get_chapter_boss(chapter, self.boss_system)
+            if boss is None:
+                raise RuntimeError("Boss chapter has no boss definition")
+            enemy = boss
+        else:
+            commit = self._resolve_commit_for_node(chapter, node)
+            enemy_state = self._create_enemy(commit)
+            if is_elite:
+                enemy_state.current_hp = int(enemy_state.current_hp * 1.35)
+                enemy_state.max_hp = enemy_state.current_hp
+                enemy_state.attack = int(enemy_state.attack * 1.25)
+                enemy_state.name = f"Elite {enemy_state.name}"
+            if is_boss:
+                enemy_state.current_hp = int(enemy_state.current_hp * 1.6)
+                enemy_state.max_hp = enemy_state.current_hp
+                enemy_state.attack = int(enemy_state.attack * 1.45)
+                enemy_state.name = f"{chapter.name} Guardian"
+            enemy = enemy_state
+
+        state = self._require_state()
+        state.in_combat = True
+        if isinstance(enemy, EnemyState):
+            state.current_enemy = enemy
+        self.current_enemy = enemy
+        self.current_battle_node = node
+        self.current_battle_commit = commit
+        self.current_battle_is_boss = is_boss
+        self.current_battle_is_elite = is_elite
+        self.current_battle_turn = 1
+        self.last_reward = None
+        return self.battle_snapshot("Battle started")
+
+    def battle_snapshot(self, message: str = "") -> BattleSnapshot:
+        """Return display-safe battle state."""
+        enemy = self._require_current_enemy()
+        return BattleSnapshot(
+            player=self.player_snapshot(),
+            enemy=self._enemy_snapshot(enemy),
+            turn=max(1, self.current_battle_turn),
+            can_escape=not self.current_battle_is_boss,
+            skill_cost=15 if self.current_battle_is_boss else 10,
+            message=message,
+            battle_over=not enemy.is_alive or not self._require_state().player.character.is_alive,
+            won=not enemy.is_alive,
+        )
+
+    def resolve_battle_action(self, action: str) -> tuple[CombatStepResult, BattleSnapshot]:
+        """Resolve one battle action and advance route/rewards when battle ends."""
+        state = self._require_state()
+        enemy = self._require_current_enemy()
+        result = resolve_combat_step(
+            state,
+            enemy,
+            action,
+            rng=self.rng,
+            combat_rules=self.combat_rules,
+            is_boss=self.current_battle_is_boss,
+            boss_system=self.boss_system,
+        )
+        if result.accepted and not result.battle_over:
+            self.current_battle_turn += 1
+
+        if result.battle_over:
+            state.in_combat = False
+            if result.won:
+                self._finish_battle_victory()
+            elif result.escaped:
+                self._clear_battle()
+            elif result.player_defeated:
+                state.is_game_over = True
+            snapshot = self.battle_snapshot(result.message) if self.current_enemy else self._ended_snapshot(result)
+            return result, snapshot
+
+        return result, self.battle_snapshot(result.message)
+
+    def last_reward_snapshot(self) -> RewardSnapshot | None:
+        return self.last_reward
+
     @staticmethod
     def non_combat_kinds() -> set[NodeKind]:
         return {NodeKind.EVENT, NodeKind.REST, NodeKind.SHOP}
+
+    @staticmethod
+    def combat_kinds() -> set[NodeKind]:
+        return {NodeKind.BATTLE, NodeKind.ELITE, NodeKind.BOSS}
+
+    def _finish_battle_victory(self) -> None:
+        chapter = self._require_chapter()
+        enemy = self._require_current_enemy()
+        if isinstance(enemy, BossState):
+            self.last_reward = self._grant_boss_rewards(enemy)
+        else:
+            chapter.enemies_defeated += 1
+            if self.current_battle_commit is not None:
+                self._require_state().enemies_defeated.append(self.current_battle_commit.hexsha[:7])
+            self.last_reward = self._grant_enemy_rewards(enemy, chapter)
+        self._mark_current_node_resolved()
+        self._clear_battle()
+
+    def _grant_enemy_rewards(self, enemy: EnemyState, chapter: Any) -> RewardSnapshot:
+        exp = int(enemy.exp_reward * chapter.config.exp_bonus)
+        gold = int(enemy.gold_reward * chapter.config.gold_bonus)
+        exp, gold = apply_reward_mutator(exp, gold, self.mutator)
+        state = self._require_state()
+        state.player.gold += gold
+        self.inventory.gold += gold
+        did_level_up, new_level = state.player.character.gain_experience(exp)
+        return RewardSnapshot(exp=exp, gold=gold, level_up=did_level_up, new_level=new_level)
+
+    def _grant_boss_rewards(self, boss: BossState) -> RewardSnapshot:
+        rewards = self.boss_system.get_boss_rewards(boss)
+        exp, gold = apply_reward_mutator(int(rewards["exp"]), int(rewards["gold"]), self.mutator)
+        state = self._require_state()
+        state.player.gold += gold
+        self.inventory.gold += gold
+        did_level_up, new_level = state.player.character.gain_experience(exp)
+        return RewardSnapshot(exp=exp, gold=gold, level_up=did_level_up, new_level=new_level)
+
+    def _clear_battle(self) -> None:
+        state = self._require_state()
+        state.current_enemy = None
+        self.current_enemy = None
+        self.current_battle_node = None
+        self.current_battle_commit = None
+        self.current_battle_is_boss = False
+        self.current_battle_is_elite = False
+        self.current_battle_turn = 0
+
+    def _ended_snapshot(self, result: CombatStepResult) -> BattleSnapshot:
+        player = self.player_snapshot()
+        return BattleSnapshot(
+            player=player,
+            enemy=EnemySnapshot(
+                name="Battle ended",
+                hp=0,
+                max_hp=1,
+                attack=0,
+                is_boss=False,
+                is_elite=False,
+            ),
+            turn=max(1, self.current_battle_turn),
+            can_escape=False,
+            skill_cost=10,
+            message=result.message,
+            battle_over=True,
+            won=result.won,
+        )
+
+    def _enemy_snapshot(self, enemy: EnemyState | BossState) -> EnemySnapshot:
+        phase = ""
+        if isinstance(enemy, BossState):
+            phase = "enraged" if enemy.is_enraged else enemy.phase_name
+        return EnemySnapshot(
+            name=enemy.name,
+            hp=enemy.current_hp,
+            max_hp=enemy.max_hp,
+            attack=enemy.attack,
+            is_boss=self.current_battle_is_boss,
+            is_elite=self.current_battle_is_elite,
+            phase=phase,
+        )
+
+    def _require_current_enemy(self) -> EnemyState | BossState:
+        if self.current_enemy is None:
+            raise RuntimeError("No active battle")
+        return self.current_enemy
+
+    def _resolve_commit_for_node(self, chapter: Any, node: RouteNode) -> Any:
+        commits = list(getattr(chapter, "commits", []))
+        if not commits:
+            return SimpleNamespace(
+                hexsha=f"synthetic_{chapter.chapter_index:02d}_{node.position:02d}",
+                message=f"chapter_{chapter.chapter_index}_node_{node.kind.value}",
+                total_changes=10,
+            )
+
+        nodes = self._chapter_nodes.get(chapter.chapter_id, [])
+        combat_nodes = [item for item in nodes if item.kind in self.combat_kinds()]
+        if not combat_nodes or len(combat_nodes) == 1:
+            commit_idx = 0
+        else:
+            combat_index = 0
+            for idx, combat_node in enumerate(combat_nodes):
+                if combat_node.node_id == node.node_id:
+                    combat_index = idx
+                    break
+            commit_idx = int(round((combat_index * (len(commits) - 1)) / (len(combat_nodes) - 1)))
+        self._require_state().current_commit_index = int(chapter.start_index + commit_idx)
+        return commits[commit_idx]
+
+    def _create_enemy(self, commit: Any) -> EnemyState:
+        msg = str(commit.message).lower()
+        chapter = self._require_chapter()
+        if "merge" in msg:
+            enemy_type = "merge"
+        elif msg.startswith("fix") or "bug" in msg:
+            enemy_type = "bug"
+        elif msg.startswith("feat"):
+            enemy_type = "feature"
+        elif msg.startswith("docs"):
+            enemy_type = "docs"
+        else:
+            enemy_type = "general"
+
+        diff = self.progression_rules.calculate_enemy_difficulty(
+            commit.total_changes or 10,
+            enemy_type,
+            chapter.chapter_index,
+        )
+        hp = int(diff["hp"] * chapter.config.enemy_hp_multiplier)
+        atk = int(diff["attack"] * chapter.config.enemy_atk_multiplier)
+        hp, atk = apply_enemy_mutator(hp, atk, self.mutator)
+        return EnemyState(
+            entity_id=f"enemy_{self._require_state().current_commit_index}",
+            name=self._generate_enemy_name(commit),
+            enemy_type=enemy_type,
+            commit_hash=commit.hexsha[:7],
+            commit_message=commit.message[:30],
+            current_hp=hp,
+            max_hp=hp,
+            attack=atk,
+            defense=diff["defense"],
+            exp_reward=diff["exp_reward"],
+            gold_reward=diff["gold_reward"],
+            is_boss="merge" in msg,
+        )
+
+    @staticmethod
+    def _generate_enemy_name(commit: Any) -> str:
+        msg = str(commit.message)
+        lowered = msg.lower()
+        if lowered.startswith("feat:"):
+            return f"Feature: {msg[5:].strip()[:20]}"
+        if lowered.startswith("fix:"):
+            return f"Bug: {msg[4:].strip()[:20]}"
+        if lowered.startswith("docs:"):
+            return f"Docs: {msg[5:].strip()[:15]}"
+        if lowered.startswith("merge"):
+            return "Merge Conflict"
+        return msg[:25] if msg else "Unknown"
 
     def _mark_current_node_resolved(self) -> None:
         state = self._require_state()
