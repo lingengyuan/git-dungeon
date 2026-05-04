@@ -202,6 +202,35 @@ def run_cli(
         return 1
 
 
+def run_pixel(
+    repository: str,
+    seed: Optional[int] = None,
+    lang: str = "en",
+    content_pack: Optional[list[str]] = None,
+    smoke_frames: Optional[int] = None,
+) -> int:
+    """Run the pixel UI."""
+    from git_dungeon.i18n import normalize_lang
+
+    try:
+        from git_dungeon.ui_pixel import run as run_pixel_ui
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+    try:
+        return run_pixel_ui(
+            repo_path=repository,
+            seed=seed,
+            lang=normalize_lang(lang),
+            content_pack_args=content_pack,
+            smoke_frames=smoke_frames,
+        )
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
 def main() -> int:
     """Main entry point for CLI."""
     import argparse
@@ -230,6 +259,10 @@ def main() -> int:
                         help="Write JSON log to file (JSONL format)")
     parser.add_argument("--auto", action="store_true",
                         help="Auto-battle mode (automatic combat)")
+    parser.add_argument("--pixel", action="store_true",
+                        help="Run the experimental Pygame pixel UI")
+    parser.add_argument("--pixel-smoke-frames", type=int, default=None,
+                        help=argparse.SUPPRESS)
     parser.add_argument("--metrics-out", type=str, default=None,
                         help="Write gameplay metrics to JSON")
     parser.add_argument("--print-metrics", action="store_true",
@@ -267,11 +300,21 @@ def main() -> int:
         print("  git-dungeon . --auto             # Auto-battle")
         print("  git-dungeon . --auto --compact   # Compact auto battle logs")
         print("  git-dungeon . --auto --metrics-out run_metrics.json")
+        print("  git-dungeon . --pixel            # Experimental pixel UI")
         print("  git-dungeon . --daily --mutator hard")
         print("  git-dungeon . --content-pack content_packs/example_pack")
         print("  git-dungeon . --ai=on --ai-provider=mock")
         print("  git-dungeon . --json-log run.jsonl  # JSON logging")
         return 0
+
+    if args.pixel:
+        return run_pixel(
+            repository=args.repository,
+            seed=args.seed,
+            lang=args.lang,
+            content_pack=args.content_pack,
+            smoke_frames=args.pixel_smoke_frames,
+        )
     
     return run_cli(
         repository=args.repository,

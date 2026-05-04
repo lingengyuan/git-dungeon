@@ -68,7 +68,6 @@ test_screenshots.txt
 .git_dungeon_cache/
 benchmarks/output/
 artifacts/
-AGENTS.md
 .env
 docs/PROJECT_REVIEW.md
 

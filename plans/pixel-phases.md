@@ -1,10 +1,10 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：进行中（截至 2026-05-04 完成 Phase 0，准备进入 Phase 1）
+> **状态**：进行中（截至 2026-05-04 完成 Phase 0-1，准备进入 Phase 2）
 > **作用**：Phase 0-7 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
-> 阅读路径：`CLAUDE.md` → 本文件 → `handoffs/` 下最新一份。
+> 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
 
 ## 0. 总览
 
@@ -20,7 +20,7 @@
 | Phase | 主题 | 对应源 plan | 状态 | Handoff |
 |---|---|---|---|---|
 | Phase 0 | 基线 & 资源准备 | Day 0 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-0-handoff.md) |
-| Phase 1 | GameRunner & `--pixel` 入口 | Day 1-2 | 待开始 | — |
+| Phase 1 | GameRunner & `--pixel` 入口 | Day 1-2 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-1-handoff.md) |
 | Phase 2 | 非战斗屏幕（Map/Rest/Event/Shop） | Day 3 | 待开始 | — |
 | Phase 3 | 战斗 & Boss | Day 4-5 | 待开始 | — |
 | Phase 4 | 美术 & 音频接入 | Day 6 | 待开始 | — |
@@ -233,3 +233,4 @@ make test && make test-func && make test-golden
 |---|---|---|
 | 2026-05-03 | 初始创建，从源 plan 拆出 Phase 0-7 | 与 CLAUDE.md 第 6 条对齐，建立 phase → handoff 索引 |
 | 2026-05-04 | Phase 0 收口，回填 handoff 链接 | Phase 0 验收命令全绿，详见 handoff |
+| 2026-05-04 | Phase 1 收口，回填 handoff 链接 | Pixel 入口、GameRunner 最小闭环、headless smoke 与 CLI 回归验证完成 |
