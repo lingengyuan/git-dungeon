@@ -5,8 +5,11 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from git_dungeon.ui_pixel.game_runner import GameRunner, RunSummary
+from git_dungeon.ui_pixel.assets import SpriteCatalog
+from git_dungeon.ui_pixel.game_runner import GameRunner
+from git_dungeon.ui_pixel.layout import scale_rect, window_to_logical
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
+from git_dungeon.ui_pixel.screens.title import LoadingScreen, TitleScreen
 
 LOGICAL_SIZE = (320, 180)
 WINDOW_SIZE = (1280, 720)
@@ -75,88 +78,12 @@ class PixelFont:
             self._cache[size] = self._pygame.font.Font(None, size)
         return self._cache[size]
 
+    def measure(self, text: str, size: int = 16) -> int:
+        return self.get(size).size(text)[0]
+
     def draw(self, surface, text: str, pos: tuple[int, int], color=TEXT, size: int = 16) -> None:
         img = self.get(size).render(text, False, color)
         surface.blit(img, pos)
-
-
-class TitleScreen(Screen):
-    def __init__(self, pygame_module, fonts: PixelFont, runner: GameRunner) -> None:
-        self.pygame = pygame_module
-        self.fonts = fonts
-        self.runner = runner
-        self.status = "Press Enter to load repository"
-        self.summary: RunSummary | None = None
-        self.error: str | None = None
-
-    def handle(self, event) -> ScreenAction | None:
-        if event.type == self.pygame.KEYDOWN:
-            if event.key in (self.pygame.K_ESCAPE, self.pygame.K_q):
-                return ScreenAction.quit()
-            if event.key in (self.pygame.K_RETURN, self.pygame.K_SPACE):
-                return ScreenAction.replace(LoadingScreen(self.pygame, self.fonts, self.runner))
-        return None
-
-    def draw(self, surface) -> None:
-        surface.fill(BG)
-        self.pygame.draw.rect(surface, SURFACE, (18, 18, 284, 144))
-        self.pygame.draw.rect(surface, ACCENT, (18, 18, 284, 144), 1)
-
-        self.fonts.draw(surface, "GIT DUNGEON", (86, 42), ACCENT, 28)
-        self.fonts.draw(surface, "PIXEL MODE", (112, 70), TEXT, 18)
-        self.fonts.draw(surface, self.status, (62, 110), MUTED, 16)
-        self.fonts.draw(surface, "Enter: Start   Esc/Q: Quit", (62, 132), TEXT, 16)
-
-
-class LoadingScreen(Screen):
-    def __init__(self, pygame_module, fonts: PixelFont, runner: GameRunner) -> None:
-        self.pygame = pygame_module
-        self.fonts = fonts
-        self.runner = runner
-        self.started = False
-        self.summary: RunSummary | None = None
-        self.error: str | None = None
-
-    def update(self, dt: float) -> ScreenAction | None:
-        if self.started:
-            return None
-        self.started = True
-        try:
-            self.summary = self.runner.load_repository()
-        except Exception as exc:
-            self.error = str(exc)
-        return None
-
-    def handle(self, event) -> ScreenAction | None:
-        if event.type == self.pygame.KEYDOWN and event.key in (
-            self.pygame.K_ESCAPE,
-            self.pygame.K_q,
-            self.pygame.K_RETURN,
-        ):
-            return ScreenAction.quit()
-        return None
-
-    def draw(self, surface) -> None:
-        surface.fill(BG)
-        self.pygame.draw.rect(surface, SURFACE, (14, 18, 292, 144))
-        self.pygame.draw.rect(surface, ACCENT, (14, 18, 292, 144), 1)
-        self.fonts.draw(surface, "LOADING REPOSITORY", (50, 34), ACCENT, 22)
-
-        if self.error:
-            self.fonts.draw(surface, "Load failed", (32, 70), BAD, 18)
-            self.fonts.draw(surface, self.error[:38], (32, 94), TEXT, 16)
-            self.fonts.draw(surface, "Enter/Esc: Quit", (32, 128), MUTED, 16)
-            return
-
-        if self.summary is None:
-            self.fonts.draw(surface, "Reading git history...", (32, 82), MUTED, 16)
-            return
-
-        self.fonts.draw(surface, "Repository loaded", (32, 64), GOOD, 18)
-        self.fonts.draw(surface, f"Commits:  {self.summary.total_commits}", (32, 88), TEXT, 16)
-        self.fonts.draw(surface, f"Chapters: {self.summary.chapter_count}", (32, 106), TEXT, 16)
-        self.fonts.draw(surface, f"First: {self.summary.current_chapter_name[:24]}", (32, 124), TEXT, 16)
-        self.fonts.draw(surface, "Enter/Esc: Quit", (32, 146), MUTED, 16)
 
 
 def _import_pygame():
@@ -184,13 +111,20 @@ def run(
         surface = pygame.Surface(LOGICAL_SIZE)
         clock = pygame.time.Clock()
         fonts = PixelFont(pygame)
+        assets = SpriteCatalog(pygame)
+        assets.load()
         runner = GameRunner(
             repo_path=repo_path,
             seed=seed,
             lang=lang,
             content_pack_args=content_pack_args,
         )
-        stack = ScreenStack([TitleScreen(pygame, fonts, runner)])
+        initial_screen: Screen
+        if smoke_frames is not None:
+            initial_screen = LoadingScreen(pygame, fonts, runner, assets)
+        else:
+            initial_screen = TitleScreen(pygame, fonts, runner, assets)
+        stack = ScreenStack([initial_screen])
         frames = 0
 
         while not stack.is_empty:
@@ -199,6 +133,16 @@ def run(
                 if event.type == pygame.QUIT:
                     stack.apply(ScreenAction.quit())
                     break
+                if event.type in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
+                    logical_pos = window_to_logical(
+                        event.pos,
+                        window.get_size(),
+                        LOGICAL_SIZE,
+                    )
+                    event = pygame.event.Event(
+                        event.type,
+                        {**event.dict, "logical_pos": logical_pos},
+                    )
                 action = stack.top.handle(event)
                 if action is not None:
                     stack.apply(action)
@@ -213,7 +157,9 @@ def run(
                     break
 
             stack.top.draw(surface)
-            pygame.transform.scale(surface, WINDOW_SIZE, window)
+            window.fill(BG)
+            dest_rect = scale_rect(LOGICAL_SIZE, window.get_size())
+            pygame.transform.scale(surface, (dest_rect[2], dest_rect[3]), window.subsurface(dest_rect))
             pygame.display.flip()
 
             frames += 1

@@ -42,14 +42,21 @@ from git_dungeon.engine.auto_policy import (
     RuleBasedAutoPolicy,
 )
 from git_dungeon.engine.daily import DailyChallengeInfo, build_shareable_run_id, resolve_run_seed
-from git_dungeon.engine.events import apply_event_choice
 from git_dungeon.engine.mutators import (
     MutatorConfig,
     apply_enemy_mutator,
     apply_reward_mutator,
     get_mutator_config,
 )
-from git_dungeon.engine.rng import DefaultRNG
+from git_dungeon.engine.node_actions import (
+    apply_event_resolution,
+    apply_shop_offer_to_state,
+    build_event_option_context,
+    resolve_rest_action,
+    resolve_shop_purchase,
+    select_event_for_node,
+    shop_offers_for_node,
+)
 from git_dungeon.engine.node_flow import ChapterNodeGenerator, summarize_node_kinds
 from git_dungeon.engine.route import NodeKind, RouteNode
 from git_dungeon.engine.run_metrics import RunMetrics
@@ -442,72 +449,16 @@ class GitDungeonCLI:
 
     def _select_event_for_node(self, chapter: Any, node: RouteNode) -> Any:
         """Pick one deterministic event for a node."""
-        all_events = sorted(self.content_runtime.registry.events.values(), key=lambda item: item.id)
-        if not all_events:
-            return None
-
-        preferred_tags: set[str] = {tag.value for tag in node.tags}
-        if node.kind == NodeKind.SHOP:
-            preferred_tags.update({"shop", "greed"})
-        elif node.kind == NodeKind.REST:
-            preferred_tags.update({"safe"})
-        elif node.kind == NodeKind.ELITE:
-            preferred_tags.update({"risk"})
-
-        filtered = [
-            event
-            for event in all_events
-            if (
-                not event.route_tags
-                or not preferred_tags
-                or bool(preferred_tags.intersection(event.route_tags))
-            )
-        ]
-        candidates = filtered or all_events
-
-        chapter_type = getattr(getattr(chapter, "chapter_type", None), "value", "default")
-        weights = []
-        for event in candidates:
-            weight = event.weights.get(chapter_type, event.weights.get("default", 1))
-            weights.append(max(1, int(weight)))
-
-        seed = int(self.seed or 0) + chapter.chapter_index * 131 + node.position * 17
-        picker = DefaultRNG(seed=seed)
-        return picker.choices(candidates, weights=weights, k=1)[0]
+        return select_event_for_node(
+            list(self.content_runtime.registry.events.values()),
+            seed=int(self.seed or 0),
+            chapter=chapter,
+            node=node,
+        )
 
     def _build_event_option_context(self, choice: Any) -> AutoEventOptionContext:
         """Build policy-scoring context for one event choice."""
-        hp_delta = 0
-        gold_delta = 0
-        resource_delta = 0.0
-        risk_level = 0
-        for effect in choice.effects:
-            opcode = str(effect.opcode)
-            value = effect.value
-            amount = int(value) if isinstance(value, (int, float)) else 0
-            if opcode == "heal":
-                hp_delta += amount
-            elif opcode == "take_damage":
-                hp_delta -= amount
-                risk_level += 1
-            elif opcode == "gain_gold":
-                gold_delta += amount
-            elif opcode == "lose_gold":
-                gold_delta -= amount
-            elif opcode in {"add_relic"}:
-                resource_delta += 1.2
-            elif opcode in {"add_card", "upgrade_card"}:
-                resource_delta += 0.8
-            elif opcode in {"apply_status", "trigger_battle"}:
-                risk_level += 2
-                resource_delta -= 0.4
-        return AutoEventOptionContext(
-            choice_id=choice.id,
-            hp_delta=hp_delta,
-            gold_delta=gold_delta,
-            resource_delta=resource_delta,
-            risk_level=risk_level,
-        )
+        return build_event_option_context(choice)
 
     def _choose_event_choice(self, chapter: Any, node: RouteNode, event: Any) -> int:
         """Choose one event option (manual or auto)."""
@@ -552,45 +503,28 @@ class GitDungeonCLI:
                 print("🎲 Event node had no valid event definition.")
             return True
 
-        player = self.state.player.character
-        before_hp = player.current_hp
-        before_gold = self.state.player.gold
         choice_idx = self._choose_event_choice(chapter, node, event)
-        choice = event.choices[choice_idx]
-        effect_payload = [
-            {
-                "opcode": effect.opcode,
-                "value": effect.value,
-                "target": effect.target,
-                "condition": effect.condition,
-            }
-            for effect in choice.effects
-        ]
-        result = apply_event_choice(self.state, effect_payload, self.rng)
-        after_hp = player.current_hp
-        after_gold = self.state.player.gold
+        result = apply_event_resolution(self.state, event, choice_idx, self.rng)
 
-        self.metrics.record_event_choice(event.id, choice.id)
-        hp_delta = after_hp - before_hp
-        gold_delta = after_gold - before_gold
-        hp_text = f"{hp_delta:+d}" if hp_delta else "0"
-        gold_text = f"{gold_delta:+d}" if gold_delta else "0"
+        self.metrics.record_event_choice(result.event_id, result.choice_id)
+        hp_text = f"{result.hp_delta:+d}" if result.hp_delta else "0"
+        gold_text = f"{result.gold_delta:+d}" if result.gold_delta else "0"
 
         if self._compact_mode:
             print(
-                f"N{node.position + 1:02d} node=event event={event.id} choice={choice.id} "
+                f"N{node.position + 1:02d} node=event event={result.event_id} "
+                f"choice={result.choice_id} "
                 f"hpΔ={hp_text} goldΔ={gold_text}"
             )
-            messages = result.get("messages", [])
-            if messages:
-                print(f"   {' '.join(messages[:3])}")
+            if result.messages:
+                print(f"   {' '.join(result.messages[:3])}")
         else:
-            print(f"\n🎲 EVENT: {event.id}")
-            print(f"   choice={choice.id} hpΔ={hp_text} goldΔ={gold_text}")
-            for message in result.get("messages", []):
+            print(f"\n🎲 EVENT: {result.event_id}")
+            print(f"   choice={result.choice_id} hpΔ={hp_text} goldΔ={gold_text}")
+            for message in result.messages:
                 print(f"   - {message}")
 
-        if player.current_hp <= 0:
+        if not result.player_alive:
             return False
         return True
 
@@ -617,87 +551,24 @@ class GitDungeonCLI:
             raw = input().strip()
             choice = REST_ACTION_HEAL if raw in {"1", "heal"} else REST_ACTION_FOCUS
 
-        if choice == REST_ACTION_HEAL:
-            heal_amount = max(10, int(player.stats.hp.value * 0.3))
-            actual = player.heal(heal_amount)
-            output = f"heal={actual}"
-        else:
-            player.stats.attack.base += 2
-            player.stats.hp.base += 5
-            player.current_hp = min(player.stats.hp.value, player.current_hp + 5)
-            output = "focus=atk+2 hp_max+5"
+        result = resolve_rest_action(self.state, choice)
 
-        self.metrics.record_rest_choice(choice)
+        self.metrics.record_rest_choice(result.choice)
         if self._compact_mode:
-            print(f"N{node.position + 1:02d} node=rest choice={choice} {output}")
+            print(f"N{node.position + 1:02d} node=rest choice={result.choice} {result.message}")
         else:
-            print(f"🛌 Rest: {choice} -> {output}")
+            print(f"🛌 Rest: {result.choice} -> {result.message}")
         return True
 
     def _shop_offers_for_node(self, chapter: Any, node: RouteNode) -> list[dict[str, Any]]:
         """Build deterministic light-weight shop offers for one node."""
-        seed = int(self.seed or 0) + chapter.chapter_index * 211 + node.position * 41
-        rng = DefaultRNG(seed=seed)
-        tier = chapter.chapter_index
-        templates = [
-            {
-                "id": "patch_kit",
-                "label": "Patch Kit",
-                "cost": 30 + tier * 5,
-                "heal": 18,
-                "atk": 0,
-                "mp": 0,
-            },
-            {
-                "id": "compiler_blade",
-                "label": "Compiler Blade",
-                "cost": 55 + tier * 8,
-                "heal": 0,
-                "atk": 2,
-                "mp": 0,
-            },
-            {
-                "id": "cache_tonic",
-                "label": "Cache Tonic",
-                "cost": 42 + tier * 6,
-                "heal": 8,
-                "atk": 0,
-                "mp": 12,
-            },
-            {
-                "id": "max_hp_patch",
-                "label": "MaxHP Patch",
-                "cost": 75 + tier * 10,
-                "heal": 10,
-                "atk": 1,
-                "mp": 0,
-                "hp_max": 10,
-            },
-        ]
-        picked_ids = rng.sample(list(range(len(templates))), k=min(3, len(templates)))
-        return [templates[index] for index in picked_ids]
+        return shop_offers_for_node(int(self.seed or 0), chapter, node)
 
     def _apply_shop_offer(self, offer: dict[str, Any]) -> None:
         """Apply one shop offer to current player state."""
         if not self.state:
             return
-        player = self.state.player.character
-        hp_max_gain = int(offer.get("hp_max", 0))
-        if hp_max_gain:
-            player.stats.hp.base += hp_max_gain
-            player.current_hp += hp_max_gain
-        atk_gain = int(offer.get("atk", 0))
-        if atk_gain:
-            player.stats.attack.base += atk_gain
-        mp_gain = int(offer.get("mp", 0))
-        if mp_gain:
-            player.current_mp = min(
-                player.stats.mp.value,
-                player.current_mp + mp_gain,
-            )
-        heal_gain = int(offer.get("heal", 0))
-        if heal_gain:
-            player.heal(heal_gain)
+        apply_shop_offer_to_state(self.state, offer)
 
     def _handle_shop_node(self, chapter: Any, node: RouteNode) -> bool:
         """Resolve shop node with deterministic offers and auto policy support."""
@@ -752,8 +623,9 @@ class GitDungeonCLI:
             if parsed > 0:
                 selected_idx = parsed - 1
 
-        if selected_idx is None or selected_idx < 0 or selected_idx >= len(offers):
-            self.metrics.record_shop_choice("skip")
+        result = resolve_shop_purchase(self.state, self.inventory, offers, selected_idx)
+        if result.choice == "skip":
+            self.metrics.record_shop_choice(result.choice)
             if self._compact_mode:
                 print(
                     f"N{node.position + 1:02d} node=shop choice=skip "
@@ -763,10 +635,8 @@ class GitDungeonCLI:
                 print("🏪 Shop skipped.")
             return True
 
-        offer = offers[selected_idx]
-        cost = int(offer["cost"])
-        if cost > self.state.player.gold:
-            self.metrics.record_shop_choice("insufficient_gold")
+        if result.reason == "insufficient_gold":
+            self.metrics.record_shop_choice(result.choice)
             if self._compact_mode:
                 print(
                     f"N{node.position + 1:02d} node=shop choice=none "
@@ -776,17 +646,14 @@ class GitDungeonCLI:
                 print("🏪 Not enough gold.")
             return True
 
-        self.state.player.gold -= cost
-        self.inventory.gold = self.state.player.gold
-        self._apply_shop_offer(offer)
-        self.metrics.record_shop_choice(str(offer["id"]))
+        self.metrics.record_shop_choice(result.choice)
         if self._compact_mode:
             print(
-                f"N{node.position + 1:02d} node=shop choice={offer['id']} "
-                f"cost={cost} gold={self.state.player.gold}"
+                f"N{node.position + 1:02d} node=shop choice={result.choice} "
+                f"gold={self.state.player.gold}"
             )
         else:
-            print(f"🏪 Purchased {offer['label']} for {cost} gold.")
+            print(f"🏪 {result.message}")
         return True
     
     def _combat(self, enemy: EnemyState, chapter: Any) -> bool:
