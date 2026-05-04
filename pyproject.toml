@@ -29,6 +29,7 @@ dev = [
     "pytest-cov>=4.1.0",
     "ruff>=0.8.0",
     "mypy>=1.8.0",
+    "Pillow>=10.0.0",  # asset verify + contact sheet generation
 ]
 
 [project.scripts]
