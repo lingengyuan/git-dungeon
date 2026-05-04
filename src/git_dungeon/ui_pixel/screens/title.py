@@ -11,20 +11,34 @@ from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, dra
 
 
 class TitleScreen(Screen):
-    def __init__(self, pygame_module: Any, fonts: Any, runner: GameRunner, assets: Any) -> None:
+    def __init__(
+        self,
+        pygame_module: Any,
+        fonts: Any,
+        runner: GameRunner,
+        assets: Any,
+        audio: Any | None = None,
+    ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.runner = runner
         self.assets = assets
+        self.audio = audio
         self.status = "Press Enter to load repository"
+
+    def enter(self) -> None:
+        if self.audio is not None:
+            self.audio.play_bgm("title")
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
             if event.key in (self.pygame.K_ESCAPE, self.pygame.K_q):
                 return ScreenAction.quit()
             if event.key in (self.pygame.K_RETURN, self.pygame.K_SPACE):
+                if self.audio is not None:
+                    self.audio.play_sfx("ui_confirm")
                 return ScreenAction.replace(
-                    LoadingScreen(self.pygame, self.fonts, self.runner, self.assets)
+                    LoadingScreen(self.pygame, self.fonts, self.runner, self.assets, self.audio)
                 )
         return None
 
@@ -37,14 +51,24 @@ class TitleScreen(Screen):
         self.fonts.draw(surface, "PIXEL MODE", (112, 70), TEXT, 18)
         self.fonts.draw(surface, self.status, (62, 110), MUTED, 16)
         self.fonts.draw(surface, "Enter: Start   Esc/Q: Quit", (62, 132), TEXT, 16)
+        if self.audio is not None:
+            self.fonts.draw(surface, self.audio.status().label()[:38], (62, 148), MUTED, 13)
 
 
 class LoadingScreen(Screen):
-    def __init__(self, pygame_module: Any, fonts: Any, runner: GameRunner, assets: Any) -> None:
+    def __init__(
+        self,
+        pygame_module: Any,
+        fonts: Any,
+        runner: GameRunner,
+        assets: Any,
+        audio: Any | None = None,
+    ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.runner = runner
         self.assets = assets
+        self.audio = audio
         self.started = False
         self.summary: RunSummary | None = None
         self.error: str | None = None
@@ -58,7 +82,7 @@ class LoadingScreen(Screen):
         except Exception as exc:
             self.error = str(exc)
             return None
-        return ScreenAction.replace(MapScreen(self.pygame, self.fonts, self.runner, self.assets))
+        return ScreenAction.replace(MapScreen(self.pygame, self.fonts, self.runner, self.assets, audio=self.audio))
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN and event.key in (
@@ -82,6 +106,8 @@ class LoadingScreen(Screen):
 
         if self.summary is None:
             self.fonts.draw(surface, "Reading git history...", (32, 82), MUTED, 16)
+            if self.audio is not None:
+                self.fonts.draw(surface, self.audio.status().label()[:38], (32, 124), MUTED, 13)
             return
 
         self.fonts.draw(surface, "Repository loaded", (32, 64), GOOD, 18)

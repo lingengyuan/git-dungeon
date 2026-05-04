@@ -1,0 +1,65 @@
+assets:
+  - id: title_banner
+    source: gpt-image-2
+    status: pending_generation
+    prompt_file: assets/source_prompts/title_banner.md
+    generated_at: null
+    output_file: null
+    postprocess: [crop, nearest downscale to 320x90, palette cleanup]
+    license_note: generated project asset; keep prompt, raw output, and processed output together
+  - id: player_pixel
+    source: gpt-image-2
+    status: pending_generation
+    prompt_file: assets/source_prompts/player_pixel.md
+    generated_at: null
+    output_file: null
+    postprocess: [remove background, crop, nearest downscale to 32x32, palette cleanup]
+    license_note: generated project asset; keep prompt, raw output, and processed output together
+  - id: boss_fix
+    source: gpt-image-2
+    status: pending_generation
+    prompt_file: assets/source_prompts/boss_fix.md
+    generated_at: null
+    output_file: null
+    postprocess: [remove background, crop, nearest downscale to 32x32, palette cleanup]
+    license_note: generated project asset; keep prompt, raw output, and processed output together
+  - id: boss_refactor
+    source: gpt-image-2
+    status: pending_generation
+    prompt_file: assets/source_prompts/boss_refactor.md
+    generated_at: null
+    output_file: null
+    postprocess: [remove background, crop, nearest downscale to 32x32, palette cleanup]
+    license_note: generated project asset; keep prompt, raw output, and processed output together
+  - id: boss_merge_conflict
+    source: gpt-image-2
+    status: pending_generation
+    prompt_file: assets/source_prompts/boss_merge_conflict.md
+    generated_at: null
+    output_file: null
+    postprocess: [remove background, crop, nearest downscale to 32x32, palette cleanup]
+    license_note: generated project asset; keep prompt, raw output, and processed output together
+  - id: boss_ci_sentinel
+    source: gpt-image-2
+    status: pending_generation
+    prompt_file: assets/source_prompts/boss_ci_sentinel.md
+    generated_at: null
+    output_file: null
+    postprocess: [remove background, crop, nearest downscale to 32x32, palette cleanup]
+    license_note: generated project asset; keep prompt, raw output, and processed output together
+  - id: boss_secret_leak
+    source: gpt-image-2
+    status: pending_generation
+    prompt_file: assets/source_prompts/boss_secret_leak.md
+    generated_at: null
+    output_file: null
+    postprocess: [remove background, crop, nearest downscale to 32x32, palette cleanup]
+    license_note: generated project asset; keep prompt, raw output, and processed output together
+  - id: boss_release_gate
+    source: gpt-image-2
+    status: pending_generation
+    prompt_file: assets/source_prompts/boss_release_gate.md
+    generated_at: null
+    output_file: null
+    postprocess: [remove background, crop, nearest downscale to 32x32, palette cleanup]
+    license_note: generated project asset; keep prompt, raw output, and processed output together

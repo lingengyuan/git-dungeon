@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 from git_dungeon.engine.auto_policy import ACTION_ATTACK, ACTION_DEFEND, ACTION_ESCAPE, ACTION_SKILL
@@ -21,18 +22,48 @@ from git_dungeon.ui_pixel.widgets import (
 )
 
 
+@dataclass
+class FloatingText:
+    text: str
+    x: int
+    y: float
+    color: tuple[int, int, int]
+    ttl: float = 0.7
+
+
 class BattleScreen(Screen):
-    def __init__(self, pygame_module: Any, fonts: Any, runner: Any, assets: Any) -> None:
+    def __init__(
+        self,
+        pygame_module: Any,
+        fonts: Any,
+        runner: Any,
+        assets: Any,
+        audio: Any | None = None,
+    ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.runner = runner
         self.assets = assets
+        self.audio = audio
         self.hover_pos: tuple[int, int] | None = None
         self.snapshot = runner.start_current_battle()
         self.message = self.snapshot.message
-        self.flash_timer = 0.0
+        self.enemy_flash_timer = 0.0
+        self.player_flash_timer = 0.0
+        self.shield_timer = 0.0
+        self.critical_timer = 0.0
+        self.enemy_fade_timer = 0.0
+        self.floating_texts: list[FloatingText] = []
+        self.pending_action: ScreenAction | None = None
+        self.finish_timer = 0.0
+
+    def enter(self) -> None:
+        if self.audio is not None:
+            self.audio.play_bgm("boss" if self.snapshot.enemy.is_boss else "chapter")
 
     def handle(self, event: Any) -> ScreenAction | None:
+        if self.pending_action is not None:
+            return None
         if event.type == self.pygame.KEYDOWN:
             if event.key in (self.pygame.K_1, self.pygame.K_a):
                 return self._act(ACTION_ATTACK)
@@ -52,7 +83,21 @@ class BattleScreen(Screen):
         return None
 
     def update(self, dt: float) -> ScreenAction | None:
-        self.flash_timer = max(0.0, self.flash_timer - dt)
+        self.enemy_flash_timer = max(0.0, self.enemy_flash_timer - dt)
+        self.player_flash_timer = max(0.0, self.player_flash_timer - dt)
+        self.shield_timer = max(0.0, self.shield_timer - dt)
+        self.critical_timer = max(0.0, self.critical_timer - dt)
+        self.enemy_fade_timer = max(0.0, self.enemy_fade_timer - dt)
+        for item in self.floating_texts:
+            item.ttl -= dt
+            item.y -= 18 * dt
+        self.floating_texts = [item for item in self.floating_texts if item.ttl > 0]
+        if self.pending_action is not None:
+            self.finish_timer = max(0.0, self.finish_timer - dt)
+            if self.finish_timer <= 0:
+                action = self.pending_action
+                self.pending_action = None
+                return action
         return None
 
     def draw(self, surface: Any) -> None:
@@ -64,9 +109,17 @@ class BattleScreen(Screen):
         self.fonts.draw(surface, f"Turn {snap.turn}", (244, 24), MUTED, 14)
 
         self.assets.draw(surface, "player_default", (42, 76, 32, 32))
-        self.assets.draw(surface, "enemy_default", (238, 66, 32, 32))
-        if self.flash_timer > 0:
+        enemy_alpha = 255
+        if self.enemy_fade_timer > 0:
+            enemy_alpha = max(70, int(255 * self.enemy_fade_timer / 0.55))
+        shake = 2 if self.critical_timer > 0 and int(self.critical_timer * 30) % 2 == 0 else 0
+        self._draw_sprite(surface, "enemy_default", (238 + shake, 66, 32, 32), alpha=enemy_alpha)
+        if self.enemy_flash_timer > 0:
             self.pygame.draw.rect(surface, BAD, (236, 64, 36, 36), 1)
+        if self.player_flash_timer > 0:
+            self.pygame.draw.rect(surface, BAD, (40, 74, 36, 36), 1)
+        if self.shield_timer > 0:
+            self.pygame.draw.rect(surface, GOOD, (36, 70, 44, 44), 1)
 
         self.fonts.draw(surface, "Developer", (28, 48), TEXT, 15)
         draw_stat_bar(self.pygame, surface, (28, 62, 92, 8), snap.player.hp, snap.player.max_hp, GOOD)
@@ -81,9 +134,15 @@ class BattleScreen(Screen):
         if snap.enemy.phase:
             self.fonts.draw(surface, snap.enemy.phase[:16], (184, 130), BAD, 13)
 
+        for item in self.floating_texts:
+            alpha_color = item.color if item.ttl > 0.2 else MUTED
+            self.fonts.draw(surface, item.text, (item.x, int(item.y)), alpha_color, 15)
+
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
         self.fonts.draw(surface, self.message[:38], (22, 150), BAD if "Need" in self.message else TEXT, 13)
+        if self.audio is not None:
+            self.fonts.draw(surface, self.audio.status().label()[:30], (214, 150), MUTED, 11)
 
     def _buttons(self) -> dict[str, Button]:
         snap = self.snapshot
@@ -103,39 +162,109 @@ class BattleScreen(Screen):
     def _act(self, action: str) -> ScreenAction | None:
         if action == ACTION_ESCAPE and not self.snapshot.can_escape:
             self.message = "Cannot escape from Boss battle"
+            if self.audio is not None:
+                self.audio.play_sfx("ui_denied")
             return None
         if action == ACTION_SKILL and self.snapshot.player.mp < self.snapshot.skill_cost:
             self.message = f"Need {self.snapshot.skill_cost} MP"
+            if self.audio is not None:
+                self.audio.play_sfx("ui_denied")
             return None
         result, snapshot = self.runner.resolve_battle_action(action)
         self.snapshot = snapshot
         self.message = _message_for_result(result, snapshot)
+        self._queue_feedback(result)
         if result.player_damage > 0 or result.critical:
-            self.flash_timer = 0.18
+            self.enemy_flash_timer = 0.18
         if result.battle_over:
             reward = self.runner.last_reward_snapshot()
             if result.player_defeated:
-                return ScreenAction.replace(
-                    GameOverScreen(self.pygame, self.fonts, self.runner, self.assets, won=False)
+                self.pending_action = ScreenAction.replace(
+                    GameOverScreen(self.pygame, self.fonts, self.runner, self.assets, won=False, audio=self.audio)
                 )
+                self.finish_timer = 0.55
+                return None
             if result.won:
                 reward_text = ""
                 if reward is not None:
                     reward_text = f" +{reward.exp} EXP +{reward.gold} Gold"
-                return ScreenAction.replace(
+                    self._float(f"+{reward.exp} EXP +{reward.gold}G", 116, 86, GOOD, ttl=0.9)
+                self.enemy_fade_timer = 0.55
+                self.pending_action = ScreenAction.replace(
                     MapScreen(
                         self.pygame,
                         self.fonts,
                         self.runner,
                         self.assets,
                         message=f"Won battle.{reward_text}",
+                        audio=self.audio,
                     )
                 )
+                self.finish_timer = 0.65
+                return None
             if result.escaped:
-                return ScreenAction.replace(
-                    MapScreen(self.pygame, self.fonts, self.runner, self.assets, message="Escaped battle")
+                self.pending_action = ScreenAction.replace(
+                    MapScreen(
+                        self.pygame,
+                        self.fonts,
+                        self.runner,
+                        self.assets,
+                        message="Escaped battle",
+                        audio=self.audio,
+                    )
                 )
+                self.finish_timer = 0.25
+                return None
         return None
+
+    def _queue_feedback(self, result: Any) -> None:
+        if result.player_damage:
+            self._float(f"-{result.player_damage}", 238, 58, BAD)
+            self.enemy_flash_timer = 0.18
+            if self.audio is not None:
+                self.audio.play_sfx("combat_crit" if result.critical else "combat_hit")
+        if result.critical:
+            self._float("CRITICAL", 216, 38, BAD, ttl=0.9)
+            self.critical_timer = 0.3
+        if result.enemy_damage:
+            self._float(f"-{result.enemy_damage}", 44, 68, BAD)
+            self.player_flash_timer = 0.18
+            if self.audio is not None:
+                self.audio.play_sfx("combat_hurt")
+        if result.defended:
+            self._float("SHIELD", 36, 56, GOOD)
+            self.shield_timer = 0.35
+            if self.audio is not None:
+                self.audio.play_sfx("combat_defend")
+        if result.won and self.audio is not None:
+            self.audio.play_sfx("combat_kill")
+        if result.escaped and self.audio is not None:
+            self.audio.play_sfx("ui_cancel")
+
+    def _float(
+        self,
+        text: str,
+        x: int,
+        y: int,
+        color: tuple[int, int, int],
+        *,
+        ttl: float = 0.7,
+    ) -> None:
+        self.floating_texts.append(FloatingText(text=text, x=x, y=y, color=color, ttl=ttl))
+
+    def _draw_sprite(
+        self,
+        surface: Any,
+        sprite_id: str,
+        rect: tuple[int, int, int, int],
+        *,
+        alpha: int = 255,
+    ) -> None:
+        sprite = self.assets.get(sprite_id)
+        scaled = self.pygame.transform.scale(sprite, (rect[2], rect[3]))
+        if alpha < 255:
+            scaled.set_alpha(alpha)
+        surface.blit(scaled, (rect[0], rect[1]))
 
 
 def _message_for_result(result: Any, snapshot: Any) -> str:

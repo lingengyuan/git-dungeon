@@ -10,11 +10,19 @@ from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, But
 
 
 class ShopScreen(Screen):
-    def __init__(self, pygame_module: Any, fonts: Any, runner: Any, assets: Any) -> None:
+    def __init__(
+        self,
+        pygame_module: Any,
+        fonts: Any,
+        runner: Any,
+        assets: Any,
+        audio: Any | None = None,
+    ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.runner = runner
         self.assets = assets
+        self.audio = audio
         self.hover_pos: tuple[int, int] | None = None
         self.offers = runner.shop_offers()
         self.message = "Unavailable items are disabled"
@@ -77,8 +85,12 @@ class ShopScreen(Screen):
     def _choose(self, index: int | None) -> ScreenAction:
         if index is not None and not self.offers[index].affordable:
             self.message = "Not enough gold"
+            if self.audio is not None:
+                self.audio.play_sfx("ui_denied")
             return None
         result = self.runner.resolve_current_shop(index)
+        if self.audio is not None:
+            self.audio.play_sfx("economy" if index is not None else "ui_cancel")
         return ScreenAction.replace(
             MapScreen(
                 self.pygame,
@@ -86,5 +98,6 @@ class ShopScreen(Screen):
                 self.runner,
                 self.assets,
                 message=f"Shop: {result.message}",
+                audio=self.audio,
             )
         )

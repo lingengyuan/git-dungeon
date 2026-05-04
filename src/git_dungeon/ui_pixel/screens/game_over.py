@@ -9,12 +9,25 @@ from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, dra
 
 
 class GameOverScreen(Screen):
-    def __init__(self, pygame_module: Any, fonts: Any, runner: Any, assets: Any, won: bool) -> None:
+    def __init__(
+        self,
+        pygame_module: Any,
+        fonts: Any,
+        runner: Any,
+        assets: Any,
+        won: bool,
+        audio: Any | None = None,
+    ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.runner = runner
         self.assets = assets
         self.won = won
+        self.audio = audio
+
+    def enter(self) -> None:
+        if self.audio is not None:
+            self.audio.play_bgm("gameover")
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
@@ -31,3 +44,5 @@ class GameOverScreen(Screen):
         self.fonts.draw(surface, f"HP {player.hp}/{player.max_hp}", (82, 82), TEXT, 16)
         self.fonts.draw(surface, f"Gold {player.gold}", (82, 102), ACCENT, 16)
         self.fonts.draw(surface, "Enter/Esc/Q: Quit", (82, 130), MUTED, 15)
+        if self.audio is not None:
+            self.fonts.draw(surface, self.audio.status().label()[:36], (82, 146), MUTED, 12)

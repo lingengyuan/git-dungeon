@@ -10,11 +10,19 @@ from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, But
 
 
 class EventScreen(Screen):
-    def __init__(self, pygame_module: Any, fonts: Any, runner: Any, assets: Any) -> None:
+    def __init__(
+        self,
+        pygame_module: Any,
+        fonts: Any,
+        runner: Any,
+        assets: Any,
+        audio: Any | None = None,
+    ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.runner = runner
         self.assets = assets
+        self.audio = audio
         self.hover_pos: tuple[int, int] | None = None
         self.event = runner.event_for_node()
         self.error = "" if self.event else "No event definition"
@@ -22,7 +30,11 @@ class EventScreen(Screen):
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
             if event.key == self.pygame.K_ESCAPE:
-                return ScreenAction.replace(MapScreen(self.pygame, self.fonts, self.runner, self.assets))
+                if self.audio is not None:
+                    self.audio.play_sfx("ui_cancel")
+                return ScreenAction.replace(
+                    MapScreen(self.pygame, self.fonts, self.runner, self.assets, audio=self.audio)
+                )
             if self.event:
                 for idx, key in enumerate((self.pygame.K_1, self.pygame.K_2, self.pygame.K_3)):
                     if event.key == key and idx < len(self.event.choices):
@@ -67,6 +79,8 @@ class EventScreen(Screen):
 
     def _choose(self, index: int) -> ScreenAction:
         result = self.runner.resolve_current_event(index)
+        if self.audio is not None:
+            self.audio.play_sfx("event")
         hp_text = f"HP {result.hp_delta:+d}" if result.hp_delta else "HP 0"
         gold_text = f"Gold {result.gold_delta:+d}" if result.gold_delta else "Gold 0"
         return ScreenAction.replace(
@@ -76,5 +90,6 @@ class EventScreen(Screen):
                 self.runner,
                 self.assets,
                 message=f"Event: {result.choice_id} {hp_text} {gold_text}",
+                audio=self.audio,
             )
         )

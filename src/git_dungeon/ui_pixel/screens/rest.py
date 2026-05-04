@@ -10,24 +10,40 @@ from git_dungeon.ui_pixel.widgets import ACCENT, BG, GOOD, MUTED, TEXT, Button, 
 
 
 class RestScreen(Screen):
-    def __init__(self, pygame_module: Any, fonts: Any, runner: Any, assets: Any) -> None:
+    def __init__(
+        self,
+        pygame_module: Any,
+        fonts: Any,
+        runner: Any,
+        assets: Any,
+        audio: Any | None = None,
+    ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.runner = runner
         self.assets = assets
+        self.audio = audio
         self.hover_pos: tuple[int, int] | None = None
         self.result = ""
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
             if event.key == self.pygame.K_ESCAPE:
-                return ScreenAction.replace(MapScreen(self.pygame, self.fonts, self.runner, self.assets))
+                if self.audio is not None:
+                    self.audio.play_sfx("ui_cancel")
+                return ScreenAction.replace(
+                    MapScreen(self.pygame, self.fonts, self.runner, self.assets, audio=self.audio)
+                )
             if event.key in (self.pygame.K_1, self.pygame.K_h):
                 return self._choose("heal")
             if event.key in (self.pygame.K_2, self.pygame.K_f):
                 return self._choose("focus")
             if event.key == self.pygame.K_RETURN and self.result:
-                return ScreenAction.replace(MapScreen(self.pygame, self.fonts, self.runner, self.assets))
+                if self.audio is not None:
+                    self.audio.play_sfx("ui_confirm")
+                return ScreenAction.replace(
+                    MapScreen(self.pygame, self.fonts, self.runner, self.assets, audio=self.audio)
+                )
         if event.type == self.pygame.MOUSEMOTION:
             self.hover_pos = getattr(event, "logical_pos", None)
         if event.type == self.pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -64,6 +80,8 @@ class RestScreen(Screen):
 
     def _choose(self, action: str) -> ScreenAction | None:
         result = self.runner.resolve_current_rest(action)
+        if self.audio is not None:
+            self.audio.play_sfx("rest")
         return ScreenAction.replace(
             MapScreen(
                 self.pygame,
@@ -71,5 +89,6 @@ class RestScreen(Screen):
                 self.runner,
                 self.assets,
                 message=f"Rest: {result.message}",
+                audio=self.audio,
             )
         )

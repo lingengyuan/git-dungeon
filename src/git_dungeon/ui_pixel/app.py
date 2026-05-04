@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from git_dungeon.ui_pixel.assets import SpriteCatalog
+from git_dungeon.ui_pixel.audio import AudioManager
 from git_dungeon.ui_pixel.game_runner import GameRunner
 from git_dungeon.ui_pixel.layout import scale_rect, window_to_logical
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
@@ -113,6 +114,8 @@ def run(
         fonts = PixelFont(pygame)
         assets = SpriteCatalog(pygame)
         assets.load()
+        audio = AudioManager(pygame)
+        audio.load()
         runner = GameRunner(
             repo_path=repo_path,
             seed=seed,
@@ -121,9 +124,9 @@ def run(
         )
         initial_screen: Screen
         if smoke_frames is not None:
-            initial_screen = LoadingScreen(pygame, fonts, runner, assets)
+            initial_screen = LoadingScreen(pygame, fonts, runner, assets, audio)
         else:
-            initial_screen = TitleScreen(pygame, fonts, runner, assets)
+            initial_screen = TitleScreen(pygame, fonts, runner, assets, audio)
         stack = ScreenStack([initial_screen])
         frames = 0
 

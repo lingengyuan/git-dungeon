@@ -36,13 +36,19 @@ class MapScreen(Screen):
         runner: Any,
         assets: Any,
         message: str = "Choose the current non-combat node",
+        audio: Any | None = None,
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.runner = runner
         self.assets = assets
+        self.audio = audio
         self.hover_pos: tuple[int, int] | None = None
         self.message = message
+
+    def enter(self) -> None:
+        if self.audio is not None:
+            self.audio.play_bgm("chapter")
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
@@ -95,7 +101,9 @@ class MapScreen(Screen):
         if current is None:
             self.fonts.draw(surface, "No current node", (18, 156), BAD, 14)
         elif not current.is_playable_now:
-            self.fonts.draw(surface, "Battle screens arrive in Phase 3", (18, 156), MUTED, 14)
+            self.fonts.draw(surface, "Node is not playable yet", (18, 156), MUTED, 14)
+        if self.audio is not None:
+            self.fonts.draw(surface, self.audio.status().label()[:28], (204, 72), MUTED, 12)
 
     def _current_button(self) -> Button:
         current = self.runner.current_node_snapshot()
@@ -113,18 +121,30 @@ class MapScreen(Screen):
         if current.kind.value in {"battle", "elite", "boss"}:
             from git_dungeon.ui_pixel.screens.battle import BattleScreen
 
-            return ScreenAction.replace(BattleScreen(self.pygame, self.fonts, self.runner, self.assets))
+            if self.audio is not None:
+                self.audio.play_sfx("ui_confirm")
+            return ScreenAction.replace(
+                BattleScreen(self.pygame, self.fonts, self.runner, self.assets, self.audio)
+            )
         if current.kind.value == "event":
             from git_dungeon.ui_pixel.screens.event import EventScreen
 
-            return ScreenAction.replace(EventScreen(self.pygame, self.fonts, self.runner, self.assets))
+            if self.audio is not None:
+                self.audio.play_sfx("event")
+            return ScreenAction.replace(EventScreen(self.pygame, self.fonts, self.runner, self.assets, self.audio))
         if current.kind.value == "rest":
             from git_dungeon.ui_pixel.screens.rest import RestScreen
 
-            return ScreenAction.replace(RestScreen(self.pygame, self.fonts, self.runner, self.assets))
+            if self.audio is not None:
+                self.audio.play_sfx("rest")
+            return ScreenAction.replace(RestScreen(self.pygame, self.fonts, self.runner, self.assets, self.audio))
         if current.kind.value == "shop":
             from git_dungeon.ui_pixel.screens.shop import ShopScreen
 
-            return ScreenAction.replace(ShopScreen(self.pygame, self.fonts, self.runner, self.assets))
+            if self.audio is not None:
+                self.audio.play_sfx("ui_confirm")
+            return ScreenAction.replace(ShopScreen(self.pygame, self.fonts, self.runner, self.assets, self.audio))
         self.message = f"{current.kind.value.title()} is not playable yet"
+        if self.audio is not None:
+            self.audio.play_sfx("ui_denied")
         return None

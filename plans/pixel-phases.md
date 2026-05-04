@@ -1,7 +1,7 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：进行中（截至 2026-05-04 完成 Phase 0-3，准备进入 Phase 4）
+> **状态**：进行中（截至 2026-05-04 完成 Phase 0-4，准备进入 Phase 5）
 > **作用**：Phase 0-7 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
@@ -23,7 +23,7 @@
 | Phase 1 | GameRunner & `--pixel` 入口 | Day 1-2 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-1-handoff.md) |
 | Phase 2 | 非战斗屏幕（Map/Rest/Event/Shop） | Day 3 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-2-handoff.md) |
 | Phase 3 | 战斗 & Boss | Day 4-5 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-3-handoff.md) |
-| Phase 4 | 美术 & 音频接入 | Day 6 | 待开始 | — |
+| Phase 4 | 美术 & 音频接入 | Day 6 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-4-handoff.md) |
 | Phase 5 | 设置 & 中文 & 布局 | Day 7 | 待开始 | — |
 | Phase 6 | 自动化测试 & 打磨 & 打包 | Day 8-10 | 待开始 | — |
 | Phase 7 | 真正的像素地牢化 | 源 plan §15 | 暂缓 | — |
@@ -131,7 +131,7 @@ PYTHONPATH=src python3 -m git_dungeon . --seed 42 --auto --compact --print-metri
 
 **交付**：
 - 全量 sprite 走 `assets/manifest_sprites.json`（禁止屏幕内硬编码路径）
-- gpt-image-2 处理后的 title banner / 玩家 / 6 个 Boss 接入；每个素材有 asset card：
+- gpt-image-2 title banner / 玩家 / 6 个 Boss 建立 prompt 与 asset card；只有完成生成、后处理、contact sheet 核对并写入 manifest 后，才允许接入运行时：
   ```yaml
   id: boss_fix
   source: gpt-image-2
@@ -144,7 +144,7 @@ PYTHONPATH=src python3 -m git_dungeon . --seed 42 --auto --compact --print-metri
 - SFX 库接入（UI / 战斗 / 经济 / 进度）
 - 音频设备不可用时**降级为静音**，日志/设置页显式提示静音状态（合法 fallback：已知场景、可声明、不改变语义）
 
-**验收**：所有屏幕无缺图崩溃；`SDL_AUDIODRIVER=dummy` 仍能启动并跑完一局。
+**验收**：所有屏幕无缺图崩溃；`SDL_AUDIODRIVER=dummy` 仍能启动；AI 图未生成时必须明确标记 pending，禁止写入 sprite manifest。
 
 **MiMo 参与**：可参与 `audio.py` 壳子与静音降级。
 
@@ -236,3 +236,4 @@ make test && make test-func && make test-golden
 | 2026-05-04 | Phase 1 收口，回填 handoff 链接 | Pixel 入口、GameRunner 最小闭环、headless smoke 与 CLI 回归验证完成 |
 | 2026-05-04 | Phase 2 收口，回填 handoff 链接 | Map/Rest/Event/Shop 屏幕完成，非战斗规则与 CLI 共享，回归验证完成 |
 | 2026-05-04 | Phase 3 收口，回填 handoff 链接 | Battle/Elite/Boss 战斗屏完成，Boss 禁逃和 MP 禁用状态验证完成 |
+| 2026-05-04 | Phase 4 收口，回填 handoff 链接 | BGM/SFX、音频状态、战斗反馈接入；gpt-image-2 建 prompt/card 并明确 pending |

@@ -43,7 +43,7 @@
 
 ## AI 生成资源（gpt-image-2）
 
-Phase 4 才会引入。每个素材**必须**有 asset card：
+Phase 4 建立生成清单，但本工作区当前没有可验证的 `gpt-image-2` 生成路径，因此这些素材**未计入已接入 sprite**。每个素材必须先有 asset card：
 
 ```yaml
 id: <id>
@@ -54,7 +54,20 @@ postprocess: [...]
 license_note: generated project asset, keep source prompt and output
 ```
 
-目前为空。
+当前清单：
+
+| ID | 状态 | Prompt | Asset card |
+|---|---|---|---|
+| title_banner | pending_generation | `assets/source_prompts/title_banner.md` | `assets/generated/asset_cards.yml` |
+| player_pixel | pending_generation | `assets/source_prompts/player_pixel.md` | `assets/generated/asset_cards.yml` |
+| boss_fix | pending_generation | `assets/source_prompts/boss_fix.md` | `assets/generated/asset_cards.yml` |
+| boss_refactor | pending_generation | `assets/source_prompts/boss_refactor.md` | `assets/generated/asset_cards.yml` |
+| boss_merge_conflict | pending_generation | `assets/source_prompts/boss_merge_conflict.md` | `assets/generated/asset_cards.yml` |
+| boss_ci_sentinel | pending_generation | `assets/source_prompts/boss_ci_sentinel.md` | `assets/generated/asset_cards.yml` |
+| boss_secret_leak | pending_generation | `assets/source_prompts/boss_secret_leak.md` | `assets/generated/asset_cards.yml` |
+| boss_release_gate | pending_generation | `assets/source_prompts/boss_release_gate.md` | `assets/generated/asset_cards.yml` |
+
+**接入规则**：只有生成、后处理、contact sheet 人工核对、再写入 `assets/manifest_sprites.json` 后，才能算作运行时美术资源。
 
 ## 新增资源步骤
 
