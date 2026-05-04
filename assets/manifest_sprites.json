@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "_doc": "Phase 1 sprite-ID manifest. Path values relative to project root. null = pending visual mapping from contact sheet (allowed during Phase 0-5; rejected in Phase 6 strict gate).",
+  "_workflow": [
+    "1) Open assets/contact_sheets/kenney_tiny_dungeon.png in an image viewer.",
+    "2) For each null entry below, locate the matching tile_NNNN.png in the contact sheet.",
+    "3) Replace null with a path string under sources[].root (e.g. \"assets/sprites/kenney_tiny_dungeon/Tiles/tile_0084.png\").",
+    "4) Run: PYTHONPATH=src .venv/bin/python scripts/verify_assets.py",
+    "5) After Phase 1 ships: rerun with --strict in CI."
+  ],
+  "sources": [
+    {
+      "id": "kenney_tiny_dungeon",
+      "root": "assets/sprites/kenney_tiny_dungeon",
+      "tile_size": 16,
+      "credit": "Kenney (kenney.nl)",
+      "license": "CC0 1.0",
+      "contact_sheet": "assets/contact_sheets/kenney_tiny_dungeon.png"
+    },
+    {
+      "id": "kenney_ui",
+      "root": "assets/sprites/kenney_ui",
+      "credit": "Kenney (kenney.nl)",
+      "license": "CC0 1.0",
+      "contact_sheet": null
+    }
+  ],
+  "sprites": {
+    "player_default": null,
+    "enemy_default": null,
+
+    "node_battle": null,
+    "node_event": null,
+    "node_rest": null,
+    "node_shop": null,
+    "node_elite": null,
+    "node_boss": null,
+
+    "ui_button_default": null,
+    "ui_button_hover": null,
+    "ui_panel_default": null,
+    "ui_hp_bar_bg": null,
+    "ui_hp_bar_fg": null
+  }
+}

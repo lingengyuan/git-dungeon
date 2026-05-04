@@ -71,3 +71,6 @@ artifacts/
 AGENTS.md
 .env
 docs/PROJECT_REVIEW.md
+
+# Asset download staging — raw zips/tarballs not committed; extracted files are.
+assets/_downloads/
