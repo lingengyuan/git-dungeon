@@ -26,20 +26,20 @@
     }
   ],
   "sprites": {
-    "player_default": null,
-    "enemy_default": null,
+    "player_default": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0085.png",
+    "enemy_default": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0108.png",
 
-    "node_battle": null,
-    "node_event": null,
-    "node_rest": null,
-    "node_shop": null,
-    "node_elite": null,
-    "node_boss": null,
+    "node_battle": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0103.png",
+    "node_event": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0090.png",
+    "node_rest": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0029.png",
+    "node_shop": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0066.png",
+    "node_elite": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0122.png",
+    "node_boss": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0123.png",
 
-    "ui_button_default": null,
-    "ui_button_hover": null,
-    "ui_panel_default": null,
-    "ui_hp_bar_bg": null,
-    "ui_hp_bar_fg": null
+    "ui_button_default": "assets/sprites/kenney_ui/PNG/Blue/Default/button_rectangle_flat.png",
+    "ui_button_hover": "assets/sprites/kenney_ui/PNG/Blue/Default/button_rectangle_depth_flat.png",
+    "ui_panel_default": "assets/sprites/kenney_ui/PNG/Extra/Default/input_rectangle.png",
+    "ui_hp_bar_bg": "assets/sprites/kenney_ui/PNG/Blue/Default/slide_horizontal_grey.png",
+    "ui_hp_bar_fg": "assets/sprites/kenney_ui/PNG/Blue/Default/slide_horizontal_color.png"
   }
 }
