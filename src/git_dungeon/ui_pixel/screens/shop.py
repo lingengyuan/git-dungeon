@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
-from git_dungeon.ui_pixel.screens.map import MapScreen
+from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
 from git_dungeon.ui_pixel.text import tr
 from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, Button, draw_panel
 
@@ -96,7 +96,7 @@ class ShopScreen(Screen):
         if self.audio is not None:
             self.audio.play_sfx("economy" if index is not None else "ui_cancel")
         return ScreenAction.replace(
-            MapScreen(
+            DungeonScreen(
                 self.pygame,
                 self.fonts,
                 self.runner,

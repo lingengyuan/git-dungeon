@@ -6,7 +6,7 @@ from typing import Any
 
 from git_dungeon.ui_pixel.game_runner import GameRunner, RunSummary
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
-from git_dungeon.ui_pixel.screens.map import MapScreen
+from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
 from git_dungeon.ui_pixel.screens.settings import SettingsScreen
 from git_dungeon.ui_pixel.text import audio_label, tr
 from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, Button, draw_panel
@@ -182,7 +182,7 @@ class LoadingScreen(Screen):
             self.error = str(exc)
             return None
         return ScreenAction.replace(
-            MapScreen(
+            DungeonScreen(
                 self.pygame,
                 self.fonts,
                 self.runner,

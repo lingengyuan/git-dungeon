@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
-from git_dungeon.ui_pixel.screens.map import MapScreen
+from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
 from git_dungeon.ui_pixel.text import tr
 from git_dungeon.ui_pixel.widgets import ACCENT, BG, GOOD, MUTED, TEXT, Button, draw_panel
 
@@ -35,7 +35,7 @@ class RestScreen(Screen):
                 if self.audio is not None:
                     self.audio.play_sfx("ui_cancel")
                 return ScreenAction.replace(
-                    MapScreen(
+                    DungeonScreen(
                         self.pygame,
                         self.fonts,
                         self.runner,
@@ -52,7 +52,7 @@ class RestScreen(Screen):
                 if self.audio is not None:
                     self.audio.play_sfx("ui_confirm")
                 return ScreenAction.replace(
-                    MapScreen(
+                    DungeonScreen(
                         self.pygame,
                         self.fonts,
                         self.runner,
@@ -102,7 +102,7 @@ class RestScreen(Screen):
         if self.audio is not None:
             self.audio.play_sfx("rest")
         return ScreenAction.replace(
-            MapScreen(
+            DungeonScreen(
                 self.pygame,
                 self.fonts,
                 self.runner,

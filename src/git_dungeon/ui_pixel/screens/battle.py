@@ -8,7 +8,7 @@ from typing import Any
 from git_dungeon.engine.auto_policy import ACTION_ATTACK, ACTION_DEFEND, ACTION_ESCAPE, ACTION_SKILL
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
 from git_dungeon.ui_pixel.screens.game_over import GameOverScreen
-from git_dungeon.ui_pixel.screens.map import MapScreen
+from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
 from git_dungeon.ui_pixel.text import audio_label, tr
 from git_dungeon.ui_pixel.widgets import (
     ACCENT,
@@ -210,7 +210,7 @@ class BattleScreen(Screen):
                     self._float(f"+{reward.exp} EXP +{reward.gold}G", 116, 86, GOOD, ttl=0.9)
                 self.enemy_fade_timer = 0.55
                 self.pending_action = ScreenAction.replace(
-                    MapScreen(
+                    DungeonScreen(
                         self.pygame,
                         self.fonts,
                         self.runner,
@@ -224,7 +224,7 @@ class BattleScreen(Screen):
                 return None
             if result.escaped:
                 self.pending_action = ScreenAction.replace(
-                    MapScreen(
+                    DungeonScreen(
                         self.pygame,
                         self.fonts,
                         self.runner,
