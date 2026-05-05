@@ -51,6 +51,60 @@ git_dungeon = [
     "content/packs/*/*.yml",
 ]
 
+[tool.setuptools.data-files]
+"git_dungeon/assets" = [
+    "assets/CREDITS.md",
+    "assets/manifest_sprites.json",
+]
+"git_dungeon/assets/audio/bgm" = [
+    "assets/audio/bgm/boss.ogg",
+    "assets/audio/bgm/chapter.ogg",
+    "assets/audio/bgm/gameover.ogg",
+    "assets/audio/bgm/title.ogg",
+]
+"git_dungeon/assets/audio/sfx/kenney_rpg_audio/Audio" = [
+    "assets/audio/sfx/kenney_rpg_audio/Audio/bookFlip1.ogg",
+    "assets/audio/sfx/kenney_rpg_audio/Audio/bookOpen.ogg",
+    "assets/audio/sfx/kenney_rpg_audio/Audio/chop.ogg",
+    "assets/audio/sfx/kenney_rpg_audio/Audio/cloth2.ogg",
+    "assets/audio/sfx/kenney_rpg_audio/Audio/clothBelt.ogg",
+    "assets/audio/sfx/kenney_rpg_audio/Audio/handleCoins.ogg",
+    "assets/audio/sfx/kenney_rpg_audio/Audio/knifeSlice.ogg",
+    "assets/audio/sfx/kenney_rpg_audio/Audio/metalClick.ogg",
+    "assets/audio/sfx/kenney_rpg_audio/Audio/metalPot3.ogg",
+]
+"git_dungeon/assets/audio/sfx/kenney_ui_audio/Audio" = [
+    "assets/audio/sfx/kenney_ui_audio/Audio/click1.ogg",
+    "assets/audio/sfx/kenney_ui_audio/Audio/click2.ogg",
+    "assets/audio/sfx/kenney_ui_audio/Audio/switch10.ogg",
+]
+"git_dungeon/assets/fonts/ark_pixel" = [
+    "assets/fonts/ark_pixel/ark-pixel-12px-proportional-zh_cn.ttf",
+    "assets/fonts/ark_pixel/OFL.txt",
+]
+"git_dungeon/assets/fonts/vt323" = [
+    "assets/fonts/vt323/VT323-Regular.ttf",
+]
+"git_dungeon/assets/sprites/kenney_tiny_dungeon/Tiles" = [
+    "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0029.png",
+    "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0066.png",
+    "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0085.png",
+    "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0090.png",
+    "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0103.png",
+    "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0108.png",
+    "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0122.png",
+    "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0123.png",
+]
+"git_dungeon/assets/sprites/kenney_ui/PNG/Blue/Default" = [
+    "assets/sprites/kenney_ui/PNG/Blue/Default/button_rectangle_depth_flat.png",
+    "assets/sprites/kenney_ui/PNG/Blue/Default/button_rectangle_flat.png",
+    "assets/sprites/kenney_ui/PNG/Blue/Default/slide_horizontal_color.png",
+    "assets/sprites/kenney_ui/PNG/Blue/Default/slide_horizontal_grey.png",
+]
+"git_dungeon/assets/sprites/kenney_ui/PNG/Extra/Default" = [
+    "assets/sprites/kenney_ui/PNG/Extra/Default/input_rectangle.png",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

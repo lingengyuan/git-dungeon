@@ -6,17 +6,19 @@ import json
 from pathlib import Path
 from typing import Any
 
+from git_dungeon.ui_pixel.resources import resolve_asset_root
+
 
 class SpriteCatalog:
     """Loads sprite IDs from assets/manifest_sprites.json."""
 
     def __init__(self, pygame_module: Any, root: Path | None = None) -> None:
         self._pygame = pygame_module
-        self._root = root or Path(__file__).resolve().parents[3]
+        self._asset_root = root or resolve_asset_root()
         self._sprites: dict[str, Any] = {}
 
     def load(self) -> None:
-        manifest_path = self._root / "assets" / "manifest_sprites.json"
+        manifest_path = self._asset_root / "manifest_sprites.json"
         if not manifest_path.exists():
             raise FileNotFoundError(f"Sprite manifest not found: {manifest_path}")
         with manifest_path.open("r", encoding="utf-8") as handle:
@@ -29,7 +31,10 @@ class SpriteCatalog:
         for sprite_id, rel_path in sprites.items():
             if rel_path is None:
                 raise ValueError(f"Sprite is not mapped: {sprite_id}")
-            path = self._root / str(rel_path)
+            clean_rel_path = str(rel_path)
+            if clean_rel_path.startswith("assets/"):
+                clean_rel_path = clean_rel_path.removeprefix("assets/")
+            path = self._asset_root / clean_rel_path
             if not path.exists():
                 raise FileNotFoundError(f"Sprite file not found for {sprite_id}: {path}")
             loaded[str(sprite_id)] = self._pygame.image.load(str(path)).convert_alpha()

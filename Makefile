@@ -109,8 +109,8 @@ build-wheel:
 smoke-install: build-wheel
 	python3 -m venv .venv-smoke
 	.venv-smoke/bin/python -m pip install --upgrade pip
-	.venv-smoke/bin/pip install dist/*.whl
-	bash scripts/ci_smoke_demo.sh .venv-smoke/bin/git-dungeon
+	.venv-smoke/bin/pip install --force-reinstall dist/*.whl
+	bash scripts/ci_smoke_demo.sh $(CURDIR)/.venv-smoke/bin/git-dungeon
 
 # 安装开发依赖
 dev-install:

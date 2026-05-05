@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from git_dungeon.ui_pixel.resources import resolve_asset_root
+
 
 BGM_FILES = {
     "title": "assets/audio/bgm/title.ogg",
@@ -49,7 +51,7 @@ class AudioManager:
 
     def __init__(self, pygame_module: Any, root: Path | None = None) -> None:
         self._pygame = pygame_module
-        self._root = root or Path(__file__).resolve().parents[3]
+        self._asset_root = root or resolve_asset_root()
         self._sounds: dict[str, Any] = {}
         self._bgm_volume = 0.45
         self._sfx_volume = 0.70
@@ -78,9 +80,7 @@ class AudioManager:
             return
 
         try:
-            self._sounds = {
-                slot: mixer.Sound(str(self._root / rel_path)) for slot, rel_path in SFX_FILES.items()
-            }
+            self._sounds = {slot: mixer.Sound(str(self._path(rel_path))) for slot, rel_path in SFX_FILES.items()}
         except Exception as exc:
             self._sounds = {}
             self._status = AudioStatus(enabled=False, muted=True, reason=str(exc)[:48])
@@ -111,7 +111,7 @@ class AudioManager:
         if rel_path is None:
             self._mute(f"unknown bgm {slot}")
             return
-        path = self._root / rel_path
+        path = self._path(rel_path)
         try:
             self._pygame.mixer.music.load(str(path))
             self._pygame.mixer.music.set_volume(self._bgm_volume)
@@ -144,9 +144,13 @@ class AudioManager:
         self._status = AudioStatus(enabled=True, muted=False)
 
     def _missing_files(self) -> list[Path]:
-        paths = [self._root / rel_path for rel_path in BGM_FILES.values()]
-        paths.extend(self._root / rel_path for rel_path in SFX_FILES.values())
+        paths = [self._path(rel_path) for rel_path in BGM_FILES.values()]
+        paths.extend(self._path(rel_path) for rel_path in SFX_FILES.values())
         return [path for path in paths if not path.exists()]
+
+    def _path(self, rel_path: str) -> Path:
+        clean = rel_path.removeprefix("assets/")
+        return self._asset_root / clean
 
     def _mute(self, reason: str) -> None:
         self._status = AudioStatus(

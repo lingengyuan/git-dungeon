@@ -11,7 +11,9 @@ from git_dungeon.ui_pixel.audio import AudioManager
 from git_dungeon.ui_pixel.game_runner import GameRunner
 from git_dungeon.ui_pixel.layout import scale_rect, window_to_logical
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
+from git_dungeon.ui_pixel.screens.error import ErrorScreen
 from git_dungeon.ui_pixel.screens.title import LoadingScreen, TitleScreen
+from git_dungeon.ui_pixel.resources import resolve_asset_root
 from git_dungeon.ui_pixel.settings import PixelSettingsStore
 
 LOGICAL_SIZE = (320, 180)
@@ -75,11 +77,13 @@ class PixelFont:
     def __init__(self, pygame_module, lang: str = "en") -> None:
         self._pygame = pygame_module
         self.lang = lang
-        root = Path(__file__).resolve().parents[3]
-        self._latin_font = root / "assets" / "fonts" / "vt323" / "VT323-Regular.ttf"
+        try:
+            root = resolve_asset_root()
+        except FileNotFoundError:
+            root = Path()
+        self._latin_font = root / "fonts" / "vt323" / "VT323-Regular.ttf"
         self._cjk_font = (
             root
-            / "assets"
             / "fonts"
             / "ark_pixel"
             / "ark-pixel-12px-proportional-zh_cn.ttf"
@@ -157,40 +161,42 @@ def run(
         surface = pygame.Surface(LOGICAL_SIZE)
         clock = pygame.time.Clock()
         fonts = PixelFont(pygame, settings.lang)
-        assets = SpriteCatalog(pygame)
-        assets.load()
-        audio = AudioManager(pygame)
-        audio.load()
-        audio.set_volumes(settings.bgm_volume, settings.sfx_volume)
-        runner = GameRunner(
-            repo_path=repo_path,
-            seed=seed,
-            lang=settings.lang,
-            content_pack_args=content_pack_args,
-        )
-        initial_screen: Screen
-        if smoke_frames is not None:
-            initial_screen = LoadingScreen(
-                pygame,
-                fonts,
-                runner,
-                assets,
-                audio,
-                settings,
-                settings_store,
-                settings_result.error,
+        try:
+            assets = SpriteCatalog(pygame)
+            assets.load()
+            audio = AudioManager(pygame)
+            audio.load()
+            audio.set_volumes(settings.bgm_volume, settings.sfx_volume)
+            runner = GameRunner(
+                repo_path=repo_path,
+                seed=seed,
+                lang=settings.lang,
+                content_pack_args=content_pack_args,
             )
-        else:
-            initial_screen = TitleScreen(
-                pygame,
-                fonts,
-                runner,
-                assets,
-                audio,
-                settings,
-                settings_store,
-                settings_result.error,
-            )
+            if smoke_frames is not None:
+                initial_screen = LoadingScreen(
+                    pygame,
+                    fonts,
+                    runner,
+                    assets,
+                    audio,
+                    settings,
+                    settings_store,
+                    settings_result.error,
+                )
+            else:
+                initial_screen = TitleScreen(
+                    pygame,
+                    fonts,
+                    runner,
+                    assets,
+                    audio,
+                    settings,
+                    settings_store,
+                    settings_result.error,
+                )
+        except Exception as exc:
+            initial_screen = ErrorScreen(pygame, fonts, "PIXEL STARTUP ERROR", str(exc))
         stack = ScreenStack([initial_screen])
         frames = 0
 

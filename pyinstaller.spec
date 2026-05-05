@@ -17,6 +17,9 @@ a = Analysis(
     datas=[
         ('src', 'src'),
         ('docs', 'docs'),
+        ('src/git_dungeon/content/defaults', 'git_dungeon/content/defaults'),
+        ('src/git_dungeon/content/packs', 'git_dungeon/content/packs'),
+        ('assets', 'assets'),
     ],
     hiddenimports=[
         'pkg_resources.py2_warn',

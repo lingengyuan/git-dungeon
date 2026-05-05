@@ -208,8 +208,29 @@ def run_pixel(
     lang: Optional[str] = None,
     content_pack: Optional[list[str]] = None,
     smoke_frames: Optional[int] = None,
+    auto: bool = False,
+    headless: bool = False,
+    metrics_out: Optional[str] = None,
 ) -> int:
     """Run the pixel UI."""
+    if headless:
+        if not auto:
+            print("Error: --headless pixel mode requires --auto", file=sys.stderr)
+            return 1
+        return run_cli(
+            repository=repository,
+            seed=seed,
+            compact=True,
+            auto=True,
+            metrics_out=metrics_out,
+            lang=lang or "en",
+            content_pack=content_pack,
+        )
+
+    if auto:
+        print("Error: --pixel --auto requires --headless", file=sys.stderr)
+        return 1
+
     try:
         from git_dungeon.ui_pixel import run as run_pixel_ui
     except RuntimeError as e:
@@ -261,6 +282,8 @@ def main() -> int:
                         help="Run the experimental Pygame pixel UI")
     parser.add_argument("--pixel-smoke-frames", type=int, default=None,
                         help=argparse.SUPPRESS)
+    parser.add_argument("--headless", action="store_true",
+                        help="Run without a window where supported")
     parser.add_argument("--metrics-out", type=str, default=None,
                         help="Write gameplay metrics to JSON")
     parser.add_argument("--print-metrics", action="store_true",
@@ -312,6 +335,9 @@ def main() -> int:
             lang=args.lang,
             content_pack=args.content_pack,
             smoke_frames=args.pixel_smoke_frames,
+            auto=args.auto,
+            headless=args.headless,
+            metrics_out=args.metrics_out,
         )
     
     return run_cli(

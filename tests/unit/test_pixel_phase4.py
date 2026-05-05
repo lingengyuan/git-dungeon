@@ -59,7 +59,7 @@ class _FakePygame:
 
 def _touch_audio_files(root: Path) -> None:
     for rel_path in [*BGM_FILES.values(), *SFX_FILES.values()]:
-        path = root / rel_path
+        path = root / rel_path.removeprefix("assets/")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(b"fake ogg")
 
