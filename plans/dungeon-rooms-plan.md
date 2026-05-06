@@ -1,7 +1,7 @@
-# Pixel Phase 7-9 — 房间地牢化计划
+# Pixel Phase 7-10 — 房间地牢化计划
 
-> **状态**：Phase 7 最小闭环已完成（2026-05-05）；Phase 8 交互回放已完成（2026-05-06）；Phase 9 陷阱消耗已完成（2026-05-06）
-> **上游**：[`plans/pixel-phases.md`](pixel-phases.md) Phase 7-9
+> **状态**：Phase 7 最小闭环已完成（2026-05-05）；Phase 8 交互回放已完成（2026-05-06）；Phase 9 陷阱消耗已完成（2026-05-06）；Phase 10 支线奖励房间已完成（2026-05-06）
+> **上游**：[`plans/pixel-phases.md`](pixel-phases.md) Phase 7-10
 > **目标**：在不破坏现有 CLI/Pixel 结算的前提下，把 Pixel 路线图推进为可移动的房间探索层。
 
 ## 1. 范围
@@ -13,6 +13,7 @@ Phase 7 先做最小可玩闭环：
 - 玩家用方向键/WASD 逐格移动。
 - 玩家到达当前房间后，按 Enter 进入现有战斗/事件/休息/商店流程。
 - 显示可见陷阱格；Phase 9 起，玩家主动撞到陷阱会触发一次固定 HP 消耗。
+- 显示一个可选支线奖励房间；Phase 10 起，玩家可以离开主线领取一次补给再返回。
 
 ## 2. 非目标
 
@@ -30,6 +31,7 @@ Phase 7 先做最小可玩闭环：
 - ✅ `tests/unit/test_pixel_phase7.py` 覆盖房间顺序、当前房间、门、陷阱。
 - ✅ `tests/unit/test_pixel_phase8.py` 覆盖键盘移动、进入当前房间、陷阱提示、节点回流后位置保持。
 - ✅ `tests/unit/test_pixel_phase9.py` 覆盖陷阱一次性 HP 消耗和低血量边界。
+- ✅ `tests/unit/test_pixel_phase10.py` 覆盖支线奖励房间、一次性领取和回主线。
 
 ## 4. 验收
 
@@ -40,6 +42,7 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
 PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase7.py tests/integration/test_pixel_smoke.py tests/integration/test_pixel_cli_parity.py -q
 PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase8.py -q
 PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase9.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase10.py -q
 PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not golden and not slow" -q
 ```
 
@@ -62,7 +65,16 @@ Phase 9 给陷阱增加明确资源代价，但不改主线节点和自动通关
 - 同一个陷阱触发后变为已触发状态，再撞不会重复扣血。
 - 陷阱可以把 HP 降到 0，并直接进入现有 Game Over 屏。
 
-## 7. 后续扩展
+## 7. Phase 10 支线奖励房间
 
-- 地牢房间加入分支和钥匙门。
+Phase 10 在主路旁增加一个小分支，但不改变 route 主线：
+
+- 奖励房间不混入 route node。
+- 奖励房间通过门连接到主路第二个房间。
+- 玩家进入后按 Enter 可领取一次 HP/Gold 补给。
+- 领取后可返回主路继续走到当前节点。
+
+## 8. 后续扩展
+
 - 清理旧 MapScreen，或把它改成明确的调试视图。
+- 进一步增加钥匙门或更多可选分支，但先保持 route 主线不变。

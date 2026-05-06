@@ -140,6 +140,14 @@ class DungeonTrapResult:
     already_triggered: bool
 
 
+@dataclass(frozen=True)
+class DungeonRewardResult:
+    reward_id: str
+    heal: int
+    gold: int
+    already_claimed: bool
+
+
 class GameRunner:
     """Owns non-interactive repository loading for the pixel UI."""
 
@@ -184,6 +192,7 @@ class GameRunner:
         self.last_reward: RewardSnapshot | None = None
         self.dungeon_player_coord: tuple[int, int] | None = None
         self.dungeon_consumed_traps: set[str] = set()
+        self.dungeon_claimed_rewards: set[str] = set()
         self._chapter_nodes: dict[str, list[RouteNode]] = {}
         self._chapter_node_cursor: dict[str, int] = {}
         self.loaded = False
@@ -720,6 +729,34 @@ class GameRunner:
         chapter = self.current_chapter()
         chapter_id = getattr(chapter, "chapter_id", "unknown") if chapter is not None else "unknown"
         return f"{chapter_id}:{trap_id}"
+
+    def is_dungeon_reward_claimed(self, reward_id: str) -> bool:
+        return self._dungeon_reward_key(reward_id) in self.dungeon_claimed_rewards
+
+    def claim_dungeon_reward(self, reward_id: str, heal: int, gold: int) -> DungeonRewardResult:
+        reward_key = self._dungeon_reward_key(reward_id)
+        if reward_key in self.dungeon_claimed_rewards:
+            return DungeonRewardResult(reward_id=reward_id, heal=0, gold=0, already_claimed=True)
+
+        state = self._require_state()
+        player = state.player.character
+        actual_heal = min(max(0, heal), max(0, player.stats.hp.value - player.current_hp))
+        actual_gold = max(0, gold)
+        player.current_hp += actual_heal
+        state.player.gold += actual_gold
+        self.inventory.gold += actual_gold
+        self.dungeon_claimed_rewards.add(reward_key)
+        return DungeonRewardResult(
+            reward_id=reward_id,
+            heal=actual_heal,
+            gold=actual_gold,
+            already_claimed=False,
+        )
+
+    def _dungeon_reward_key(self, reward_id: str) -> str:
+        chapter = self.current_chapter()
+        chapter_id = getattr(chapter, "chapter_id", "unknown") if chapter is not None else "unknown"
+        return f"{chapter_id}:{reward_id}"
 
     def _require_state(self) -> GameState:
         if not self.loaded or self.state is None:

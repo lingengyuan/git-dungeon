@@ -1,8 +1,8 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：Phase 0-9 已完成最小闭环（截至 2026-05-06）；后续进入 Phase 10 玩法扩展
-> **作用**：Phase 0-9 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
+> **状态**：Phase 0-10 已完成最小闭环（截至 2026-05-06）；后续进入 Phase 11 打磨
+> **作用**：Phase 0-10 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
 
@@ -11,7 +11,7 @@
 像素化分两段：
 
 - **Phase 0-6**：Pixel 版完整一局（保留现有章节/节点/战斗，外层换 Pygame-CE 像素界面）。源 plan 称为 "Phase 1"。
-- **Phase 7-9**：真正的像素地牢化与交互打磨（房间地图、逐格移动、陷阱、事件级回放测试、陷阱消耗）。源 plan 称为 "Phase 2"，已拆成独立递进计划。
+- **Phase 7-10**：真正的像素地牢化与交互打磨（房间地图、逐格移动、陷阱、事件级回放测试、陷阱消耗、支线奖励房间）。源 plan 称为 "Phase 2"，已拆成独立递进计划。
 
 工期估算：8-12 个工作日（源 plan §10）。
 
@@ -29,6 +29,7 @@
 | Phase 7 | 真正的像素地牢化 | 源 plan §15 | ✅ 完成最小闭环 (2026-05-05) | [2026-05-05](../handoffs/2026-05-05-pixel-phase-7-handoff.md) |
 | Phase 8 | 地牢交互打磨 & 回放测试 | Phase 7 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-8-handoff.md) |
 | Phase 9 | 地牢陷阱消耗 | Phase 8 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-9-handoff.md) |
+| Phase 10 | 支线奖励房间 | Phase 9 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-10-handoff.md) |
 
 ---
 
@@ -272,6 +273,33 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not gold
 
 ---
 
+## Phase 10 — 支线奖励房间
+
+**范围**：在不改变 route 主线和 CLI 自动结果的前提下，给地牢增加一个可选支线奖励房间。玩家可以离开主线领取一次补给，再回到主线继续进入当前节点。
+
+**交付**：
+- `DungeonRewardRoom`：固定支线补给房间，包含位置、锚点、治疗量和金币。
+- `DungeonFloor.reward_rooms`：奖励房间不混入 route room，但参与门、移动、陷阱避让。
+- `GameRunner` 记录每章已领取奖励，并提供一次性领取接口。
+- DungeonScreen 支持走进补给房间、Enter 领取、重复领取提示、返回主线。
+- `tests/unit/test_pixel_phase10.py` 覆盖奖励房间生成、领取一次、重复不再给、回主线。
+
+**验收命令**：
+```bash
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase10.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase7.py tests/unit/test_pixel_phase8.py tests/unit/test_pixel_phase9.py tests/unit/test_pixel_phase10.py tests/integration/test_pixel_smoke.py tests/integration/test_pixel_cli_parity.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not golden and not slow" -q
+```
+
+**关键约束**：
+- 奖励房间是手动支线，不进入 CLI 自动主线路径。
+- 奖励只能领取一次，不能反复刷 HP/Gold。
+- 不生成随机大地图；只做一个固定、可验证的小分支。
+
+**MiMo 参与**：可参与测试，不碰 CLI 自动流程。
+
+---
+
 ## 跨 Phase 强制约束（每个 phase 都要满足）
 
 引自 CLAUDE.md「Project Principles」与源 plan：
@@ -299,3 +327,4 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not gold
 | 2026-05-05 | Phase 7 收口，回填 handoff 链接 | 房间地牢屏、逐格移动、门、陷阱阻挡、节点进入闭环完成 |
 | 2026-05-06 | Phase 8 收口，回填 handoff 链接 | 地牢键盘移动、陷阱阻挡、节点进入和位置保持的事件级回放测试完成 |
 | 2026-05-06 | Phase 9 收口，回填 handoff 链接 | 陷阱一次性 HP 消耗、已触发状态和陷阱致死边界完成 |
+| 2026-05-06 | Phase 10 收口，回填 handoff 链接 | 支线奖励房间、一次性领取和回主线闭环完成 |
