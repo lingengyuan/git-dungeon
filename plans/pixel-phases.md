@@ -1,8 +1,8 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：Phase 0-7 已完成最小闭环（截至 2026-05-05）；后续进入 Phase 7.1 打磨
-> **作用**：Phase 0-7 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
+> **状态**：Phase 0-8 已完成最小闭环（截至 2026-05-06）；后续进入 Phase 9 玩法扩展
+> **作用**：Phase 0-8 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
 
@@ -11,7 +11,7 @@
 像素化分两段：
 
 - **Phase 0-6**：Pixel 版完整一局（保留现有章节/节点/战斗，外层换 Pygame-CE 像素界面）。源 plan 称为 "Phase 1"。
-- **Phase 7**：真正的像素地牢化（房间地图、逐格移动、陷阱）。源 plan 称为 "Phase 2"，**不在本次范围**，留独立 plan。
+- **Phase 7-8**：真正的像素地牢化与交互打磨（房间地图、逐格移动、陷阱、事件级回放测试）。源 plan 称为 "Phase 2"，已拆成独立递进计划。
 
 工期估算：8-12 个工作日（源 plan §10）。
 
@@ -27,6 +27,7 @@
 | Phase 5 | 设置 & 中文 & 布局 | Day 7 | ✅ 完成 (2026-05-04) | [2026-05-04](../handoffs/2026-05-04-pixel-phase-5-handoff.md) |
 | Phase 6 | 自动化测试 & 打磨 & 打包 | Day 8-10 | ✅ 完成 (2026-05-05) | [2026-05-05](../handoffs/2026-05-05-pixel-phase-6-handoff.md) |
 | Phase 7 | 真正的像素地牢化 | 源 plan §15 | ✅ 完成最小闭环 (2026-05-05) | [2026-05-05](../handoffs/2026-05-05-pixel-phase-7-handoff.md) |
+| Phase 8 | 地牢交互打磨 & 回放测试 | Phase 7 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-8-handoff.md) |
 
 ---
 
@@ -217,6 +218,32 @@ make test && make test-func && make test-golden
 
 ---
 
+## Phase 8 — 地牢交互打磨 & 回放测试
+
+**范围**：收紧 Phase 7 的交互可靠性，补齐事件级自动测试，先验证“走到当前房间并进入节点”这个真实操作闭环。
+
+**交付**：
+- `tests/unit/test_pixel_phase8.py`：模拟键盘输入，覆盖不能原地进入、移动到当前房间、Enter 进入节点。
+- 测试陷阱优先提示，确保走向陷阱时不会被普通“无门”提示掩盖。
+- 测试节点完成后的玩家位置复用，避免每次回到 DungeonScreen 都跳回起点。
+- 保持陷阱仍为阻挡，不改 HP/Gold/EXP，继续保护 CLI/Pixel parity。
+
+**验收命令**：
+```bash
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase8.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase7.py tests/unit/test_pixel_phase8.py tests/integration/test_pixel_smoke.py tests/integration/test_pixel_cli_parity.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not golden and not slow" -q
+```
+
+**关键约束**：
+- Phase 8 只打磨房间交互，不引入新结算规则。
+- 陷阱扣血、钥匙门、分支奖励房间进入后续玩法 phase。
+- UI 回放测试必须走 Screen 输入事件，不只调用底层数据函数。
+
+**MiMo 参与**：可参与测试夹具与文档，不碰 engine / CLI parity。
+
+---
+
 ## 跨 Phase 强制约束（每个 phase 都要满足）
 
 引自 CLAUDE.md「Project Principles」与源 plan：
@@ -242,3 +269,4 @@ make test && make test-func && make test-golden
 | 2026-05-04 | Phase 5 收口，回填 handoff 链接 | 设置页、settings.toml、中文字体/文案、布局防溢出和错误可见状态完成 |
 | 2026-05-05 | Phase 6 收口，回填 handoff 链接 | Pixel smoke、CLI/Pixel parity、wheel/PyInstaller smoke、资源定位和错误页完成 |
 | 2026-05-05 | Phase 7 收口，回填 handoff 链接 | 房间地牢屏、逐格移动、门、陷阱阻挡、节点进入闭环完成 |
+| 2026-05-06 | Phase 8 收口，回填 handoff 链接 | 地牢键盘移动、陷阱阻挡、节点进入和位置保持的事件级回放测试完成 |
