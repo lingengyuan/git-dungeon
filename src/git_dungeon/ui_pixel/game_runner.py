@@ -709,8 +709,10 @@ class GameRunner:
 
         state = self._require_state()
         player = state.player.character
-        actual_damage = min(max(0, damage), max(0, player.current_hp - 1))
-        player.current_hp -= actual_damage
+        actual_damage = min(max(0, damage), max(0, player.current_hp))
+        player.current_hp = max(0, player.current_hp - actual_damage)
+        if player.current_hp <= 0:
+            player.is_alive = False
         self.dungeon_consumed_traps.add(trap_key)
         return DungeonTrapResult(trap_id=trap_id, damage=actual_damage, already_triggered=False)
 

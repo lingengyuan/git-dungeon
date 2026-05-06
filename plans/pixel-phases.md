@@ -253,7 +253,7 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not gold
 - `DungeonTrap.damage` 明确固定伤害值。
 - `GameRunner` 记录每章已触发陷阱，并提供一次性触发接口。
 - DungeonScreen 触发陷阱后显示真实 HP 损失，再次触发同一陷阱不重复扣血。
-- 陷阱不会把玩家 HP 降到 0，避免在地牢层新增第二套 Game Over 流程。
+- 陷阱可以把玩家 HP 降到 0，并直接进入现有 Game Over 屏。
 - `tests/unit/test_pixel_phase9.py` 覆盖一次性扣血和低血量边界。
 
 **验收命令**：
@@ -298,4 +298,4 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not gold
 | 2026-05-05 | Phase 6 收口，回填 handoff 链接 | Pixel smoke、CLI/Pixel parity、wheel/PyInstaller smoke、资源定位和错误页完成 |
 | 2026-05-05 | Phase 7 收口，回填 handoff 链接 | 房间地牢屏、逐格移动、门、陷阱阻挡、节点进入闭环完成 |
 | 2026-05-06 | Phase 8 收口，回填 handoff 链接 | 地牢键盘移动、陷阱阻挡、节点进入和位置保持的事件级回放测试完成 |
-| 2026-05-06 | Phase 9 收口，回填 handoff 链接 | 陷阱一次性 HP 消耗、已触发状态和低血量边界完成 |
+| 2026-05-06 | Phase 9 收口，回填 handoff 链接 | 陷阱一次性 HP 消耗、已触发状态和陷阱致死边界完成 |

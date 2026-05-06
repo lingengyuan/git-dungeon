@@ -56,7 +56,7 @@ class FakeRunner:
     def trigger_dungeon_trap(self, trap_id: str, damage: int) -> Any:
         if trap_id in self.consumed_traps:
             return SimpleNamespace(trap_id=trap_id, damage=0, already_triggered=True)
-        actual_damage = min(damage, max(0, self.hp - 1))
+        actual_damage = min(damage, max(0, self.hp))
         self.hp -= actual_damage
         self.consumed_traps.add(trap_id)
         return SimpleNamespace(trap_id=trap_id, damage=actual_damage, already_triggered=False)
@@ -107,19 +107,25 @@ def test_dungeon_trap_consumes_hp_once() -> None:
     assert screen.message == "Trap already spent"
 
 
-def test_dungeon_trap_never_reduces_hp_below_one() -> None:
+def test_dungeon_trap_can_defeat_player_at_low_hp() -> None:
     screen, runner = _screen_for_trap(hp=5)
 
-    assert screen.handle(_key(FakePygame.K_UP)) is None
+    action = screen.handle(_key(FakePygame.K_UP))
 
-    assert runner.hp == 1
-    assert screen.message == "Trap hit: -4 HP"
+    assert runner.hp == 0
+    assert action is not None
+    assert action.kind == "replace"
+    assert action.screen.__class__.__name__ == "GameOverScreen"
+    assert action.screen.won is False
+    assert action.screen.message == "Trap defeated you"
 
 
-def test_dungeon_trap_reports_no_loss_at_one_hp() -> None:
+def test_dungeon_trap_defeats_player_at_one_hp() -> None:
     screen, runner = _screen_for_trap(hp=1)
 
-    assert screen.handle(_key(FakePygame.K_UP)) is None
+    action = screen.handle(_key(FakePygame.K_UP))
 
-    assert runner.hp == 1
-    assert screen.message == "Trap hit: no HP lost"
+    assert runner.hp == 0
+    assert action is not None
+    assert action.kind == "replace"
+    assert action.screen.__class__.__name__ == "GameOverScreen"

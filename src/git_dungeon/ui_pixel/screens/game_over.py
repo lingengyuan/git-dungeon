@@ -17,6 +17,7 @@ class GameOverScreen(Screen):
         runner: Any,
         assets: Any,
         won: bool,
+        message: str = "",
         audio: Any | None = None,
         settings: Any | None = None,
     ) -> None:
@@ -25,6 +26,7 @@ class GameOverScreen(Screen):
         self.runner = runner
         self.assets = assets
         self.won = won
+        self.message = message
         self.audio = audio
         self.settings = settings
 
@@ -47,6 +49,8 @@ class GameOverScreen(Screen):
         self.fonts.draw(surface, tr(title, lang), (92, 42), GOOD if self.won else BAD, 28)
         self.fonts.draw(surface, f"HP {player.hp}/{player.max_hp}", (82, 82), TEXT, 16)
         self.fonts.draw(surface, f"{tr('Gold', lang)} {player.gold}", (82, 102), ACCENT, 16)
+        if self.message:
+            self.fonts.draw_fit(surface, tr(self.message, lang), (82, 118), 170, BAD, 12)
         self.fonts.draw(surface, tr("Enter/Esc/Q: Quit", lang), (82, 130), MUTED, 15)
         if self.audio is not None:
             self.fonts.draw_fit(

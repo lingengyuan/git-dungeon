@@ -23,6 +23,7 @@ PIXEL_TEXT = {
         "Trap blocks this path": "陷阱挡住了路",
         "Trap already spent": "陷阱已触发",
         "Trap hit": "触发陷阱",
+        "Trap defeated you": "你被陷阱击倒了",
         "No door there": "那里没有门",
         "No current room": "没有当前房间",
         "Open Node": "打开节点",

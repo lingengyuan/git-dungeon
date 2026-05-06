@@ -82,7 +82,7 @@ class DungeonScreen(Screen):
                 self.pygame.K_s: (0, 1),
             }.get(event.key)
             if move:
-                self._move(move)
+                return self._move(move)
         if event.type == self.pygame.MOUSEMOTION:
             self.hover_pos = getattr(event, "logical_pos", None)
         if event.type == self.pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -165,39 +165,57 @@ class DungeonScreen(Screen):
                 (origin_x + px * tile + 1, origin_y + py * tile + 1, 16, 16),
             )
 
-    def _move(self, delta: tuple[int, int]) -> None:
+    def _move(self, delta: tuple[int, int]) -> ScreenAction | None:
         if self.player_coord is None:
             self.message = "No current room"
-            return
+            return None
         target = (self.player_coord[0] + delta[0], self.player_coord[1] + delta[1])
         trap = self.floor.trap_at(target)
         if trap is not None:
-            self._trigger_trap(trap.trap_id, trap.damage)
+            action = self._trigger_trap(trap.trap_id, trap.damage)
             if self.audio is not None:
                 self.audio.play_sfx("combat_hurt")
-            return
+            return action
         if self.floor.room_at(target) is None or not self.floor.has_door(self.player_coord, target):
             self.message = "No door there"
             if self.audio is not None:
                 self.audio.play_sfx("ui_denied")
-            return
+            return None
         self.player_coord = target
         self.runner.dungeon_player_coord = target
         self.message = "Move to the current room" if not self._can_enter_current_room() else "Press Enter to enter"
+        return None
 
-    def _trigger_trap(self, trap_id: str, damage: int) -> None:
+    def _trigger_trap(self, trap_id: str, damage: int) -> ScreenAction | None:
         trigger = getattr(self.runner, "trigger_dungeon_trap", None)
         if trigger is None:
             self.message = "Trap blocks this path"
-            return
+            return None
         result = trigger(trap_id, damage)
         if result.already_triggered:
             self.message = "Trap already spent"
-            return
+            return None
         if result.damage <= 0:
             self.message = "Trap hit: no HP lost"
-            return
+            return None
+        player = self.runner.player_snapshot()
+        if player.hp <= 0:
+            from git_dungeon.ui_pixel.screens.game_over import GameOverScreen
+
+            return ScreenAction.replace(
+                GameOverScreen(
+                    self.pygame,
+                    self.fonts,
+                    self.runner,
+                    self.assets,
+                    won=False,
+                    message="Trap defeated you",
+                    audio=self.audio,
+                    settings=self.settings,
+                )
+            )
         self.message = f"Trap hit: -{result.damage} HP"
+        return None
 
     def _trap_consumed(self, trap_id: str) -> bool:
         checker = getattr(self.runner, "is_dungeon_trap_consumed", None)
