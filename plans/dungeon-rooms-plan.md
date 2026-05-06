@@ -1,7 +1,7 @@
-# Pixel Phase 7-10 — 房间地牢化计划
+# Pixel Phase 7-11 — 房间地牢化计划
 
-> **状态**：Phase 7 最小闭环已完成（2026-05-05）；Phase 8 交互回放已完成（2026-05-06）；Phase 9 陷阱消耗已完成（2026-05-06）；Phase 10 支线奖励房间已完成（2026-05-06）
-> **上游**：[`plans/pixel-phases.md`](pixel-phases.md) Phase 7-10
+> **状态**：Phase 7 最小闭环已完成（2026-05-05）；Phase 8 交互回放已完成（2026-05-06）；Phase 9 陷阱消耗已完成（2026-05-06）；Phase 10 支线奖励房间已完成（2026-05-06）；Phase 11 旧地图清理已完成（2026-05-06）
+> **上游**：[`plans/pixel-phases.md`](pixel-phases.md) Phase 7-11
 > **目标**：在不破坏现有 CLI/Pixel 结算的前提下，把 Pixel 路线图推进为可移动的房间探索层。
 
 ## 1. 范围
@@ -32,6 +32,7 @@ Phase 7 先做最小可玩闭环：
 - ✅ `tests/unit/test_pixel_phase8.py` 覆盖键盘移动、进入当前房间、陷阱提示、节点回流后位置保持。
 - ✅ `tests/unit/test_pixel_phase9.py` 覆盖陷阱一次性 HP 消耗和低血量边界。
 - ✅ `tests/unit/test_pixel_phase10.py` 覆盖支线奖励房间、一次性领取和回主线。
+- ✅ `tests/unit/test_pixel_phase11.py` 覆盖旧 MapScreen 删除和加载后进入 DungeonScreen。
 
 ## 4. 验收
 
@@ -43,6 +44,7 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase7.py tests/
 PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase8.py -q
 PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase9.py -q
 PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase10.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase11.py -q
 PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not golden and not slow" -q
 ```
 
@@ -74,7 +76,15 @@ Phase 10 在主路旁增加一个小分支，但不改变 route 主线：
 - 玩家进入后按 Enter 可领取一次 HP/Gold 补给。
 - 领取后可返回主路继续走到当前节点。
 
-## 8. 后续扩展
+## 8. Phase 11 旧地图清理
 
-- 清理旧 MapScreen，或把它改成明确的调试视图。
+Phase 11 删除 Phase 2 遗留的静态路线图屏幕，让正式 Pixel 流程只保留房间地牢屏：
+
+- 删除旧 `MapScreen` 模块。
+- 清理只服务旧路线图的文案。
+- 加载仓库后仍直接进入 DungeonScreen。
+- 后续战斗/事件/休息/商店回流继续使用 DungeonScreen。
+
+## 9. 后续扩展
+
 - 进一步增加钥匙门或更多可选分支，但先保持 route 主线不变。

@@ -292,7 +292,7 @@ class GameRunner:
         return self._chapter_nodes[chapter_id]
 
     def route_nodes(self) -> tuple[NodeSnapshot, ...]:
-        """Return current chapter route nodes for MapScreen."""
+        """Return current chapter route nodes for the dungeon screen."""
         state = self._require_state()
         chapter = self.current_chapter()
         if chapter is None:

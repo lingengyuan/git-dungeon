@@ -73,6 +73,7 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 	find . -type f -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
+	rm -rf build dist
 	@echo "✅ Cleaned cache files"
 
 # M6 AI 测试
@@ -104,6 +105,7 @@ perf-smoke:
 build-wheel:
 	python3 -m pip install --upgrade pip
 	python3 -m pip install build
+	rm -rf build dist
 	python3 -m build --wheel
 
 smoke-install: build-wheel

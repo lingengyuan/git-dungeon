@@ -1,8 +1,8 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：Phase 0-10 已完成最小闭环（截至 2026-05-06）；后续进入 Phase 11 打磨
-> **作用**：Phase 0-10 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
+> **状态**：Phase 0-11 已完成最小闭环（截至 2026-05-06）；后续进入 Phase 12 玩法扩展
+> **作用**：Phase 0-11 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
 
@@ -11,7 +11,7 @@
 像素化分两段：
 
 - **Phase 0-6**：Pixel 版完整一局（保留现有章节/节点/战斗，外层换 Pygame-CE 像素界面）。源 plan 称为 "Phase 1"。
-- **Phase 7-10**：真正的像素地牢化与交互打磨（房间地图、逐格移动、陷阱、事件级回放测试、陷阱消耗、支线奖励房间）。源 plan 称为 "Phase 2"，已拆成独立递进计划。
+- **Phase 7-11**：真正的像素地牢化与交互打磨（房间地图、逐格移动、陷阱、事件级回放测试、陷阱消耗、支线奖励房间、旧地图清理）。源 plan 称为 "Phase 2"，已拆成独立递进计划。
 
 工期估算：8-12 个工作日（源 plan §10）。
 
@@ -30,6 +30,7 @@
 | Phase 8 | 地牢交互打磨 & 回放测试 | Phase 7 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-8-handoff.md) |
 | Phase 9 | 地牢陷阱消耗 | Phase 8 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-9-handoff.md) |
 | Phase 10 | 支线奖励房间 | Phase 9 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-10-handoff.md) |
+| Phase 11 | 旧地图清理 | Phase 10 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-11-handoff.md) |
 
 ---
 
@@ -300,6 +301,32 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not gold
 
 ---
 
+## Phase 11 — 旧地图清理
+
+**范围**：删除 Phase 2 遗留的静态 `MapScreen`，让 Pixel 正式入口只保留房间地牢屏，降低后续维护面。不要引入钥匙门或新资源规则。
+
+**交付**：
+- 删除 `src/git_dungeon/ui_pixel/screens/map.py`。
+- 清理只服务旧路线图的中文文案和注释。
+- `tests/unit/test_pixel_phase11.py` 覆盖旧模块不存在、加载后仍进入 DungeonScreen。
+- 更新 `plans/dungeon-rooms-plan.md` 和 Phase handoff。
+
+**验收命令**：
+```bash
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase11.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase7.py tests/unit/test_pixel_phase8.py tests/unit/test_pixel_phase9.py tests/unit/test_pixel_phase10.py tests/unit/test_pixel_phase11.py tests/integration/test_pixel_smoke.py tests/integration/test_pixel_cli_parity.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not golden and not slow" -q
+```
+
+**关键约束**：
+- 旧 MapScreen 删除后，战斗/事件/休息/商店结束仍必须回 DungeonScreen。
+- 不改变 CLI 自动模式结果。
+- 不把旧屏幕改成隐藏 fallback；正式路径只保留一个地牢入口。
+
+**MiMo 参与**：可参与测试和文档，不碰 GameRunner 节点推进规则。
+
+---
+
 ## 跨 Phase 强制约束（每个 phase 都要满足）
 
 引自 CLAUDE.md「Project Principles」与源 plan：
@@ -328,3 +355,4 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not gold
 | 2026-05-06 | Phase 8 收口，回填 handoff 链接 | 地牢键盘移动、陷阱阻挡、节点进入和位置保持的事件级回放测试完成 |
 | 2026-05-06 | Phase 9 收口，回填 handoff 链接 | 陷阱一次性 HP 消耗、已触发状态和陷阱致死边界完成 |
 | 2026-05-06 | Phase 10 收口，回填 handoff 链接 | 支线奖励房间、一次性领取和回主线闭环完成 |
+| 2026-05-06 | Phase 11 收口，回填 handoff 链接 | 旧 MapScreen 删除，Pixel 正式入口只保留 DungeonScreen |
