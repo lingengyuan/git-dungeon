@@ -26,6 +26,15 @@ PIXEL_TEXT = {
         "Cache already claimed": "补给已领取",
         "Cache unavailable": "补给不可用",
         "Cache": "补给",
+        "Key already claimed": "钥匙已领取",
+        "Key unavailable": "钥匙不可用",
+        "Key found": "找到钥匙",
+        "Key": "钥匙",
+        "Vault already claimed": "宝库已领取",
+        "Vault unavailable": "宝库不可用",
+        "Vault": "宝库",
+        "Locked": "锁住了",
+        "need": "需要",
         "No door there": "那里没有门",
         "No current room": "没有当前房间",
         "BATTLE": "战斗",
@@ -98,6 +107,12 @@ def tr(text: str, lang: str) -> str:
         return text.replace("Trap hit", PIXEL_TEXT["zh_CN"]["Trap hit"], 1)
     if text.startswith("Cache: "):
         return text.replace("Cache", PIXEL_TEXT["zh_CN"]["Cache"], 1)
+    if text.startswith("Vault: "):
+        return text.replace("Vault", PIXEL_TEXT["zh_CN"]["Vault"], 1)
+    if text.startswith("Key found: "):
+        return text.replace("Key found", PIXEL_TEXT["zh_CN"]["Key found"], 1)
+    if text.startswith("Locked: need "):
+        return text.replace("Locked", PIXEL_TEXT["zh_CN"]["Locked"], 1).replace("need", PIXEL_TEXT["zh_CN"]["need"], 1)
     return PIXEL_TEXT["zh_CN"].get(text, text)
 
 

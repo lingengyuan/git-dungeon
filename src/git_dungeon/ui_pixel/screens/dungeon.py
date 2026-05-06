@@ -9,6 +9,7 @@ from git_dungeon.ui_pixel.dungeon import (
     GRID_WIDTH,
     Coord,
     DungeonFloor,
+    DungeonRewardRoom,
     build_dungeon_floor,
 )
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
@@ -149,7 +150,7 @@ class DungeonScreen(Screen):
         for reward in self.floor.reward_rooms:
             x, y = reward.coord
             rect = (origin_x + x * tile, origin_y + y * tile, 18, 18)
-            border = GOOD if self._reward_claimed(reward.reward_id) else ACCENT
+            border = self._reward_border(reward)
             self.pygame.draw.rect(surface, SURFACE_2, rect)
             self.pygame.draw.rect(surface, border, rect, 1)
             self.assets.draw(surface, "node_shop", (rect[0] + 3, rect[1] + 3, 12, 12))
@@ -183,6 +184,12 @@ class DungeonScreen(Screen):
             if self.audio is not None:
                 self.audio.play_sfx("combat_hurt")
             return action
+        reward = self.floor.reward_at(target)
+        if reward is not None and not self._reward_unlocked(reward):
+            self.message = f"Locked: need {reward.requires_key}"
+            if self.audio is not None:
+                self.audio.play_sfx("ui_denied")
+            return None
         if self.floor.room_at(target) is None or not self.floor.has_door(self.player_coord, target):
             self.message = "No door there"
             if self.audio is not None:
@@ -236,11 +243,30 @@ class DungeonScreen(Screen):
             return False
         return bool(checker(reward_id))
 
+    def _reward_unlocked(self, reward: DungeonRewardRoom) -> bool:
+        if reward.requires_key is None:
+            return True
+        checker = getattr(self.runner, "has_dungeon_key", None)
+        if checker is None:
+            return False
+        return bool(checker(reward.requires_key))
+
+    def _reward_border(self, reward: DungeonRewardRoom) -> tuple[int, int, int]:
+        if self._reward_claimed(reward.reward_id):
+            return GOOD
+        if not self._reward_unlocked(reward):
+            return BAD
+        return ACCENT
+
     def _room_message(self) -> str:
         if self.player_coord is not None:
             reward = self.floor.reward_at(self.player_coord)
             if reward is not None:
-                return "Cache already claimed" if self._reward_claimed(reward.reward_id) else "Press Enter to claim"
+                if self._reward_claimed(reward.reward_id):
+                    return f"{reward.label} already claimed"
+                if not self._reward_unlocked(reward):
+                    return f"Locked: need {reward.requires_key}"
+                return "Press Enter to claim"
         return "Move to the current room" if not self._can_enter_current_room() else "Press Enter to enter"
 
     def _initial_player_coord(self) -> Coord | None:
@@ -262,7 +288,7 @@ class DungeonScreen(Screen):
     def _open_current(self) -> ScreenAction | None:
         reward = self._claimable_reward()
         if reward is not None:
-            self._claim_reward(reward.reward_id, reward.heal, reward.gold)
+            self._claim_reward(reward)
             return None
         if not self._can_enter_current_room():
             self.message = "Move to the current room"
@@ -307,18 +333,26 @@ class DungeonScreen(Screen):
             return None
         return self.floor.reward_at(self.player_coord)
 
-    def _claim_reward(self, reward_id: str, heal: int, gold: int) -> None:
-        claim = getattr(self.runner, "claim_dungeon_reward", None)
-        if claim is None:
-            self.message = "Cache unavailable"
-            return
-        result = claim(reward_id, heal, gold)
-        if result.already_claimed:
-            self.message = "Cache already claimed"
+    def _claim_reward(self, reward: DungeonRewardRoom) -> None:
+        if not self._reward_unlocked(reward):
+            self.message = f"Locked: need {reward.requires_key}"
             if self.audio is not None:
                 self.audio.play_sfx("ui_denied")
             return
-        self.message = f"Cache: +{result.heal} HP +{result.gold} Gold"
+        claim = getattr(self.runner, "claim_dungeon_reward", None)
+        if claim is None:
+            self.message = f"{reward.label} unavailable"
+            return
+        result = claim(reward.reward_id, reward.heal, reward.gold, reward.grants_key)
+        if result.already_claimed:
+            self.message = f"{reward.label} already claimed"
+            if self.audio is not None:
+                self.audio.play_sfx("ui_denied")
+            return
+        if getattr(result, "key_id", None):
+            self.message = f"Key found: {result.key_id}"
+        else:
+            self.message = f"{reward.label}: +{result.heal} HP +{result.gold} Gold"
         if self.audio is not None:
             self.audio.play_sfx("economy")
 

@@ -1,8 +1,8 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：Phase 0-11 已完成最小闭环（截至 2026-05-06）；后续进入 Phase 12 玩法扩展
-> **作用**：Phase 0-11 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
+> **状态**：Phase 0-12 已完成最小闭环（截至 2026-05-06）；后续进入 Phase 13 打磨
+> **作用**：Phase 0-12 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
 
@@ -11,7 +11,7 @@
 像素化分两段：
 
 - **Phase 0-6**：Pixel 版完整一局（保留现有章节/节点/战斗，外层换 Pygame-CE 像素界面）。源 plan 称为 "Phase 1"。
-- **Phase 7-11**：真正的像素地牢化与交互打磨（房间地图、逐格移动、陷阱、事件级回放测试、陷阱消耗、支线奖励房间、旧地图清理）。源 plan 称为 "Phase 2"，已拆成独立递进计划。
+- **Phase 7-12**：真正的像素地牢化与交互打磨（房间地图、逐格移动、陷阱、事件级回放测试、陷阱消耗、支线奖励房间、旧地图清理、钥匙门）。源 plan 称为 "Phase 2"，已拆成独立递进计划。
 
 工期估算：8-12 个工作日（源 plan §10）。
 
@@ -31,6 +31,7 @@
 | Phase 9 | 地牢陷阱消耗 | Phase 8 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-9-handoff.md) |
 | Phase 10 | 支线奖励房间 | Phase 9 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-10-handoff.md) |
 | Phase 11 | 旧地图清理 | Phase 10 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-11-handoff.md) |
+| Phase 12 | 钥匙门支线 | Phase 11 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-12-handoff.md) |
 
 ---
 
@@ -327,6 +328,34 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not gold
 
 ---
 
+## Phase 12 — 钥匙门支线
+
+**范围**：在现有房间地牢里增加一个钥匙房和一个锁住的宝库。玩家必须先进入钥匙房领取钥匙，才能打开宝库领取一次奖励；不改变 route 主线和 CLI 自动结果。
+
+**交付**：
+- `DungeonRewardRoom` 支持 `grants_key` 和 `requires_key`。
+- `GameRunner` 按章节记录已领取钥匙，奖励领取接口可一次性发钥匙。
+- DungeonScreen 阻止未拿钥匙时进入锁住房间，并显示明确提示。
+- DungeonScreen 支持钥匙领取、宝库领取、重复领取提示。
+- `tests/unit/test_pixel_phase12.py` 覆盖钥匙房、锁住房间、未拿钥匙阻挡、领取后进入、宝库奖励只领一次。
+
+**验收命令**：
+```bash
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase12.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase7.py tests/unit/test_pixel_phase8.py tests/unit/test_pixel_phase9.py tests/unit/test_pixel_phase10.py tests/unit/test_pixel_phase11.py tests/unit/test_pixel_phase12.py tests/integration/test_pixel_smoke.py tests/integration/test_pixel_cli_parity.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not golden and not slow" -q
+```
+
+**关键约束**：
+- 钥匙、宝库奖励都按章节隔离，不能跨章误用。
+- 未拿钥匙不能进入宝库，不能用静默失败或“假进入”掩盖。
+- 不生成随机大地图；仍使用固定、可验证的小分支。
+- CLI 自动模式不走支线，结果对齐必须保持。
+
+**MiMo 参与**：可参与测试和文档，不碰 CLI 自动流程。
+
+---
+
 ## 跨 Phase 强制约束（每个 phase 都要满足）
 
 引自 CLAUDE.md「Project Principles」与源 plan：
@@ -356,3 +385,4 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not gold
 | 2026-05-06 | Phase 9 收口，回填 handoff 链接 | 陷阱一次性 HP 消耗、已触发状态和陷阱致死边界完成 |
 | 2026-05-06 | Phase 10 收口，回填 handoff 链接 | 支线奖励房间、一次性领取和回主线闭环完成 |
 | 2026-05-06 | Phase 11 收口，回填 handoff 链接 | 旧 MapScreen 删除，Pixel 正式入口只保留 DungeonScreen |
+| 2026-05-06 | Phase 12 收口，回填 handoff 链接 | 钥匙房、锁住宝库、一次性钥匙和宝库奖励闭环完成 |

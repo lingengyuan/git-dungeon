@@ -1,4 +1,4 @@
-"""Phase 10 tests for optional dungeon reward rooms."""
+"""Phase 12 tests for keyed dungeon side rooms."""
 
 from __future__ import annotations
 
@@ -33,10 +33,11 @@ class FakePygame:
 @dataclass
 class FakeRunner:
     nodes: tuple[NodeSnapshot, ...]
-    hp: int = 80
+    hp: int = 70
     gold: int = 0
     dungeon_player_coord: tuple[int, int] | None = None
     claimed_rewards: set[str] = field(default_factory=set)
+    collected_keys: set[str] = field(default_factory=set)
 
     def route_nodes(self) -> tuple[NodeSnapshot, ...]:
         return self.nodes
@@ -55,17 +56,23 @@ class FakeRunner:
     def is_dungeon_reward_claimed(self, reward_id: str) -> bool:
         return reward_id in self.claimed_rewards
 
+    def has_dungeon_key(self, key_id: str) -> bool:
+        return key_id in self.collected_keys
+
     def claim_dungeon_reward(self, reward_id: str, heal: int, gold: int, key_id: str | None = None) -> Any:
         if reward_id in self.claimed_rewards:
-            return SimpleNamespace(reward_id=reward_id, heal=0, gold=0, already_claimed=True)
+            return SimpleNamespace(reward_id=reward_id, heal=0, gold=0, key_id=None, already_claimed=True)
         actual_heal = min(heal, 100 - self.hp)
         self.hp += actual_heal
         self.gold += gold
+        if key_id is not None:
+            self.collected_keys.add(key_id)
         self.claimed_rewards.add(reward_id)
         return SimpleNamespace(
             reward_id=reward_id,
             heal=actual_heal,
             gold=gold,
+            key_id=key_id,
             already_claimed=False,
         )
 
@@ -83,54 +90,68 @@ def _node(index: int, kind: str, *, current: bool = False, visited: bool = False
 
 
 def _nodes() -> tuple[NodeSnapshot, ...]:
-    return (
-        _node(0, "battle", visited=True),
-        _node(1, "event", visited=True),
-        _node(2, "rest", current=True),
-    )
+    return tuple(_node(index, "battle", current=index == 5, visited=index < 5) for index in range(6))
 
 
 def _key(key: str) -> Any:
     return SimpleNamespace(type=FakePygame.KEYDOWN, key=key)
 
 
-def test_dungeon_floor_adds_optional_reward_room_branch() -> None:
+def test_dungeon_floor_adds_key_room_and_locked_vault() -> None:
     floor = build_dungeon_floor(_nodes())
-    reward = floor.reward_rooms[0]
+    rewards = {reward.reward_id: reward for reward in floor.reward_rooms}
 
-    assert reward.reward_id == "cache_00"
-    assert reward.coord == (2, 1)
-    assert reward.anchor == (2, 2)
-    assert floor.has_door(reward.anchor, reward.coord)
-    assert floor.room_at(reward.coord) == reward
-    assert floor.trap_at(reward.coord) is None
+    assert rewards["iron_key_00"].coord == (4, 1)
+    assert rewards["iron_key_00"].anchor == (4, 2)
+    assert rewards["iron_key_00"].grants_key == "iron_key"
+    assert rewards["vault_00"].coord == (5, 1)
+    assert rewards["vault_00"].anchor == (5, 2)
+    assert rewards["vault_00"].requires_key == "iron_key"
+    assert floor.has_door((4, 2), (4, 1))
+    assert floor.has_door((5, 2), (5, 1))
+    assert floor.trap_at((4, 1)) is None
+    assert floor.trap_at((5, 1)) is None
 
 
-def test_dungeon_reward_room_can_be_claimed_once_and_return_to_route() -> None:
+def test_vault_requires_key_before_reward_can_be_claimed_once() -> None:
     runner = FakeRunner(_nodes())
     screen = DungeonScreen(FakePygame, fonts=None, runner=runner, assets=None)
 
-    assert screen.handle(_key(FakePygame.K_RIGHT)) is None
-    assert screen.player_coord == (2, 2)
+    for key in (FakePygame.K_RIGHT, FakePygame.K_RIGHT, FakePygame.K_RIGHT, FakePygame.K_RIGHT):
+        assert screen.handle(_key(key)) is None
+    assert screen.player_coord == (5, 2)
+
     assert screen.handle(_key(FakePygame.K_UP)) is None
-    assert screen.player_coord == (2, 1)
+
+    assert screen.player_coord == (5, 2)
+    assert screen.message == "Locked: need iron_key"
+    assert runner.gold == 0
+
+    assert screen.handle(_key(FakePygame.K_LEFT)) is None
+    assert screen.player_coord == (4, 2)
+    assert screen.handle(_key(FakePygame.K_UP)) is None
+    assert screen.player_coord == (4, 1)
     assert screen.message == "Press Enter to claim"
 
     assert screen.handle(_key(FakePygame.K_RETURN)) is None
 
-    assert runner.hp == 92
-    assert runner.gold == 15
-    assert runner.claimed_rewards == {"cache_00"}
-    assert screen.message == "Cache: +12 HP +15 Gold"
+    assert runner.collected_keys == {"iron_key"}
+    assert screen.message == "Key found: iron_key"
+
+    assert screen.handle(_key(FakePygame.K_DOWN)) is None
+    assert screen.handle(_key(FakePygame.K_RIGHT)) is None
+    assert screen.handle(_key(FakePygame.K_UP)) is None
+    assert screen.player_coord == (5, 1)
+    assert screen.message == "Press Enter to claim"
 
     assert screen.handle(_key(FakePygame.K_RETURN)) is None
 
-    assert runner.hp == 92
-    assert runner.gold == 15
-    assert screen.message == "Cache already claimed"
+    assert runner.hp == 78
+    assert runner.gold == 30
+    assert screen.message == "Vault: +8 HP +30 Gold"
 
-    assert screen.handle(_key(FakePygame.K_DOWN)) is None
-    assert screen.player_coord == (2, 2)
-    assert screen.handle(_key(FakePygame.K_RIGHT)) is None
-    assert screen.player_coord == (3, 2)
-    assert screen.message == "Press Enter to enter"
+    assert screen.handle(_key(FakePygame.K_RETURN)) is None
+
+    assert runner.hp == 78
+    assert runner.gold == 30
+    assert screen.message == "Vault already claimed"

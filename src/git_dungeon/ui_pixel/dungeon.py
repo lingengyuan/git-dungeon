@@ -45,6 +45,8 @@ class DungeonRewardRoom:
     label: str = "Cache"
     heal: int = 12
     gold: int = 15
+    grants_key: str | None = None
+    requires_key: str | None = None
 
 
 @dataclass(frozen=True)
@@ -131,12 +133,54 @@ def _reward_rooms_for_rooms(rooms: tuple[DungeonRoom, ...]) -> list[DungeonRewar
     if len(rooms) < 2:
         return []
     occupied = {room.coord for room in rooms}
+    rewards: list[DungeonRewardRoom] = []
     anchor = rooms[1].coord
+    cache_coord = _first_open_adjacent(anchor, occupied)
+    if cache_coord is not None:
+        rewards.append(DungeonRewardRoom(reward_id="cache_00", coord=cache_coord, anchor=anchor))
+        occupied.add(cache_coord)
+
+    if len(rooms) >= 5:
+        key_anchor = rooms[3].coord
+        key_coord = _first_open_adjacent(key_anchor, occupied)
+        if key_coord is not None:
+            rewards.append(
+                DungeonRewardRoom(
+                    reward_id="iron_key_00",
+                    coord=key_coord,
+                    anchor=key_anchor,
+                    label="Key",
+                    heal=0,
+                    gold=0,
+                    grants_key="iron_key",
+                )
+            )
+            occupied.add(key_coord)
+
+            vault_anchor = rooms[4].coord
+            vault_coord = _first_open_adjacent(vault_anchor, occupied)
+            if vault_coord is not None:
+                rewards.append(
+                    DungeonRewardRoom(
+                        reward_id="vault_00",
+                        coord=vault_coord,
+                        anchor=vault_anchor,
+                        label="Vault",
+                        heal=8,
+                        gold=30,
+                        requires_key="iron_key",
+                    )
+                )
+                occupied.add(vault_coord)
+    return rewards
+
+
+def _first_open_adjacent(anchor: Coord, occupied: set[Coord]) -> Coord | None:
     for offset in ((0, -1), (0, 1), (1, 0), (-1, 0)):
         candidate = (anchor[0] + offset[0], anchor[1] + offset[1])
         if 0 <= candidate[0] < GRID_WIDTH and 0 <= candidate[1] < GRID_HEIGHT and candidate not in occupied:
-            return [DungeonRewardRoom(reward_id="cache_00", coord=candidate, anchor=anchor)]
-    return []
+            return candidate
+    return None
 
 
 def _trap_coords_for_rooms(

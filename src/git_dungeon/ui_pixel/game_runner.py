@@ -145,6 +145,7 @@ class DungeonRewardResult:
     reward_id: str
     heal: int
     gold: int
+    key_id: str | None
     already_claimed: bool
 
 
@@ -193,6 +194,7 @@ class GameRunner:
         self.dungeon_player_coord: tuple[int, int] | None = None
         self.dungeon_consumed_traps: set[str] = set()
         self.dungeon_claimed_rewards: set[str] = set()
+        self.dungeon_collected_keys: set[str] = set()
         self._chapter_nodes: dict[str, list[RouteNode]] = {}
         self._chapter_node_cursor: dict[str, int] = {}
         self.loaded = False
@@ -733,10 +735,16 @@ class GameRunner:
     def is_dungeon_reward_claimed(self, reward_id: str) -> bool:
         return self._dungeon_reward_key(reward_id) in self.dungeon_claimed_rewards
 
-    def claim_dungeon_reward(self, reward_id: str, heal: int, gold: int) -> DungeonRewardResult:
+    def claim_dungeon_reward(
+        self,
+        reward_id: str,
+        heal: int,
+        gold: int,
+        key_id: str | None = None,
+    ) -> DungeonRewardResult:
         reward_key = self._dungeon_reward_key(reward_id)
         if reward_key in self.dungeon_claimed_rewards:
-            return DungeonRewardResult(reward_id=reward_id, heal=0, gold=0, already_claimed=True)
+            return DungeonRewardResult(reward_id=reward_id, heal=0, gold=0, key_id=None, already_claimed=True)
 
         state = self._require_state()
         player = state.player.character
@@ -745,11 +753,14 @@ class GameRunner:
         player.current_hp += actual_heal
         state.player.gold += actual_gold
         self.inventory.gold += actual_gold
+        if key_id is not None:
+            self.dungeon_collected_keys.add(self._dungeon_key_key(key_id))
         self.dungeon_claimed_rewards.add(reward_key)
         return DungeonRewardResult(
             reward_id=reward_id,
             heal=actual_heal,
             gold=actual_gold,
+            key_id=key_id,
             already_claimed=False,
         )
 
@@ -757,6 +768,14 @@ class GameRunner:
         chapter = self.current_chapter()
         chapter_id = getattr(chapter, "chapter_id", "unknown") if chapter is not None else "unknown"
         return f"{chapter_id}:{reward_id}"
+
+    def has_dungeon_key(self, key_id: str) -> bool:
+        return self._dungeon_key_key(key_id) in self.dungeon_collected_keys
+
+    def _dungeon_key_key(self, key_id: str) -> str:
+        chapter = self.current_chapter()
+        chapter_id = getattr(chapter, "chapter_id", "unknown") if chapter is not None else "unknown"
+        return f"{chapter_id}:{key_id}"
 
     def _require_state(self) -> GameState:
         if not self.loaded or self.state is None:
