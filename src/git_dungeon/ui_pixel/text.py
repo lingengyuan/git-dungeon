@@ -21,6 +21,8 @@ PIXEL_TEXT = {
         "Enter Room": "进入",
         "Arrows/WASD: Move": "方向键/WASD 移动",
         "Trap blocks this path": "陷阱挡住了路",
+        "Trap already spent": "陷阱已触发",
+        "Trap hit": "触发陷阱",
         "No door there": "那里没有门",
         "No current room": "没有当前房间",
         "Open Node": "打开节点",
@@ -96,6 +98,10 @@ PIXEL_TEXT = {
 def tr(text: str, lang: str) -> str:
     if lang != "zh_CN":
         return text
+    if text == "Trap hit: no HP lost":
+        return f"{PIXEL_TEXT['zh_CN']['Trap hit']}: 未损失生命"
+    if text.startswith("Trap hit: "):
+        return text.replace("Trap hit", PIXEL_TEXT["zh_CN"]["Trap hit"], 1)
     return PIXEL_TEXT["zh_CN"].get(text, text)
 
 

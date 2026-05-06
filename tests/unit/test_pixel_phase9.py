@@ -1,4 +1,4 @@
-"""Phase 8 tests for dungeon screen input replay."""
+"""Phase 9 tests for dungeon trap consumption."""
 
 from __future__ import annotations
 
@@ -32,9 +32,8 @@ class FakePygame:
 @dataclass
 class FakeRunner:
     nodes: tuple[NodeSnapshot, ...]
-    current_kind: NodeKind = NodeKind.REST
-    dungeon_player_coord: tuple[int, int] | None = None
     hp: int = 100
+    dungeon_player_coord: tuple[int, int] | None = None
     consumed_traps: set[str] = field(default_factory=set)
 
     def route_nodes(self) -> tuple[NodeSnapshot, ...]:
@@ -49,7 +48,7 @@ class FakeRunner:
     def current_node(self) -> RouteNode:
         current = self.current_node_snapshot()
         assert current is not None
-        return RouteNode(node_id=current.node_id, kind=self.current_kind, position=current.position)
+        return RouteNode(node_id=current.node_id, kind=NodeKind.REST, position=current.position)
 
     def is_dungeon_trap_consumed(self, trap_id: str) -> bool:
         return trap_id in self.consumed_traps
@@ -79,66 +78,48 @@ def _key(key: str) -> Any:
     return SimpleNamespace(type=FakePygame.KEYDOWN, key=key)
 
 
-def test_dungeon_screen_replays_move_to_current_room_and_enter_node() -> None:
-    runner = FakeRunner(
-        (
-            _node(0, "battle", visited=True),
-            _node(1, "rest", current=True),
-            _node(2, "battle"),
-        )
-    )
-    screen = DungeonScreen(FakePygame, fonts=None, runner=runner, assets=None)
-
-    assert screen.player_coord == (1, 2)
-    assert screen.message == "Move to the current room"
-    assert screen.handle(_key(FakePygame.K_RETURN)) is None
-    assert screen.message == "Move to the current room"
-
-    assert screen.handle(_key(FakePygame.K_RIGHT)) is None
-
-    assert screen.player_coord == (2, 2)
-    assert runner.dungeon_player_coord == (2, 2)
-    assert screen.message == "Press Enter to enter"
-
-    action = screen.handle(_key(FakePygame.K_RETURN))
-
-    assert action is not None
-    assert action.kind == "replace"
-    assert action.screen.__class__.__name__ == "RestScreen"
-
-
-def test_dungeon_screen_reports_trap_before_door_check() -> None:
+def _screen_for_trap(hp: int = 100) -> tuple[DungeonScreen, FakeRunner]:
     runner = FakeRunner(
         (
             _node(0, "battle", visited=True),
             _node(1, "event", visited=True),
             _node(2, "rest", current=True),
         ),
+        hp=hp,
         dungeon_player_coord=(3, 2),
     )
-    screen = DungeonScreen(FakePygame, fonts=None, runner=runner, assets=None)
+    return DungeonScreen(FakePygame, fonts=None, runner=runner, assets=None), runner
 
-    assert screen.player_coord == (3, 2)
-    assert screen.floor.trap_at((3, 1)) is not None
+
+def test_dungeon_trap_consumes_hp_once() -> None:
+    screen, runner = _screen_for_trap()
 
     assert screen.handle(_key(FakePygame.K_UP)) is None
 
-    assert screen.player_coord == (3, 2)
-    assert runner.dungeon_player_coord == (3, 2)
     assert runner.hp == 92
+    assert runner.consumed_traps == {"trap_00"}
+    assert screen.player_coord == (3, 2)
     assert screen.message == "Trap hit: -8 HP"
 
+    assert screen.handle(_key(FakePygame.K_UP)) is None
 
-def test_dungeon_screen_reuses_previous_player_room_after_node_resolution() -> None:
-    runner = FakeRunner(
-        (
-            _node(0, "battle", visited=True),
-            _node(1, "event", visited=True),
-            _node(2, "rest", current=True),
-        ),
-        dungeon_player_coord=(2, 2),
-    )
-    screen = DungeonScreen(FakePygame, fonts=None, runner=runner, assets=None)
+    assert runner.hp == 92
+    assert screen.message == "Trap already spent"
 
-    assert screen.player_coord == (2, 2)
-    assert screen.message == "Move to the current room"
+
+def test_dungeon_trap_never_reduces_hp_below_one() -> None:
+    screen, runner = _screen_for_trap(hp=5)
+
+    assert screen.handle(_key(FakePygame.K_UP)) is None
+
+    assert runner.hp == 1
+    assert screen.message == "Trap hit: -4 HP"
+
+
+def test_dungeon_trap_reports_no_loss_at_one_hp() -> None:
+    screen, runner = _screen_for_trap(hp=1)
+
+    assert screen.handle(_key(FakePygame.K_UP)) is None
+
+    assert runner.hp == 1
+    assert screen.message == "Trap hit: no HP lost"

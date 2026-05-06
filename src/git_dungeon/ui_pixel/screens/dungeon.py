@@ -139,9 +139,10 @@ class DungeonScreen(Screen):
             self.pygame.draw.line(surface, MUTED, (x1, y1), (x2, y2), 2)
         for trap in self.floor.traps:
             x, y = trap.coord
+            color = MUTED if self._trap_consumed(trap.trap_id) else BAD
             self.pygame.draw.rect(
                 surface,
-                BAD,
+                color,
                 (origin_x + x * tile + 5, origin_y + y * tile + 5, 8, 8),
                 1,
             )
@@ -169,10 +170,11 @@ class DungeonScreen(Screen):
             self.message = "No current room"
             return
         target = (self.player_coord[0] + delta[0], self.player_coord[1] + delta[1])
-        if self.floor.trap_at(target) is not None:
-            self.message = "Trap blocks this path"
+        trap = self.floor.trap_at(target)
+        if trap is not None:
+            self._trigger_trap(trap.trap_id, trap.damage)
             if self.audio is not None:
-                self.audio.play_sfx("ui_denied")
+                self.audio.play_sfx("combat_hurt")
             return
         if self.floor.room_at(target) is None or not self.floor.has_door(self.player_coord, target):
             self.message = "No door there"
@@ -182,6 +184,26 @@ class DungeonScreen(Screen):
         self.player_coord = target
         self.runner.dungeon_player_coord = target
         self.message = "Move to the current room" if not self._can_enter_current_room() else "Press Enter to enter"
+
+    def _trigger_trap(self, trap_id: str, damage: int) -> None:
+        trigger = getattr(self.runner, "trigger_dungeon_trap", None)
+        if trigger is None:
+            self.message = "Trap blocks this path"
+            return
+        result = trigger(trap_id, damage)
+        if result.already_triggered:
+            self.message = "Trap already spent"
+            return
+        if result.damage <= 0:
+            self.message = "Trap hit: no HP lost"
+            return
+        self.message = f"Trap hit: -{result.damage} HP"
+
+    def _trap_consumed(self, trap_id: str) -> bool:
+        checker = getattr(self.runner, "is_dungeon_trap_consumed", None)
+        if checker is None:
+            return False
+        return bool(checker(trap_id))
 
     def _initial_player_coord(self) -> Coord | None:
         stored = getattr(self.runner, "dungeon_player_coord", None)

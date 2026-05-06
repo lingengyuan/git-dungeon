@@ -133,6 +133,13 @@ class RewardSnapshot:
     new_level: int
 
 
+@dataclass(frozen=True)
+class DungeonTrapResult:
+    trap_id: str
+    damage: int
+    already_triggered: bool
+
+
 class GameRunner:
     """Owns non-interactive repository loading for the pixel UI."""
 
@@ -175,6 +182,8 @@ class GameRunner:
         self.current_battle_is_elite = False
         self.current_battle_turn = 0
         self.last_reward: RewardSnapshot | None = None
+        self.dungeon_player_coord: tuple[int, int] | None = None
+        self.dungeon_consumed_traps: set[str] = set()
         self._chapter_nodes: dict[str, list[RouteNode]] = {}
         self._chapter_node_cursor: dict[str, int] = {}
         self.loaded = False
@@ -689,6 +698,26 @@ class GameRunner:
             visited = state.route_state.setdefault("visited_nodes", [])
             visited.append(node.node_id)
             state.route_state["current_node_id"] = ""
+
+    def is_dungeon_trap_consumed(self, trap_id: str) -> bool:
+        return self._dungeon_trap_key(trap_id) in self.dungeon_consumed_traps
+
+    def trigger_dungeon_trap(self, trap_id: str, damage: int) -> DungeonTrapResult:
+        trap_key = self._dungeon_trap_key(trap_id)
+        if trap_key in self.dungeon_consumed_traps:
+            return DungeonTrapResult(trap_id=trap_id, damage=0, already_triggered=True)
+
+        state = self._require_state()
+        player = state.player.character
+        actual_damage = min(max(0, damage), max(0, player.current_hp - 1))
+        player.current_hp -= actual_damage
+        self.dungeon_consumed_traps.add(trap_key)
+        return DungeonTrapResult(trap_id=trap_id, damage=actual_damage, already_triggered=False)
+
+    def _dungeon_trap_key(self, trap_id: str) -> str:
+        chapter = self.current_chapter()
+        chapter_id = getattr(chapter, "chapter_id", "unknown") if chapter is not None else "unknown"
+        return f"{chapter_id}:{trap_id}"
 
     def _require_state(self) -> GameState:
         if not self.loaded or self.state is None:

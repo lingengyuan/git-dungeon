@@ -42,6 +42,7 @@ class DungeonTrap:
     trap_id: str
     coord: Coord
     label: str = "Trap"
+    damage: int = 8
 
 
 @dataclass(frozen=True)
