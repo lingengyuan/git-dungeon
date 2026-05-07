@@ -23,6 +23,9 @@ from git_dungeon.ui_pixel.widgets import (
     draw_panel,
 )
 
+SHOP_SKIP_BUTTON_RECT = (236, 157, 44, 16)
+SHOP_ACTION_BAR_RESERVE = 70
+
 
 class ShopScreen(Screen):
     def __init__(
@@ -101,16 +104,16 @@ class ShopScreen(Screen):
             offer = self.offers[index]
             button.enabled = offer.affordable
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
-        skip = self._skip_button()
-        skip.draw(self.pygame, surface, self.fonts, skip.contains(self.hover_pos))
         draw_action_bar(
             self.pygame,
             surface,
             self.fonts,
             tr(self.message, lang),
-            reserve_right=70,
+            reserve_right=SHOP_ACTION_BAR_RESERVE,
             alert=self.message == "Not enough gold",
         )
+        skip = self._skip_button()
+        skip.draw(self.pygame, surface, self.fonts, skip.contains(self.hover_pos))
 
     def _buttons(self) -> dict[int, Button]:
         return {
@@ -124,7 +127,7 @@ class ShopScreen(Screen):
         }
 
     def _skip_button(self) -> Button:
-        return Button((236, 157, 44, 16), tr("Skip", self._lang()))
+        return Button(SHOP_SKIP_BUTTON_RECT, tr("Skip", self._lang()))
 
     def _choose(self, index: int | None) -> ScreenAction | None:
         if index is not None and not self.offers[index].affordable:

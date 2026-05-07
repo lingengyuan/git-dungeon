@@ -11,6 +11,15 @@ from git_dungeon.ui_pixel.screens.settings import SettingsScreen
 from git_dungeon.ui_pixel.text import audio_label, tr
 from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, Button, draw_panel
 
+TITLE_PLAYER_SPRITE_RECT = (36, 42, 32, 32)
+TITLE_ENEMY_SPRITE_RECT = (252, 42, 32, 32)
+TITLE_LOGO_POS = (82, 42)
+TITLE_LOGO_WIDTH = 162
+TITLE_LOGO_SIZE = 24
+TITLE_SUBTITLE_POS = (112, 70)
+TITLE_SUBTITLE_WIDTH = 108
+TITLE_SUBTITLE_SIZE = 18
+
 
 class TitleScreen(Screen):
     def __init__(
@@ -87,10 +96,24 @@ class TitleScreen(Screen):
         lang = self._lang()
         surface.fill(BG)
         draw_panel(self.pygame, surface, (18, 18, 284, 144))
-        self.assets.draw(surface, "player_default", (36, 42, 32, 32))
-        self.assets.draw(surface, "enemy_default", (252, 42, 32, 32))
-        self.fonts.draw(surface, "GIT DUNGEON", (86, 42), ACCENT, 28)
-        self.fonts.draw(surface, "PIXEL MODE", (112, 70), TEXT, 18)
+        self.assets.draw(surface, "player_default", TITLE_PLAYER_SPRITE_RECT)
+        self.assets.draw(surface, "enemy_default", TITLE_ENEMY_SPRITE_RECT)
+        self.fonts.draw_fit(
+            surface,
+            "GIT DUNGEON",
+            TITLE_LOGO_POS,
+            TITLE_LOGO_WIDTH,
+            ACCENT,
+            TITLE_LOGO_SIZE,
+        )
+        self.fonts.draw_fit(
+            surface,
+            "PIXEL MODE",
+            TITLE_SUBTITLE_POS,
+            TITLE_SUBTITLE_WIDTH,
+            TEXT,
+            TITLE_SUBTITLE_SIZE,
+        )
         self.fonts.draw_fit(surface, tr(self.status, lang), (58, 96), 204, MUTED, 14)
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
