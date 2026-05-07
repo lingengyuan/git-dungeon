@@ -40,11 +40,12 @@ BATTLE_PLAYER_HP_POS = (82, 82)
 BATTLE_PLAYER_MP_POS = (82, 94)
 BATTLE_ENEMY_NAME_POS = (184, 44)
 BATTLE_ENEMY_BAR_RECT = (184, 64, 92, 8)
-BATTLE_ENEMY_SPRITE_RECT = (238, 78, 32, 32)
-BATTLE_ENEMY_HIT_RECT = (236, 76, 36, 36)
-BATTLE_ENEMY_HP_POS = (184, 100)
-BATTLE_ENEMY_ATTACK_POS = (184, 112)
-BATTLE_ENEMY_PHASE_POS = (184, 124)
+BATTLE_ENEMY_SPRITE_RECT = (256, 78, 32, 32)
+BATTLE_ENEMY_HIT_RECT = (254, 76, 36, 36)
+BATTLE_ENEMY_HP_POS = (184, 82)
+BATTLE_ENEMY_ATTACK_POS = (184, 94)
+BATTLE_ENEMY_PHASE_POS = (184, 106)
+BATTLE_ENEMY_STAT_WIDTH = 66
 BATTLE_BUTTON_TOP = 134
 BATTLE_BUTTON_HEIGHT = 14
 BATTLE_ACTION_BAR_RECT = (18, 151, 274, 15)
@@ -196,7 +197,7 @@ class BattleScreen(Screen):
             surface,
             stat_value("hp", snap.enemy.hp, lang, snap.enemy.max_hp),
             BATTLE_ENEMY_HP_POS,
-            100,
+            BATTLE_ENEMY_STAT_WIDTH,
             TEXT,
             10,
         )
@@ -204,12 +205,19 @@ class BattleScreen(Screen):
             surface,
             stat_value("attack", snap.enemy.attack, lang),
             BATTLE_ENEMY_ATTACK_POS,
-            100,
+            BATTLE_ENEMY_STAT_WIDTH,
             MUTED,
             10,
         )
         if snap.enemy.phase:
-            self.fonts.draw_fit(surface, snap.enemy.phase, BATTLE_ENEMY_PHASE_POS, 92, BAD, 10)
+            self.fonts.draw_fit(
+                surface,
+                snap.enemy.phase,
+                BATTLE_ENEMY_PHASE_POS,
+                BATTLE_ENEMY_STAT_WIDTH,
+                BAD,
+                10,
+            )
 
         for item in self.floating_texts:
             alpha_color = item.color if item.ttl > 0.2 else MUTED

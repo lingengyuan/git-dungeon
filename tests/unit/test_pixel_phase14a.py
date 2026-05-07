@@ -13,7 +13,10 @@ from git_dungeon.ui_pixel.screens.battle import (
     BATTLE_BUTTON_HEIGHT,
     BATTLE_BUTTON_TOP,
     BATTLE_ENEMY_BAR_RECT,
+    BATTLE_ENEMY_ATTACK_POS,
     BATTLE_ENEMY_HIT_RECT,
+    BATTLE_ENEMY_HP_POS,
+    BATTLE_ENEMY_STAT_WIDTH,
     BATTLE_ENEMY_SPRITE_RECT,
     BATTLE_PLAYER_BAR_RECT,
     BATTLE_PLAYER_HP_POS,
@@ -165,3 +168,8 @@ def test_battle_text_layout_keeps_status_away_from_bars_and_buttons() -> None:
     enemy_bar_bottom = BATTLE_ENEMY_BAR_RECT[1] + BATTLE_ENEMY_BAR_RECT[3]
     assert BATTLE_ENEMY_SPRITE_RECT[1] >= enemy_bar_bottom + 6
     assert BATTLE_ENEMY_HIT_RECT[1] >= enemy_bar_bottom + 4
+    assert BATTLE_ENEMY_HP_POS[1] == BATTLE_PLAYER_HP_POS[1]
+    assert BATTLE_ENEMY_ATTACK_POS[1] == BATTLE_PLAYER_MP_POS[1]
+    enemy_sprite_left = BATTLE_ENEMY_SPRITE_RECT[0]
+    assert BATTLE_ENEMY_HP_POS[0] + BATTLE_ENEMY_STAT_WIDTH <= enemy_sprite_left - 6
+    assert BATTLE_ENEMY_ATTACK_POS[0] + BATTLE_ENEMY_STAT_WIDTH <= enemy_sprite_left - 6

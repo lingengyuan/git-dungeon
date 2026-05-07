@@ -39,6 +39,7 @@ Phase 13R 修掉了最明显的 review findings，但界面层仍有两个结构
 - [x] 四次截图复查修正：战斗页角色名、血条、状态文字、动作按钮和日志栏改为常量布局，避免开发者文字压血条、魔力压按钮。
 - [x] 五次截图复查修正：战斗页生命/魔力改到角色右侧，避免生命文字压到绿色角色块。
 - [x] 六次截图复查修正：战斗页敌人块下移，避免红色敌人块压到红色血条。
+- [x] 七次截图复查修正：战斗页右侧生命/攻击与左侧生命/魔力重新对齐，同时限制右侧文字宽度，避免贴到敌人块。
 - [x] 测试覆盖 formatter、UI kit 暴露和 screen 源码中 raw 字段禁用。
 - [x] 渲染 smoke 生成 8 个主要页面截图并人工检查。
 
@@ -96,19 +97,19 @@ Phase 14B 重点：
 验证结果：
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase13.py tests/unit/test_pixel_phase14a.py -q
-# 12 passed
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase3.py tests/unit/test_pixel_phase14a.py -q
+# 11 passed
 
-PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase7.py tests/unit/test_pixel_phase8.py tests/unit/test_pixel_phase9.py tests/unit/test_pixel_phase10.py tests/unit/test_pixel_phase11.py tests/unit/test_pixel_phase12.py tests/unit/test_pixel_phase13.py tests/unit/test_pixel_phase14a.py tests/integration/test_pixel_smoke.py tests/integration/test_pixel_cli_parity.py -q
-# 30 passed
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase5.py tests/unit/test_pixel_phase7.py tests/unit/test_pixel_phase8.py tests/unit/test_pixel_phase9.py tests/unit/test_pixel_phase10.py tests/unit/test_pixel_phase11.py tests/unit/test_pixel_phase12.py tests/unit/test_pixel_phase13.py tests/unit/test_pixel_phase14a.py tests/integration/test_pixel_smoke.py tests/integration/test_pixel_cli_parity.py -q
+# 40 passed
 
-SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-phase14a-smoke PYTHONPATH=src .venv/bin/python -m git_dungeon . --pixel --seed 42 --lang zh_CN --pixel-smoke-frames 8
+SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-phase14a-align-smoke PYTHONPATH=src .venv/bin/python -m git_dungeon . --pixel --seed 42 --lang zh_CN --pixel-smoke-frames 8
 # passed
 
 PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not golden and not slow" -q
-# 398 passed, 2 skipped, 153 deselected, 2 warnings
+# 402 passed, 2 skipped, 153 deselected, 2 warnings
 
-.venv/bin/python -m ruff check src/git_dungeon/ui_pixel tests/unit/test_pixel_phase14a.py tests/unit/test_pixel_phase8.py tests/unit/test_pixel_phase9.py tests/unit/test_pixel_phase10.py tests/unit/test_pixel_phase12.py
+.venv/bin/python -m ruff check src/git_dungeon/ui_pixel/screens/battle.py tests/unit/test_pixel_phase14a.py
 # passed
 
 PYTHONPATH=src .venv/bin/python -m mypy src/git_dungeon/ui_pixel --ignore-missing-imports
@@ -125,3 +126,4 @@ PYTHONPATH=src .venv/bin/python -m mypy src/git_dungeon/ui_pixel --ignore-missin
 - 四次复查截图生成到 `/tmp/git-dungeon-phase14a-battle-recheck/battle-4x.png`，用于确认战斗页开发者文字、血条、魔力和按钮不再重叠。
 - 五次复查截图生成到 `/tmp/git-dungeon-phase14a-battle-hp-recheck/battle-4x.png`，用于确认战斗页生命/魔力与角色块不再重叠。
 - 六次复查截图生成到 `/tmp/git-dungeon-phase14a-enemy-recheck/battle-4x.png`，用于确认战斗页红色敌人块与红色血条不再重叠。
+- 七次复查截图生成到 `/tmp/git-dungeon-phase14a-align-recheck/battle-4x.png`，用于确认战斗页右侧生命/攻击与左侧生命/魔力处在同一水平行，且不贴到敌人块。
