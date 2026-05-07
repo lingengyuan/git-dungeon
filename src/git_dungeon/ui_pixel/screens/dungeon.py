@@ -13,7 +13,14 @@ from git_dungeon.ui_pixel.dungeon import (
     build_dungeon_floor,
 )
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
-from git_dungeon.ui_pixel.text import audio_label, tr
+from git_dungeon.ui_pixel.text import (
+    audio_label,
+    key_label,
+    locked_message,
+    reward_feedback,
+    stat_label,
+    tr,
+)
 from git_dungeon.ui_pixel.widgets import (
     ACCENT,
     BAD,
@@ -27,6 +34,10 @@ from git_dungeon.ui_pixel.widgets import (
     draw_stat_bar,
 )
 
+
+FLOOR_ORIGIN = (20, 62)
+FLOOR_TILE = 18
+FLOOR_CELL = 16
 
 NODE_SPRITES = {
     "battle": "node_battle",
@@ -69,7 +80,11 @@ class DungeonScreen(Screen):
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
             if event.key in (self.pygame.K_ESCAPE, self.pygame.K_q):
-                return ScreenAction.quit()
+                from git_dungeon.ui_pixel.screens.pause import PauseScreen
+
+                return ScreenAction.push(
+                    PauseScreen(self.pygame, self.fonts, self.settings, self.audio)
+                )
             if event.key in (self.pygame.K_RETURN, self.pygame.K_SPACE):
                 return self._open_current()
             move = {
@@ -88,6 +103,9 @@ class DungeonScreen(Screen):
             self.hover_pos = getattr(event, "logical_pos", None)
         if event.type == self.pygame.MOUSEBUTTONDOWN and event.button == 1:
             self.hover_pos = getattr(event, "logical_pos", None)
+            clicked_coord = self._coord_at(self.hover_pos)
+            if clicked_coord is not None:
+                return self._click_coord(clicked_coord)
             button = self._enter_button()
             if button.contains(self.hover_pos) and button.enabled:
                 return self._open_current()
@@ -98,24 +116,46 @@ class DungeonScreen(Screen):
         lang = self._lang()
         player = self.runner.player_snapshot()
         self.fonts.draw(surface, tr("DUNGEON", lang), (12, 8), ACCENT, 22)
-        self.fonts.draw_fit(surface, tr(self.message, lang), (96, 12), 190, MUTED, 14)
+        self.fonts.draw_fit(surface, tr(self.message, lang), (92, 12), 202, MUTED, 13)
 
-        draw_panel(self.pygame, surface, (10, 28, 300, 36))
-        draw_stat_bar(self.pygame, surface, (20, 40, 92, 8), player.hp, player.max_hp, GOOD)
-        self.fonts.draw(surface, f"HP {player.hp}/{player.max_hp}", (20, 50), TEXT, 12)
-        draw_stat_bar(self.pygame, surface, (122, 40, 70, 8), player.mp, player.max_mp, ACCENT)
-        self.fonts.draw(surface, f"MP {player.mp}/{player.max_mp}", (122, 50), TEXT, 12)
-        self.fonts.draw(surface, f"ATK {player.attack}", (204, 38), TEXT, 13)
-        self.fonts.draw(surface, f"{tr('Gold', lang)} {player.gold}", (204, 51), TEXT, 13)
+        draw_panel(self.pygame, surface, (10, 27, 300, 30))
+        draw_stat_bar(self.pygame, surface, (20, 37, 78, 7), player.hp, player.max_hp, GOOD)
+        self.fonts.draw_fit(
+            surface,
+            f"{stat_label('hp', lang)} {player.hp}/{player.max_hp}",
+            (20, 46),
+            88,
+            TEXT,
+            11,
+        )
+        draw_stat_bar(self.pygame, surface, (112, 37, 62, 7), player.mp, player.max_mp, ACCENT)
+        self.fonts.draw_fit(
+            surface,
+            f"{stat_label('mp', lang)} {player.mp}/{player.max_mp}",
+            (112, 46),
+            78,
+            TEXT,
+            11,
+        )
+        self.fonts.draw_fit(
+            surface, f"{stat_label('attack', lang)} {player.attack}", (204, 35), 76, TEXT, 12
+        )
+        self.fonts.draw_fit(
+            surface, f"{stat_label('gold', lang)} {player.gold}", (204, 48), 76, ACCENT, 12
+        )
+        self._draw_key_status(surface)
 
         self._draw_floor(surface)
         button = self._enter_button()
         button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
-        self.fonts.draw_fit(surface, tr("Arrows/WASD: Move", lang), (18, 154), 120, MUTED, 12)
+        self.fonts.draw_fit(surface, self._action_hint(), (18, 154), 118, MUTED, 11)
         if self.audio is not None:
+            label = audio_label(self.audio.status().label(), lang)
+            if not label:
+                return
             self.fonts.draw_fit(
                 surface,
-                audio_label(self.audio.status().label(), lang),
+                label,
                 (204, 154),
                 92,
                 MUTED,
@@ -123,55 +163,77 @@ class DungeonScreen(Screen):
             )
 
     def _draw_floor(self, surface: Any) -> None:
-        origin_x, origin_y = 18, 72
-        tile = 20
+        origin_x, origin_y = FLOOR_ORIGIN
+        tile = FLOOR_TILE
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
+                tone = (28, 27, 38) if (x + y) % 2 == 0 else (24, 24, 34)
                 self.pygame.draw.rect(
                     surface,
-                    (23, 22, 31),
-                    (origin_x + x * tile, origin_y + y * tile, 18, 18),
+                    tone,
+                    (origin_x + x * tile, origin_y + y * tile, FLOOR_CELL, FLOOR_CELL),
                 )
         for left, right in self.floor.doors:
             lx, ly = left
             rx, ry = right
-            x1, y1 = origin_x + lx * tile + 9, origin_y + ly * tile + 9
-            x2, y2 = origin_x + rx * tile + 9, origin_y + ry * tile + 9
-            self.pygame.draw.line(surface, MUTED, (x1, y1), (x2, y2), 2)
+            x1, y1 = origin_x + lx * tile + FLOOR_CELL // 2, origin_y + ly * tile + FLOOR_CELL // 2
+            x2, y2 = origin_x + rx * tile + FLOOR_CELL // 2, origin_y + ry * tile + FLOOR_CELL // 2
+            self.pygame.draw.line(surface, (61, 56, 72), (x1, y1), (x2, y2), 4)
+            self.pygame.draw.line(surface, MUTED, (x1, y1), (x2, y2), 1)
         for trap in self.floor.traps:
             x, y = trap.coord
             color = MUTED if self._trap_consumed(trap.trap_id) else BAD
-            self.pygame.draw.rect(
+            rect = (origin_x + x * tile + 3, origin_y + y * tile + 3, 10, 10)
+            self.pygame.draw.rect(surface, (45, 28, 38), rect)
+            self.pygame.draw.polygon(
                 surface,
                 color,
-                (origin_x + x * tile + 5, origin_y + y * tile + 5, 8, 8),
+                [
+                    (rect[0] + 1, rect[1] + 9),
+                    (rect[0] + 3, rect[1] + 3),
+                    (rect[0] + 5, rect[1] + 9),
+                    (rect[0] + 7, rect[1] + 3),
+                    (rect[0] + 9, rect[1] + 9),
+                ],
                 1,
             )
         for reward in self.floor.reward_rooms:
             x, y = reward.coord
-            rect = (origin_x + x * tile, origin_y + y * tile, 18, 18)
+            rect = (origin_x + x * tile, origin_y + y * tile, FLOOR_CELL, FLOOR_CELL)
             border = self._reward_border(reward)
-            self.pygame.draw.rect(surface, SURFACE_2, rect)
+            fill = (34, 35, 44) if self._reward_claimed(reward.reward_id) else SURFACE_2
+            self.pygame.draw.rect(surface, fill, rect)
             self.pygame.draw.rect(surface, border, rect, 1)
-            self.assets.draw(surface, "node_shop", (rect[0] + 3, rect[1] + 3, 12, 12))
+            self._draw_reward_icon(surface, reward, rect)
         for room in self.floor.rooms:
             x, y = room.coord
-            rect = (origin_x + x * tile, origin_y + y * tile, 18, 18)
-            border = ACCENT if room.is_current else GOOD if room.is_visited else MUTED
+            rect = (origin_x + x * tile, origin_y + y * tile, FLOOR_CELL, FLOOR_CELL)
+            border = ACCENT if room.is_current else MUTED if room.is_visited else (87, 82, 99)
             self.pygame.draw.rect(surface, SURFACE_2, rect)
             self.pygame.draw.rect(surface, border, rect, 1)
+            if room.is_current:
+                self.pygame.draw.rect(
+                    surface, ACCENT, (rect[0] + 2, rect[1] + 2, rect[2] - 4, rect[3] - 4), 1
+                )
+            if room.is_visited:
+                self.pygame.draw.line(
+                    surface,
+                    GOOD,
+                    (rect[0] + 3, rect[1] + rect[3] - 4),
+                    (rect[0] + 7, rect[1] + rect[3] - 1),
+                    1,
+                )
             self.assets.draw(
                 surface,
                 NODE_SPRITES.get(room.kind, "node_event"),
-                (rect[0] + 3, rect[1] + 3, 12, 12),
+                (rect[0] + 3, rect[1] + 3, 10, 10),
             )
         if self.player_coord is not None:
             px, py = self.player_coord
-            self.assets.draw(
-                surface,
-                "player_default",
-                (origin_x + px * tile + 1, origin_y + py * tile + 1, 16, 16),
-            )
+            rect = (origin_x + px * tile, origin_y + py * tile, FLOOR_CELL, FLOOR_CELL)
+            self.pygame.draw.rect(surface, TEXT, (rect[0] + 5, rect[1] + 11, 6, 3))
+            self.assets.draw(surface, "player_default", (rect[0] + 3, rect[1] + 4, 10, 10))
+            self.pygame.draw.rect(surface, TEXT, rect, 1)
 
     def _move(self, delta: tuple[int, int]) -> ScreenAction | None:
         if self.player_coord is None:
@@ -186,7 +248,7 @@ class DungeonScreen(Screen):
             return action
         reward = self.floor.reward_at(target)
         if reward is not None and not self._reward_unlocked(reward):
-            self.message = f"Locked: need {reward.requires_key}"
+            self.message = locked_message(reward.requires_key, self._lang())
             if self.audio is not None:
                 self.audio.play_sfx("ui_denied")
             return None
@@ -265,9 +327,13 @@ class DungeonScreen(Screen):
                 if self._reward_claimed(reward.reward_id):
                     return f"{reward.label} already claimed"
                 if not self._reward_unlocked(reward):
-                    return f"Locked: need {reward.requires_key}"
+                    return locked_message(reward.requires_key, self._lang())
                 return "Press Enter to claim"
-        return "Move to the current room" if not self._can_enter_current_room() else "Press Enter to enter"
+        return (
+            "Move to the current room"
+            if not self._can_enter_current_room()
+            else "Press Enter to enter"
+        )
 
     def _initial_player_coord(self) -> Coord | None:
         stored = getattr(self.runner, "dungeon_player_coord", None)
@@ -277,13 +343,15 @@ class DungeonScreen(Screen):
         return self.floor.start_coord
 
     def _enter_button(self) -> Button:
-        label = tr("Enter Room", self._lang())
+        label = self._primary_button_label()
         enabled = self._can_enter_current_room() or self._claimable_reward() is not None
-        return Button((144, 150, 56, 18), label, enabled=enabled)
+        return Button((140, 150, 60, 18), label, enabled=enabled)
 
     def _can_enter_current_room(self) -> bool:
         current = self.runner.current_node_snapshot()
-        return bool(current and current.is_playable_now and self.player_coord == self.floor.current_coord)
+        return bool(
+            current and current.is_playable_now and self.player_coord == self.floor.current_coord
+        )
 
     def _open_current(self) -> ScreenAction | None:
         reward = self._claimable_reward()
@@ -305,25 +373,33 @@ class DungeonScreen(Screen):
             from git_dungeon.ui_pixel.screens.battle import BattleScreen
 
             return ScreenAction.replace(
-                BattleScreen(self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings)
+                BattleScreen(
+                    self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings
+                )
             )
         if current.kind.value == "event":
             from git_dungeon.ui_pixel.screens.event import EventScreen
 
             return ScreenAction.replace(
-                EventScreen(self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings)
+                EventScreen(
+                    self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings
+                )
             )
         if current.kind.value == "rest":
             from git_dungeon.ui_pixel.screens.rest import RestScreen
 
             return ScreenAction.replace(
-                RestScreen(self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings)
+                RestScreen(
+                    self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings
+                )
             )
         if current.kind.value == "shop":
             from git_dungeon.ui_pixel.screens.shop import ShopScreen
 
             return ScreenAction.replace(
-                ShopScreen(self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings)
+                ShopScreen(
+                    self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings
+                )
             )
         self.message = f"{current.kind.value.title()} is not playable yet"
         return None
@@ -335,7 +411,7 @@ class DungeonScreen(Screen):
 
     def _claim_reward(self, reward: DungeonRewardRoom) -> None:
         if not self._reward_unlocked(reward):
-            self.message = f"Locked: need {reward.requires_key}"
+            self.message = locked_message(reward.requires_key, self._lang())
             if self.audio is not None:
                 self.audio.play_sfx("ui_denied")
             return
@@ -350,11 +426,112 @@ class DungeonScreen(Screen):
                 self.audio.play_sfx("ui_denied")
             return
         if getattr(result, "key_id", None):
-            self.message = f"Key found: {result.key_id}"
+            self.message = (
+                f"{tr('Key found', self._lang())}: {key_label(result.key_id, self._lang())}"
+            )
         else:
-            self.message = f"{reward.label}: +{result.heal} HP +{result.gold} Gold"
+            self.message = reward_feedback(reward.label, result.heal, result.gold, self._lang())
         if self.audio is not None:
             self.audio.play_sfx("economy")
 
     def _lang(self) -> str:
         return getattr(self.settings, "lang", "en")
+
+    def _draw_key_status(self, surface: Any) -> None:
+        if not any(reward.grants_key or reward.requires_key for reward in self.floor.reward_rooms):
+            return
+        has_key = getattr(self.runner, "has_dungeon_key", lambda key_id: False)
+        color = ACCENT if has_key("iron_key") else MUTED
+        self.pygame.draw.rect(surface, (43, 39, 52), (282, 36, 14, 14))
+        self.pygame.draw.circle(surface, color, (286, 43), 3, 1)
+        self.pygame.draw.line(surface, color, (289, 43), (294, 43), 1)
+        self.pygame.draw.line(surface, color, (292, 43), (292, 46), 1)
+
+    def _draw_reward_icon(
+        self, surface: Any, reward: DungeonRewardRoom, rect: tuple[int, int, int, int]
+    ) -> None:
+        claimed = self._reward_claimed(reward.reward_id)
+        color = MUTED if claimed else self._reward_border(reward)
+        if reward.grants_key:
+            self.pygame.draw.circle(surface, color, (rect[0] + 6, rect[1] + 8), 3, 1)
+            self.pygame.draw.line(
+                surface, color, (rect[0] + 9, rect[1] + 8), (rect[0] + 13, rect[1] + 8), 1
+            )
+            self.pygame.draw.line(
+                surface, color, (rect[0] + 12, rect[1] + 8), (rect[0] + 12, rect[1] + 11), 1
+            )
+            return
+        if reward.requires_key:
+            self.pygame.draw.rect(surface, color, (rect[0] + 4, rect[1] + 7, 8, 6), 1)
+            self.pygame.draw.arc(surface, color, (rect[0] + 5, rect[1] + 3, 6, 8), 3.14, 6.28, 1)
+            return
+        lid_y = rect[1] + (8 if claimed else 5)
+        self.pygame.draw.rect(surface, color, (rect[0] + 4, rect[1] + 8, 8, 5), 1)
+        self.pygame.draw.line(surface, color, (rect[0] + 5, lid_y), (rect[0] + 11, lid_y), 1)
+
+    def _coord_at(self, pos: tuple[int, int] | None) -> Coord | None:
+        if pos is None:
+            return None
+        origin_x, origin_y = FLOOR_ORIGIN
+        x, y = pos
+        rel_x = x - origin_x
+        rel_y = y - origin_y
+        if rel_x < 0 or rel_y < 0:
+            return None
+        grid_x = rel_x // FLOOR_TILE
+        grid_y = rel_y // FLOOR_TILE
+        if 0 <= grid_x < GRID_WIDTH and 0 <= grid_y < GRID_HEIGHT:
+            return (int(grid_x), int(grid_y))
+        return None
+
+    def _click_coord(self, coord: Coord) -> ScreenAction | None:
+        if self.player_coord is None:
+            self.message = "No current room"
+            return None
+        if coord == self.player_coord:
+            self.message = self._room_message()
+            return None
+        if abs(coord[0] - self.player_coord[0]) + abs(coord[1] - self.player_coord[1]) == 1:
+            return self._move((coord[0] - self.player_coord[0], coord[1] - self.player_coord[1]))
+        if self.floor.trap_at(coord) is not None:
+            trap = self.floor.trap_at(coord)
+            assert trap is not None
+            self.message = (
+                f"{tr('Trap', self._lang())}: -{trap.damage} {stat_label('hp', self._lang())}"
+            )
+            return None
+        reward = self.floor.reward_at(coord)
+        if reward is not None:
+            if not self._reward_unlocked(reward):
+                self.message = locked_message(reward.requires_key, self._lang())
+            elif self._reward_claimed(reward.reward_id):
+                self.message = tr(f"{reward.label} already claimed", self._lang())
+            else:
+                self.message = tr(reward.label, self._lang())
+            return None
+        room = self.floor.room_at(coord)
+        if room is not None:
+            self.message = tr("Selected room is too far", self._lang())
+            return None
+        self.message = "No room there"
+        return None
+
+    def _primary_button_label(self) -> str:
+        if self._claimable_reward() is not None:
+            return tr("Claim", self._lang())
+        if self._can_enter_current_room():
+            return tr("Enter Room", self._lang())
+        return tr("Move", self._lang())
+
+    def _action_hint(self) -> str:
+        lang = self._lang()
+        reward = self._claimable_reward()
+        if reward is not None:
+            if not self._reward_unlocked(reward):
+                return locked_message(reward.requires_key, lang)
+            if self._reward_claimed(reward.reward_id):
+                return tr(f"{reward.label} already claimed", lang)
+            return tr("Confirm: claim reward", lang)
+        if self._can_enter_current_room():
+            return tr("Confirm: enter current room", lang)
+        return tr("Move to the glowing room", lang)

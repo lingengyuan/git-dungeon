@@ -6,7 +6,14 @@ from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
 from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
-from git_dungeon.ui_pixel.text import tr
+from git_dungeon.ui_pixel.text import (
+    event_choice_label,
+    event_description,
+    event_effect_preview,
+    event_result_feedback,
+    event_title,
+    tr,
+)
 from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, Button, draw_panel
 
 
@@ -32,18 +39,11 @@ class EventScreen(Screen):
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
-            if event.key == self.pygame.K_ESCAPE:
-                if self.audio is not None:
-                    self.audio.play_sfx("ui_cancel")
-                return ScreenAction.replace(
-                    DungeonScreen(
-                        self.pygame,
-                        self.fonts,
-                        self.runner,
-                        self.assets,
-                        audio=self.audio,
-                        settings=self.settings,
-                    )
+            if event.key in (self.pygame.K_ESCAPE, self.pygame.K_q):
+                from git_dungeon.ui_pixel.screens.pause import PauseScreen
+
+                return ScreenAction.push(
+                    PauseScreen(self.pygame, self.fonts, self.settings, self.audio)
                 )
             if self.event:
                 for idx, key in enumerate((self.pygame.K_1, self.pygame.K_2, self.pygame.K_3)):
@@ -69,22 +69,39 @@ class EventScreen(Screen):
             self.fonts.draw(surface, tr(self.error, lang), (32, 78), BAD, 16)
             return
 
-        self.fonts.draw_fit(surface, self.event.event_id, (62, 50), 190, TEXT, 15)
+        self.fonts.draw_fit(surface, event_title(self.event.event_id, lang), (62, 50), 190, TEXT, 15)
+        self.fonts.draw_fit(
+            surface,
+            event_description(self.event.event_id, lang),
+            (32, 66),
+            210,
+            MUTED,
+            13,
+        )
         for choice in self.event.choices:
-            y = 76 + choice.index * 28
-            self.fonts.draw_fit(surface, f"{choice.index + 1}. {choice.choice_id}", (32, y), 176, TEXT, 15)
-            detail = ", ".join(choice.effects) or tr("no effect", lang)
+            y = 86 + choice.index * 22
+            self.fonts.draw_fit(
+                surface,
+                event_choice_label(choice.index, choice.effects, lang),
+                (32, y),
+                176,
+                TEXT,
+                15,
+            )
+            detail = event_effect_preview(choice.effects, lang)
             self.fonts.draw_fit(surface, detail, (48, y + 13), 168, MUTED, 13)
 
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
-        self.fonts.draw_fit(surface, tr("Choose visibly; effects apply once", lang), (32, 148), 248, GOOD, 13)
+        self.fonts.draw_fit(
+            surface, tr("Choose visibly; effects apply once", lang), (32, 148), 248, GOOD, 13
+        )
 
     def _buttons(self) -> dict[int, Button]:
         if not self.event:
             return {}
         return {
-            choice.index: Button((234, 74 + choice.index * 28, 48, 18), tr("Pick", self._lang()))
+            choice.index: Button((234, 84 + choice.index * 22, 48, 18), tr("Pick", self._lang()))
             for choice in self.event.choices[:3]
         }
 
@@ -92,15 +109,13 @@ class EventScreen(Screen):
         result = self.runner.resolve_current_event(index)
         if self.audio is not None:
             self.audio.play_sfx("event")
-        hp_text = f"HP {result.hp_delta:+d}" if result.hp_delta else "HP 0"
-        gold_text = f"Gold {result.gold_delta:+d}" if result.gold_delta else "Gold 0"
         return ScreenAction.replace(
             DungeonScreen(
                 self.pygame,
                 self.fonts,
                 self.runner,
                 self.assets,
-                message=f"Event: {result.choice_id} {hp_text} {gold_text}",
+                message=event_result_feedback(result.hp_delta, result.gold_delta, self._lang()),
                 audio=self.audio,
                 settings=self.settings,
             )

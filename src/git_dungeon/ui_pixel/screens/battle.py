@@ -9,7 +9,13 @@ from git_dungeon.engine.auto_policy import ACTION_ATTACK, ACTION_DEFEND, ACTION_
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
 from git_dungeon.ui_pixel.screens.game_over import GameOverScreen
 from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
-from git_dungeon.ui_pixel.text import audio_label, tr
+from git_dungeon.ui_pixel.text import (
+    audio_label,
+    battle_reward_feedback,
+    battle_reward_float,
+    stat_label,
+    tr,
+)
 from git_dungeon.ui_pixel.widgets import (
     ACCENT,
     BAD,
@@ -68,6 +74,12 @@ class BattleScreen(Screen):
         if self.pending_action is not None:
             return None
         if event.type == self.pygame.KEYDOWN:
+            if event.key in (self.pygame.K_ESCAPE, self.pygame.K_q):
+                from git_dungeon.ui_pixel.screens.pause import PauseScreen
+
+                return ScreenAction.push(
+                    PauseScreen(self.pygame, self.fonts, self.settings, self.audio)
+                )
             if event.key in (self.pygame.K_1, self.pygame.K_a):
                 return self._act(ACTION_ATTACK)
             if event.key in (self.pygame.K_2, self.pygame.K_d):
@@ -108,8 +120,12 @@ class BattleScreen(Screen):
         lang = self._lang()
         snap = self.snapshot
         title = "BOSS" if snap.enemy.is_boss else "ELITE" if snap.enemy.is_elite else "BATTLE"
-        draw_panel(self.pygame, surface, (10, 10, 300, 158), border=BAD if snap.enemy.is_boss else ACCENT)
-        self.fonts.draw(surface, tr(title, lang), (22, 20), BAD if snap.enemy.is_boss else ACCENT, 22)
+        draw_panel(
+            self.pygame, surface, (10, 10, 300, 158), border=BAD if snap.enemy.is_boss else ACCENT
+        )
+        self.fonts.draw(
+            surface, tr(title, lang), (22, 20), BAD if snap.enemy.is_boss else ACCENT, 22
+        )
         self.fonts.draw(surface, f"{tr('Turn', lang)} {snap.turn}", (244, 24), MUTED, 14)
 
         self.assets.draw(surface, "player_default", (42, 76, 32, 32))
@@ -126,15 +142,40 @@ class BattleScreen(Screen):
             self.pygame.draw.rect(surface, GOOD, (36, 70, 44, 44), 1)
 
         self.fonts.draw(surface, tr("Developer", lang), (28, 48), TEXT, 15)
-        draw_stat_bar(self.pygame, surface, (28, 62, 92, 8), snap.player.hp, snap.player.max_hp, GOOD)
-        self.fonts.draw(surface, f"HP {snap.player.hp}/{snap.player.max_hp}", (28, 112), TEXT, 13)
-        self.fonts.draw(surface, f"MP {snap.player.mp}/{snap.player.max_mp}", (28, 126), ACCENT, 13)
+        draw_stat_bar(
+            self.pygame, surface, (28, 62, 92, 8), snap.player.hp, snap.player.max_hp, GOOD
+        )
+        self.fonts.draw_fit(
+            surface,
+            f"{stat_label('hp', lang)} {snap.player.hp}/{snap.player.max_hp}",
+            (28, 112),
+            106,
+            TEXT,
+            13,
+        )
+        self.fonts.draw_fit(
+            surface,
+            f"{stat_label('mp', lang)} {snap.player.mp}/{snap.player.max_mp}",
+            (28, 126),
+            106,
+            ACCENT,
+            13,
+        )
 
         enemy_name = snap.enemy.name[:24]
         self.fonts.draw(surface, enemy_name, (184, 48), TEXT, 15)
         draw_stat_bar(self.pygame, surface, (184, 62, 92, 8), snap.enemy.hp, snap.enemy.max_hp, BAD)
-        self.fonts.draw(surface, f"HP {snap.enemy.hp}/{snap.enemy.max_hp}", (184, 102), TEXT, 13)
-        self.fonts.draw(surface, f"ATK {snap.enemy.attack}", (184, 116), MUTED, 13)
+        self.fonts.draw_fit(
+            surface,
+            f"{stat_label('hp', lang)} {snap.enemy.hp}/{snap.enemy.max_hp}",
+            (184, 102),
+            100,
+            TEXT,
+            13,
+        )
+        self.fonts.draw_fit(
+            surface, f"{stat_label('attack', lang)} {snap.enemy.attack}", (184, 116), 100, MUTED, 13
+        )
         if snap.enemy.phase:
             self.fonts.draw_fit(surface, snap.enemy.phase, (184, 130), 92, BAD, 13)
 
@@ -144,16 +185,13 @@ class BattleScreen(Screen):
 
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
-        self.fonts.draw_fit(surface, self.message, (22, 150), 184, BAD if "Need" in self.message else TEXT, 13)
+        self.fonts.draw_fit(
+            surface, self.message, (22, 150), 184, BAD if "Need" in self.message else TEXT, 13
+        )
         if self.audio is not None:
-            self.fonts.draw_fit(
-                surface,
-                audio_label(self.audio.status().label(), lang),
-                (214, 150),
-                76,
-                MUTED,
-                11,
-            )
+            label = audio_label(self.audio.status().label(), lang)
+            if label:
+                self.fonts.draw_fit(surface, label, (214, 150), 76, MUTED, 11)
 
     def _buttons(self) -> dict[str, Button]:
         snap = self.snapshot
@@ -165,9 +203,11 @@ class BattleScreen(Screen):
                 (138, 132, 54, 16),
                 tr("Skill", self._lang()),
                 enabled=can_skill,
-                tooltip=f"Need {snap.skill_cost} MP",
+                tooltip=f"{tr('Need', self._lang())} {snap.skill_cost} {stat_label('mp', self._lang())}",
             ),
-            ACTION_ESCAPE: Button((198, 132, 54, 16), tr("Escape", self._lang()), enabled=snap.can_escape),
+            ACTION_ESCAPE: Button(
+                (198, 132, 54, 16), tr("Escape", self._lang()), enabled=snap.can_escape
+            ),
         }
 
     def _act(self, action: str) -> ScreenAction | None:
@@ -177,7 +217,10 @@ class BattleScreen(Screen):
                 self.audio.play_sfx("ui_denied")
             return None
         if action == ACTION_SKILL and self.snapshot.player.mp < self.snapshot.skill_cost:
-            self.message = f"{tr('Need', self._lang())} {self.snapshot.skill_cost} MP"
+            self.message = (
+                f"{tr('Need', self._lang())} {self.snapshot.skill_cost} "
+                f"{stat_label('mp', self._lang())}"
+            )
             if self.audio is not None:
                 self.audio.play_sfx("ui_denied")
             return None
@@ -204,10 +247,22 @@ class BattleScreen(Screen):
                 self.finish_timer = 0.55
                 return None
             if result.won:
-                reward_text = ""
                 if reward is not None:
-                    reward_text = f" +{reward.exp} EXP +{reward.gold} Gold"
-                    self._float(f"+{reward.exp} EXP +{reward.gold}G", 116, 86, GOOD, ttl=0.9)
+                    reward_text = battle_reward_feedback(
+                        reward.exp,
+                        reward.gold,
+                        self._lang(),
+                        level_up=reward.level_up,
+                    )
+                    self._float(
+                        battle_reward_float(reward.exp, reward.gold, self._lang()),
+                        116,
+                        86,
+                        GOOD,
+                        ttl=0.9,
+                    )
+                else:
+                    reward_text = tr("Won battle.", self._lang())
                 self.enemy_fade_timer = 0.55
                 self.pending_action = ScreenAction.replace(
                     DungeonScreen(
@@ -215,7 +270,7 @@ class BattleScreen(Screen):
                         self.fonts,
                         self.runner,
                         self.assets,
-                        message=f"Won battle.{reward_text}",
+                        message=reward_text,
                         audio=self.audio,
                         settings=self.settings,
                     )

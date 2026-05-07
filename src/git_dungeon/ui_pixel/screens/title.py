@@ -91,7 +91,7 @@ class TitleScreen(Screen):
         self.assets.draw(surface, "enemy_default", (252, 42, 32, 32))
         self.fonts.draw(surface, "GIT DUNGEON", (86, 42), ACCENT, 28)
         self.fonts.draw(surface, "PIXEL MODE", (112, 70), TEXT, 18)
-        self.fonts.draw_fit(surface, tr(self.status, lang), (54, 100), 212, MUTED, 16)
+        self.fonts.draw_fit(surface, tr(self.status, lang), (58, 96), 204, MUTED, 14)
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
         self.fonts.draw_fit(
@@ -105,14 +105,9 @@ class TitleScreen(Screen):
         if self.settings_error:
             self.fonts.draw_fit(surface, self.settings_error, (42, 146), 144, BAD, 11)
         if self.audio is not None:
-            self.fonts.draw_fit(
-                surface,
-                audio_label(self.audio.status().label(), lang),
-                (194, 146),
-                86,
-                MUTED,
-                11,
-            )
+            label = audio_label(self.audio.status().label(), lang)
+            if label:
+                self.fonts.draw_fit(surface, label, (194, 146), 86, MUTED, 11)
 
     def _buttons(self) -> dict[str, Button]:
         lang = self._lang()
@@ -216,14 +211,9 @@ class LoadingScreen(Screen):
         if self.summary is None:
             self.fonts.draw(surface, tr("Reading git history...", lang), (32, 82), MUTED, 16)
             if self.audio is not None:
-                self.fonts.draw_fit(
-                    surface,
-                    audio_label(self.audio.status().label(), lang),
-                    (32, 118),
-                    240,
-                    MUTED,
-                    13,
-                )
+                label = audio_label(self.audio.status().label(), lang)
+                if label:
+                    self.fonts.draw_fit(surface, label, (32, 118), 240, MUTED, 13)
             if self.settings_error:
                 self.fonts.draw_fit(surface, self.settings_error, (32, 136), 244, BAD, 12)
             return

@@ -59,9 +59,13 @@ class FakeRunner:
     def has_dungeon_key(self, key_id: str) -> bool:
         return key_id in self.collected_keys
 
-    def claim_dungeon_reward(self, reward_id: str, heal: int, gold: int, key_id: str | None = None) -> Any:
+    def claim_dungeon_reward(
+        self, reward_id: str, heal: int, gold: int, key_id: str | None = None
+    ) -> Any:
         if reward_id in self.claimed_rewards:
-            return SimpleNamespace(reward_id=reward_id, heal=0, gold=0, key_id=None, already_claimed=True)
+            return SimpleNamespace(
+                reward_id=reward_id, heal=0, gold=0, key_id=None, already_claimed=True
+            )
         actual_heal = min(heal, 100 - self.hp)
         self.hp += actual_heal
         self.gold += gold
@@ -90,7 +94,9 @@ def _node(index: int, kind: str, *, current: bool = False, visited: bool = False
 
 
 def _nodes() -> tuple[NodeSnapshot, ...]:
-    return tuple(_node(index, "battle", current=index == 5, visited=index < 5) for index in range(6))
+    return tuple(
+        _node(index, "battle", current=index == 5, visited=index < 5) for index in range(6)
+    )
 
 
 def _key(key: str) -> Any:
@@ -124,7 +130,7 @@ def test_vault_requires_key_before_reward_can_be_claimed_once() -> None:
     assert screen.handle(_key(FakePygame.K_UP)) is None
 
     assert screen.player_coord == (5, 2)
-    assert screen.message == "Locked: need iron_key"
+    assert screen.message == "Locked: need Iron Key"
     assert runner.gold == 0
 
     assert screen.handle(_key(FakePygame.K_LEFT)) is None
@@ -136,7 +142,7 @@ def test_vault_requires_key_before_reward_can_be_claimed_once() -> None:
     assert screen.handle(_key(FakePygame.K_RETURN)) is None
 
     assert runner.collected_keys == {"iron_key"}
-    assert screen.message == "Key found: iron_key"
+    assert screen.message == "Key found: Iron Key"
 
     assert screen.handle(_key(FakePygame.K_DOWN)) is None
     assert screen.handle(_key(FakePygame.K_RIGHT)) is None

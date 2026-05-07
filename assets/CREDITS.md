@@ -43,7 +43,7 @@
 
 ## AI 生成资源（gpt-image-2）
 
-Phase 4 建立生成清单，但本工作区当前没有可验证的 `gpt-image-2` 生成路径，因此这些素材**未计入已接入 sprite**。每个素材必须先有 asset card：
+Phase 4 建立生成清单；当前生成路径优先使用 Codex 内置 GPT Image 2。素材在生成、后处理、contact sheet 核对和 manifest 接入前，**不计入已接入 sprite**。每个素材必须先有 asset card：
 
 ```yaml
 id: <id>

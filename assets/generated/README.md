@@ -10,4 +10,4 @@ Phase 4 does not count a generated image as an in-game asset until all of these 
 4. A contact-sheet check confirms the sprite reads clearly at final size.
 5. `assets/manifest_sprites.json` points to the processed sprite.
 
-Current `gpt-image-2` entries are marked `pending_generation` because this workspace does not have a verified generation path configured.
+Current `gpt-image-2` entries stay `pending_generation` until Codex-generated raw outputs, processed sprites, contact sheets, and asset cards are present and verified.

@@ -15,7 +15,11 @@
 
 | 文件 | 用途 | 状态 |
 |---|---|---|
-| `pixel-phases.md` | 像素化改造（Phase 0-7）拆解索引 | 进行中 |
+| `pixel-phases.md` | 像素化改造（Phase 0-13R 完成，后续按 Stardew-Level 计划从 Phase 14A 接手）拆解索引 | 进行中 |
+| `pixel-game-issues.md` | Phase 0-12 后的真实试玩/像素游戏体验问题清单 | 进行中 |
+| `pixel-game-fix-plan.md` | 根据问题清单拆出的 Phase 13-18 修复路线 | 进行中 |
+| `pixel-ui-event-stardew-gap-review.md` | 对标《星露谷物语》的界面与事件差距深度审查 | 进行中 |
+| `pixel-stardew-level-repair-plan.md` | 统一 UI、gpt-image-2 素材流水线和成熟像素 RPG 验收标准 | 进行中 |
 
 ## 与 CLAUDE.md 第 6 条的关系
 

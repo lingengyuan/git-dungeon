@@ -65,14 +65,6 @@ class SettingsScreen(Screen):
         surface.fill(BG)
         draw_panel(self.pygame, surface, (14, 12, 292, 156))
         self.fonts.draw(surface, tr("SETTINGS", lang), (28, 24), ACCENT, 22)
-        self.fonts.draw_fit(
-            surface,
-            str(self.store.path),
-            (98, 28),
-            180,
-            MUTED,
-            11,
-        )
 
         rows = [
             (tr("BGM Volume", lang), f"{self.settings.bgm_volume:3d}%", "Q - 1 +"),
@@ -90,8 +82,17 @@ class SettingsScreen(Screen):
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
 
         if self.load_error:
-            self.fonts.draw_fit(surface, self._localized_error(self.load_error), (28, 134), 250, BAD, 12)
-        self.fonts.draw_fit(surface, self.message, (28, 150), 252, GOOD if tr("Saved", lang) in self.message else MUTED, 12)
+            self.fonts.draw_fit(
+                surface, self._localized_error(self.load_error), (28, 134), 250, BAD, 12
+            )
+        self.fonts.draw_fit(
+            surface,
+            self.message,
+            (28, 150),
+            252,
+            GOOD if tr("Saved", lang) in self.message else MUTED,
+            12,
+        )
 
     def _buttons(self) -> dict[str, Button]:
         lang = self.settings.lang
@@ -143,7 +144,9 @@ class SettingsScreen(Screen):
 
     def _cycle_lang(self) -> None:
         current = LANGUAGES.index(self.settings.lang) if self.settings.lang in LANGUAGES else 0
-        self.settings = replace(self.settings, lang=LANGUAGES[(current + 1) % len(LANGUAGES)]).normalized()
+        self.settings = replace(
+            self.settings, lang=LANGUAGES[(current + 1) % len(LANGUAGES)]
+        ).normalized()
         self._apply_settings()
         self.message = tr("Restart applies window mode", self.settings.lang)
 

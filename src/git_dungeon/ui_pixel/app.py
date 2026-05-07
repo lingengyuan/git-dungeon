@@ -17,7 +17,7 @@ from git_dungeon.ui_pixel.resources import resolve_asset_root
 from git_dungeon.ui_pixel.settings import PixelSettingsStore
 
 LOGICAL_SIZE = (320, 180)
-WINDOW_SIZE = (1280, 720)
+WINDOW_SIZE = (960, 540)
 FPS = 60
 
 BG = (17, 16, 24)

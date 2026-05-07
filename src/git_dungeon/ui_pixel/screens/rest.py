@@ -31,18 +31,11 @@ class RestScreen(Screen):
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
-            if event.key == self.pygame.K_ESCAPE:
-                if self.audio is not None:
-                    self.audio.play_sfx("ui_cancel")
-                return ScreenAction.replace(
-                    DungeonScreen(
-                        self.pygame,
-                        self.fonts,
-                        self.runner,
-                        self.assets,
-                        audio=self.audio,
-                        settings=self.settings,
-                    )
+            if event.key in (self.pygame.K_ESCAPE, self.pygame.K_q):
+                from git_dungeon.ui_pixel.screens.pause import PauseScreen
+
+                return ScreenAction.push(
+                    PauseScreen(self.pygame, self.fonts, self.settings, self.audio)
                 )
             if event.key in (self.pygame.K_1, self.pygame.K_h):
                 return self._choose("heal")
@@ -76,7 +69,9 @@ class RestScreen(Screen):
         draw_panel(self.pygame, surface, (14, 18, 292, 144))
         self.assets.draw(surface, "node_rest", (28, 32, 24, 24))
         self.fonts.draw(surface, tr("REST NODE", lang), (62, 34), ACCENT, 22)
-        self.fonts.draw_fit(surface, tr("Pick one real state change", lang), (62, 56), 194, MUTED, 14)
+        self.fonts.draw_fit(
+            surface, tr("Pick one real state change", lang), (62, 56), 194, MUTED, 14
+        )
 
         for option in self.runner.rest_options():
             y = 82 if option.action == "heal" else 116

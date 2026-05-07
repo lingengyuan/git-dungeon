@@ -1,8 +1,8 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：Phase 0-12 已完成最小闭环（截至 2026-05-06）；后续进入 Phase 13 打磨
-> **作用**：Phase 0-12 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
+> **状态**：Phase 0-13R 已完成最小闭环与首批体验修复（截至 2026-05-07）；后续按 `plans/pixel-stardew-level-repair-plan.md` 进入 Phase 14A 统一 UI 和玩家语言层
+> **作用**：Phase 0-18 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
 
@@ -32,6 +32,13 @@
 | Phase 10 | 支线奖励房间 | Phase 9 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-10-handoff.md) |
 | Phase 11 | 旧地图清理 | Phase 10 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-11-handoff.md) |
 | Phase 12 | 钥匙门支线 | Phase 11 后续 | ✅ 完成 (2026-05-06) | [2026-05-06](../handoffs/2026-05-06-pixel-phase-12-handoff.md) |
+| Phase 13 | 可读性和安全交互 | `pixel-game-issues.md` P0/P1 首批 | ✅ 完成 (2026-05-07) | [2026-05-07](../handoffs/2026-05-07-pixel-phase-13-handoff.md) |
+| Phase 13R | Phase 13 review finding 补丁 | `pixel-stardew-level-repair-plan.md` | ✅ 完成 (2026-05-07) | [2026-05-07](../handoffs/2026-05-07-pixel-phase-13r-handoff.md) |
+| Phase 14 | 统一 UI、gpt-image-2 素材流水线与 tile 房间表现 | `pixel-stardew-level-repair-plan.md` | 未开始 | 待回填 |
+| Phase 15 | 战斗表现补强 | `pixel-game-issues.md` 战斗体验 | 未开始 | 待回填 |
+| Phase 16 | 非战斗场景和玩家文案 | `pixel-game-issues.md` 商店/事件/休息/标题流程 | 未开始 | 待回填 |
+| Phase 17 | 美术、动画和音乐方向统一 | `pixel-game-issues.md` 美术/音频/主题 | 未开始 | 待回填 |
+| Phase 18 | 视觉回归保护 | `pixel-game-issues.md` 测试/可访问性/输入 | 未开始 | 待回填 |
 
 ---
 
@@ -356,6 +363,51 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not gold
 
 ---
 
+## Phase 13 — 可读性和安全交互
+
+详见 `plans/pixel-game-fix-plan.md`。本阶段先修真实试玩暴露的第一批高优先级问题：窗口尺寸、中文玩家文案、普通界面隐藏音频调试标签、地牢动作提示、房间状态表达、鼠标点击地图、运行中暂停确认、设置页隐藏路径。
+
+**验收命令**：
+```bash
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase13.py -q
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_pixel_phase5.py tests/unit/test_pixel_phase8.py tests/unit/test_pixel_phase10.py tests/unit/test_pixel_phase12.py tests/unit/test_pixel_phase13.py -q
+SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-phase13-smoke PYTHONPATH=src .venv/bin/python -m git_dungeon . --pixel --seed 42 --lang zh_CN --pixel-smoke-frames 8
+```
+
+**关键约束**：
+- 不改变 CLI 自动路径和主线结算。
+- 地牢视觉修正只改 Pixel 层表现和输入，不引入随机地图。
+- `Esc/Q` 不能直接退出运行，必须出现暂停确认。
+- 中文模式不再在普通玩家界面显示英文属性名或音频槽位。
+
+**MiMo 参与**：可参与截图检查和文案清单，不碰 GameRunner / engine / CLI 自动流程。
+
+---
+
+## Phase 13R — Phase 13 review finding 补丁
+
+详见 `plans/pixel-stardew-level-repair-plan.md`。本阶段先修暂停语义、战斗胜利中文奖励文案、事件/休息/商店 `Q` 暂停、事件页内部 ID 暴露，以及计划索引一致性。
+
+**状态**：已完成，交接文档见 `handoffs/2026-05-07-pixel-phase-13r-handoff.md`。
+
+**关键约束**：
+- 本阶段只修 review finding，不重做 UI 大结构。
+- “退出本局”和“关闭游戏”不能混用。
+- 中文玩家界面不得出现 `EXP/Gold/HP` 等混杂字段。
+
+---
+
+## Phase 14 — 统一 UI、gpt-image-2 素材流水线与 tile 房间表现
+
+详见 `plans/pixel-stardew-level-repair-plan.md`。Phase 14 不再只做 tile 表现，而是拆成 14A/14B/14C：先统一 UI kit 和玩家语言层，再生成并验证地牢基础素材，最后把地牢从节点图重做成 tile 场景。
+
+**关键约束**：
+- 未通过 asset card、contact sheet 和 manifest 校验的 AI 图不得接入运行时。
+- 所有玩家可见文案必须走统一 formatter，禁止 screen 自己拼内部字段。
+- tile 表现不得改变 CLI 自动路径和主线结算。
+
+---
+
 ## 跨 Phase 强制约束（每个 phase 都要满足）
 
 引自 CLAUDE.md「Project Principles」与源 plan：
@@ -386,3 +438,7 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/ -m "not functional and not gold
 | 2026-05-06 | Phase 10 收口，回填 handoff 链接 | 支线奖励房间、一次性领取和回主线闭环完成 |
 | 2026-05-06 | Phase 11 收口，回填 handoff 链接 | 旧 MapScreen 删除，Pixel 正式入口只保留 DungeonScreen |
 | 2026-05-06 | Phase 12 收口，回填 handoff 链接 | 钥匙房、锁住宝库、一次性钥匙和宝库奖励闭环完成 |
+| 2026-05-07 | 新增 Phase 13-18 修复路线，Phase 13 开始 | 根据真实试玩问题清单拆出后续修复计划 |
+| 2026-05-07 | Phase 13 收口，回填 handoff 链接 | 窗口、文案、地牢提示、暂停确认、音频标签隐藏和鼠标移动完成 |
+| 2026-05-07 | 新增 Stardew-Level 修复计划并调整 Phase 14 入口 | 用户要求统一 UI、gpt-image-2 标准像素素材和成熟像素 RPG 级验收 |
+| 2026-05-07 | Phase 13R 收口，回填 handoff 链接 | 修复 Phase 13 review findings，下一步进入 Phase 14A 统一 UI |
