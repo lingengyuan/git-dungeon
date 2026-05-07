@@ -129,3 +129,14 @@ def test_chinese_font_prefers_readable_system_font_when_available() -> None:
         or Path("/System/Library/Fonts/Supplemental/Arial Unicode.ttf").exists()
         or Path("/Library/Fonts/Arial Unicode.ttf").exists()
     )
+
+
+def test_chinese_font_render_size_is_smaller_than_layout_size() -> None:
+    pygame = __import__("pygame")
+    pygame.init()
+    try:
+        font = PixelFont(pygame, "zh_CN")
+        assert font._render_size(12) == 10
+        assert font._render_size(9) == 8
+    finally:
+        pygame.quit()

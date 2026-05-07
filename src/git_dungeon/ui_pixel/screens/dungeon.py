@@ -120,7 +120,7 @@ class DungeonScreen(Screen):
         self.fonts.draw(surface, tr("DUNGEON", lang), (12, 8), ACCENT, 22)
         self.fonts.draw_fit(surface, tr(self.message, lang), (92, 12), 202, MUTED, 13)
 
-        draw_panel(self.pygame, surface, (10, 27, 300, 30))
+        draw_panel(self.pygame, surface, (10, 27, 300, 34))
         draw_stat_bar(self.pygame, surface, (20, 37, 78, 7), player.hp, player.max_hp, GOOD)
         self.fonts.draw_fit(
             surface,
@@ -140,10 +140,10 @@ class DungeonScreen(Screen):
             11,
         )
         self.fonts.draw_fit(
-            surface, stat_value("attack", player.attack, lang), (204, 35), 76, TEXT, 12
+            surface, stat_value("attack", player.attack, lang), (204, 36), 76, TEXT, 11
         )
         self.fonts.draw_fit(
-            surface, stat_value("gold", player.gold, lang), (204, 48), 76, ACCENT, 12
+            surface, stat_value("gold", player.gold, lang), (204, 49), 76, ACCENT, 11
         )
         self._draw_key_status(surface)
 

@@ -96,7 +96,10 @@ class PixelFont:
         key = (family, size)
         if key not in self._cache:
             path = self._cjk_font if family == "cjk" and self._cjk_font.exists() else self._latin_font
-            self._cache[key] = self._pygame.font.Font(str(path) if path.exists() else None, size)
+            self._cache[key] = self._pygame.font.Font(
+                str(path) if path.exists() else None,
+                self._render_size(size),
+            )
         return self._cache[key]
 
     def _resolve_cjk_font(self) -> Path:
@@ -120,6 +123,11 @@ class PixelFont:
 
     def set_lang(self, lang: str) -> None:
         self.lang = lang
+
+    def _render_size(self, size: int) -> int:
+        if self.lang != "zh_CN":
+            return size
+        return max(8, size - 2)
 
     def measure(self, text: str, size: int = 16) -> int:
         return self.get(size).size(text)[0]

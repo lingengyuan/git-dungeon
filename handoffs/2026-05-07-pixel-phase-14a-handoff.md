@@ -34,7 +34,8 @@ Phase 13R 修掉了最明显的 review findings，但界面层仍有两个结构
 - [x] 事件、休息、商店选择项改用统一卡片。
 - [x] 暂停页改用统一对话框。
 - [x] 中文小卡片文案压缩，避免休息/商店效果说明被截断。
-- [x] 二次截图复查修正：按钮/卡片文字按框高收缩，中文字体优先使用完整系统中文字体，设置页移除挤压控件的快捷键提示。
+- [x] 二次截图复查修正：按钮/卡片文字按框高收缩，中文字体优先使用完整系统中文字体且整体缩小，设置页移除挤压控件的快捷键提示。
+- [x] 三次截图复查修正：地牢页 `金币 60` 不再压到状态栏底线，战斗页生命/魔力不再挤到动作按钮。
 - [x] 测试覆盖 formatter、UI kit 暴露和 screen 源码中 raw 字段禁用。
 - [x] 渲染 smoke 生成 8 个主要页面截图并人工检查。
 
@@ -43,7 +44,7 @@ Phase 13R 修掉了最明显的 review findings，但界面层仍有两个结构
 实际交付：
 
 - `src/git_dungeon/ui_pixel/widgets.py`：新增 `draw_dialog`、`draw_action_bar`、`draw_toast`、`draw_tooltip`、`draw_choice_card`、`draw_item_card`，并统一运行页 action bar 区域。
-- `src/git_dungeon/ui_pixel/app.py`：中文模式优先使用完整系统中文字体，避免 bundled pixel 字体缺字或把复杂汉字画成空心方块。
+- `src/git_dungeon/ui_pixel/app.py`：中文模式优先使用完整系统中文字体，并把中文实际渲染字号收小两号，避免 bundled pixel 字体缺字或系统中文字体顶满方框。
 - `src/git_dungeon/ui_pixel/text.py`：新增 `stat_value`、`stat_delta`、`trap_feedback`、`skill_cost_text`、`rest_detail`、`rest_result_feedback`、`shop_offer_detail`、`shop_result_feedback` 等玩家文案 formatter。
 - `src/git_dungeon/ui_pixel/screens/dungeon.py`、`battle.py`、`event.py`、`rest.py`、`shop.py`、`pause.py`、`game_over.py`：改为调用统一 formatter 和 UI kit。
 - `src/git_dungeon/ui_pixel/screens/settings.py`：移除贴近按钮的快捷键提示，减少设置页文字挤压。
@@ -117,3 +118,4 @@ PYTHONPATH=src .venv/bin/python -m mypy src/git_dungeon/ui_pixel --ignore-missin
 - 接触表：`/tmp/git-dungeon-phase14a-screens/contact.png`
 - 已检查：标题、地牢、战斗、事件、休息、商店、设置、暂停均非空白，主要 UI 没有明显遮挡。
 - 二次复查截图生成到 `/tmp/git-dungeon-phase14a-recheck/contact-2x.png`，用于确认文字不再压出紧凑卡片，设置页不再显示挤压按钮的快捷键提示。
+- 三次复查截图生成到 `/tmp/git-dungeon-phase14a-font-recheck/contact-2x.png`，用于确认中文整体字号缩小、地牢金币不压边、战斗状态不压按钮。

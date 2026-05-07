@@ -151,18 +151,18 @@ class BattleScreen(Screen):
         self.fonts.draw_fit(
             surface,
             stat_value("hp", snap.player.hp, lang, snap.player.max_hp),
-            (28, 112),
+            (28, 108),
             106,
             TEXT,
-            13,
+            11,
         )
         self.fonts.draw_fit(
             surface,
             stat_value("mp", snap.player.mp, lang, snap.player.max_mp),
-            (28, 126),
+            (28, 120),
             106,
             ACCENT,
-            13,
+            11,
         )
 
         enemy_name = snap.enemy.name[:24]
@@ -171,16 +171,16 @@ class BattleScreen(Screen):
         self.fonts.draw_fit(
             surface,
             stat_value("hp", snap.enemy.hp, lang, snap.enemy.max_hp),
-            (184, 102),
+            (184, 100),
             100,
             TEXT,
-            13,
+            11,
         )
         self.fonts.draw_fit(
-            surface, stat_value("attack", snap.enemy.attack, lang), (184, 116), 100, MUTED, 13
+            surface, stat_value("attack", snap.enemy.attack, lang), (184, 112), 100, MUTED, 11
         )
         if snap.enemy.phase:
-            self.fonts.draw_fit(surface, snap.enemy.phase, (184, 130), 92, BAD, 13)
+            self.fonts.draw_fit(surface, snap.enemy.phase, (184, 124), 92, BAD, 11)
 
         for item in self.floating_texts:
             alpha_color = item.color if item.ttl > 0.2 else MUTED
