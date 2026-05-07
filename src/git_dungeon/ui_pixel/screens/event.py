@@ -91,7 +91,7 @@ class EventScreen(Screen):
             13,
         )
         for choice in self.event.choices:
-            rect = (30, 82 + choice.index * 24, 188, 22)
+            rect = (30, 80 + choice.index * 24, 188, 23)
             button = self._buttons()[choice.index]
             detail = event_effect_preview(choice.effects, lang)
             draw_choice_card(
@@ -117,7 +117,7 @@ class EventScreen(Screen):
         if not self.event:
             return {}
         return {
-            choice.index: Button((234, 84 + choice.index * 24, 48, 18), tr("Pick", self._lang()))
+            choice.index: Button((234, 83 + choice.index * 24, 48, 18), tr("Pick", self._lang()))
             for choice in self.event.choices[:3]
         }
 

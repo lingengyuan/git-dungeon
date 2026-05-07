@@ -67,16 +67,15 @@ class SettingsScreen(Screen):
         self.fonts.draw(surface, tr("SETTINGS", lang), (28, 24), ACCENT, 22)
 
         rows = [
-            (tr("BGM Volume", lang), f"{self.settings.bgm_volume:3d}%", "Q - 1 +"),
-            (tr("SFX Volume", lang), f"{self.settings.sfx_volume:3d}%", "W - 2 +"),
-            (tr("Language", lang), self._lang_label(), "L"),
-            (tr("Window", lang), tr(self.settings.window_mode.title(), lang), "M"),
+            (tr("BGM Volume", lang), f"{self.settings.bgm_volume:3d}%"),
+            (tr("SFX Volume", lang), f"{self.settings.sfx_volume:3d}%"),
+            (tr("Language", lang), self._lang_label()),
+            (tr("Window", lang), tr(self.settings.window_mode.title(), lang)),
         ]
-        for index, (label, value, hint) in enumerate(rows):
+        for index, (label, value) in enumerate(rows):
             y = 54 + index * 20
             self.fonts.draw_fit(surface, label, (28, y), 84, TEXT, 15)
             self.fonts.draw_fit(surface, value, (126, y), 76, ACCENT, 15)
-            self.fonts.draw(surface, hint, (216, y), MUTED, 12)
 
         for key, button in self._buttons().items():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))

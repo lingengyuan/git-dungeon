@@ -36,11 +36,16 @@ class Button:
         pygame.draw.rect(surface, color, self.rect)
         pygame.draw.rect(surface, border, self.rect, 1)
         text_color = TEXT if self.enabled else MUTED
-        label = fonts.fit(self.label, self.rect[2] - 8, 15) if hasattr(fonts, "fit") else self.label
-        label_width = fonts.measure(label, 15)
+        text_size = max(9, min(15, self.rect[3] - 4))
+        label = (
+            fonts.fit(self.label, self.rect[2] - 8, text_size)
+            if hasattr(fonts, "fit")
+            else self.label
+        )
+        label_width = fonts.measure(label, text_size)
         x = self.rect[0] + max(4, (self.rect[2] - label_width) // 2)
-        y = self.rect[1] + max(2, (self.rect[3] - 15) // 2)
-        fonts.draw(surface, label, (x, y), text_color, 15)
+        y = self.rect[1] + max(2, (self.rect[3] - text_size) // 2)
+        fonts.draw(surface, label, (x, y), text_color, text_size)
 
 
 @dataclass(frozen=True)
@@ -159,9 +164,9 @@ def draw_choice_card(
         (rect[0] + 5, rect[1] + 4),
         rect[2] - 10,
         TEXT if not disabled else MUTED,
-        12,
+        10,
     )
-    fonts.draw_fit(surface, detail, (rect[0] + 8, rect[1] + 17), rect[2] - 12, MUTED, 10)
+    fonts.draw_fit(surface, detail, (rect[0] + 8, rect[1] + 14), rect[2] - 12, MUTED, 8)
 
 
 def draw_item_card(

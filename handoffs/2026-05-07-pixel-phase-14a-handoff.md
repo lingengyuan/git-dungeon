@@ -34,6 +34,7 @@ Phase 13R 修掉了最明显的 review findings，但界面层仍有两个结构
 - [x] 事件、休息、商店选择项改用统一卡片。
 - [x] 暂停页改用统一对话框。
 - [x] 中文小卡片文案压缩，避免休息/商店效果说明被截断。
+- [x] 二次截图复查修正：按钮/卡片文字按框高收缩，中文字体优先使用完整系统中文字体，设置页移除挤压控件的快捷键提示。
 - [x] 测试覆盖 formatter、UI kit 暴露和 screen 源码中 raw 字段禁用。
 - [x] 渲染 smoke 生成 8 个主要页面截图并人工检查。
 
@@ -42,8 +43,10 @@ Phase 13R 修掉了最明显的 review findings，但界面层仍有两个结构
 实际交付：
 
 - `src/git_dungeon/ui_pixel/widgets.py`：新增 `draw_dialog`、`draw_action_bar`、`draw_toast`、`draw_tooltip`、`draw_choice_card`、`draw_item_card`，并统一运行页 action bar 区域。
+- `src/git_dungeon/ui_pixel/app.py`：中文模式优先使用完整系统中文字体，避免 bundled pixel 字体缺字或把复杂汉字画成空心方块。
 - `src/git_dungeon/ui_pixel/text.py`：新增 `stat_value`、`stat_delta`、`trap_feedback`、`skill_cost_text`、`rest_detail`、`rest_result_feedback`、`shop_offer_detail`、`shop_result_feedback` 等玩家文案 formatter。
 - `src/git_dungeon/ui_pixel/screens/dungeon.py`、`battle.py`、`event.py`、`rest.py`、`shop.py`、`pause.py`、`game_over.py`：改为调用统一 formatter 和 UI kit。
+- `src/git_dungeon/ui_pixel/screens/settings.py`：移除贴近按钮的快捷键提示，减少设置页文字挤压。
 - `tests/unit/test_pixel_phase14a.py`：新增 Phase 14A 回归测试。
 - `tests/unit/test_pixel_phase8.py`、`test_pixel_phase9.py`、`test_pixel_phase10.py`、`test_pixel_phase12.py`：更新英文 UI 期望，避免继续断言 `HP` 这类旧显示。
 - `AGENTS.md`、`CLAUDE.md`、`plans/README.md`、`plans/pixel-phases.md`、`plans/pixel-stardew-level-repair-plan.md`：当前进度同步到 Phase 14B。
@@ -113,3 +116,4 @@ PYTHONPATH=src .venv/bin/python -m mypy src/git_dungeon/ui_pixel --ignore-missin
 - 8 个页面截图生成到 `/tmp/git-dungeon-phase14a-screens/`
 - 接触表：`/tmp/git-dungeon-phase14a-screens/contact.png`
 - 已检查：标题、地牢、战斗、事件、休息、商店、设置、暂停均非空白，主要 UI 没有明显遮挡。
+- 二次复查截图生成到 `/tmp/git-dungeon-phase14a-recheck/contact-2x.png`，用于确认文字不再压出紧凑卡片，设置页不再显示挤压按钮的快捷键提示。

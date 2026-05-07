@@ -88,6 +88,7 @@ class PixelFont:
             / "ark_pixel"
             / "ark-pixel-12px-proportional-zh_cn.ttf"
         )
+        self._cjk_font = self._resolve_cjk_font()
         self._cache: dict[tuple[str, int], object] = {}
 
     def get(self, size: int):
@@ -97,6 +98,25 @@ class PixelFont:
             path = self._cjk_font if family == "cjk" and self._cjk_font.exists() else self._latin_font
             self._cache[key] = self._pygame.font.Font(str(path) if path.exists() else None, size)
         return self._cache[key]
+
+    def _resolve_cjk_font(self) -> Path:
+        candidates: list[Path] = []
+        for family in ("hiragino sans gb", "arialunicode"):
+            matched = self._pygame.font.match_font(family)
+            if matched:
+                candidates.append(Path(matched))
+        candidates.extend(
+            [
+                Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
+                Path("/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
+                Path("/Library/Fonts/Arial Unicode.ttf"),
+                self._cjk_font,
+            ]
+        )
+        for path in candidates:
+            if path.exists():
+                return path
+        return self._cjk_font
 
     def set_lang(self, lang: str) -> None:
         self.lang = lang

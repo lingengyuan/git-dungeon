@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
+from git_dungeon.ui_pixel.app import PixelFont
 from git_dungeon.ui_pixel import widgets
 from git_dungeon.ui_pixel.text import (
     battle_reward_feedback,
@@ -75,3 +77,55 @@ def test_shared_widgets_expose_phase14a_ui_kit() -> None:
     assert hasattr(widgets, "draw_action_bar")
     assert hasattr(widgets, "draw_choice_card")
     assert hasattr(widgets, "draw_item_card")
+
+
+def test_choice_card_text_baselines_fit_inside_compact_card() -> None:
+    calls: list[tuple[tuple[int, int], int]] = []
+
+    class FakeDraw:
+        @staticmethod
+        def rect(*_args: Any, **_kwargs: Any) -> None:
+            return None
+
+    class FakeFonts:
+        @staticmethod
+        def draw_fit(
+            _surface: Any,
+            _text: str,
+            pos: tuple[int, int],
+            _max_width: int,
+            _color: tuple[int, int, int],
+            size: int,
+        ) -> None:
+            calls.append((pos, size))
+
+    rect = (10, 20, 120, 22)
+
+    widgets.draw_choice_card(
+        SimpleNamespace(draw=FakeDraw()),
+        object(),
+        FakeFonts(),
+        rect,
+        "1. 冒险选择",
+        "损失生命 / 获得金币",
+    )
+
+    assert calls
+    for pos, size in calls:
+        assert pos[1] + size <= rect[1] + rect[3]
+
+
+def test_chinese_font_prefers_readable_system_font_when_available() -> None:
+    pygame = __import__("pygame")
+    pygame.init()
+    try:
+        font = PixelFont(pygame, "zh_CN")
+        path = str(font._cjk_font).lower()
+    finally:
+        pygame.quit()
+
+    assert "ark-pixel" not in path or not (
+        Path("/System/Library/Fonts/Hiragino Sans GB.ttc").exists()
+        or Path("/System/Library/Fonts/Supplemental/Arial Unicode.ttf").exists()
+        or Path("/Library/Fonts/Arial Unicode.ttf").exists()
+    )
