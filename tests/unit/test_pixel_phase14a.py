@@ -1,0 +1,77 @@
+"""Phase 14A tests for shared pixel UI text and widgets."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from types import SimpleNamespace
+
+from git_dungeon.ui_pixel import widgets
+from git_dungeon.ui_pixel.text import (
+    battle_reward_feedback,
+    rest_detail,
+    rest_result_feedback,
+    shop_offer_detail,
+    shop_result_feedback,
+    skill_cost_text,
+    stat_value,
+    trap_feedback,
+)
+
+
+SCREEN_DIR = Path("src/git_dungeon/ui_pixel/screens")
+
+
+def test_stat_and_reward_formatters_use_player_language() -> None:
+    assert stat_value("hp", 8, "en", 10) == "Health 8/10"
+    assert stat_value("mp", 3, "en", 5) == "Energy 3/5"
+    assert skill_cost_text(10, "en") == "Need 10 Energy"
+
+    reward = battle_reward_feedback(12, 15, "zh_CN")
+
+    assert "经验" in reward
+    assert "金币" in reward
+    assert "EXP" not in reward
+    assert "Gold" not in reward
+
+
+def test_rest_shop_and_trap_formatters_hide_raw_fields() -> None:
+    offer = SimpleNamespace(cost=20, heal=5, attack=2, mp=1, max_hp=3)
+
+    assert rest_detail("Restore 30 HP", "zh_CN") == "恢复 30 生命"
+    assert rest_result_feedback("Restore 30 HP", "zh_CN") == "休息结果：恢复 30 生命"
+    assert shop_offer_detail(offer, "en") == (
+        "Cost 20 Gold / Health +5 / Attack +2 / Energy +1 / Max Health +3"
+    )
+    assert shop_offer_detail(offer, "zh_CN") == "20金币 / 生命+5 / 攻击+2 / 魔力+1 / 上限+3"
+    assert shop_result_feedback("skip", "zh_CN") == "离开商店"
+    assert trap_feedback(8, "zh_CN") == "触发陷阱: 生命 -8"
+
+
+def test_running_screens_do_not_build_raw_player_stat_text() -> None:
+    raw_terms = (
+        '"HP"',
+        "'HP'",
+        '"MP"',
+        "'MP'",
+        '"EXP"',
+        "'EXP'",
+        "cost {offer.cost} hp",
+        "atk {offer.attack}",
+        "maxhp",
+        'message=f"Rest:',
+        'message=f"Shop:',
+    )
+
+    for path in SCREEN_DIR.glob("*.py"):
+        source = path.read_text()
+        for term in raw_terms:
+            assert term not in source, f"{path} still contains raw UI term {term!r}"
+
+
+def test_shared_widgets_expose_phase14a_ui_kit() -> None:
+    assert hasattr(widgets, "draw_dialog")
+    assert hasattr(widgets, "draw_toast")
+    assert hasattr(widgets, "draw_tooltip")
+    assert hasattr(widgets, "draw_action_bar")
+    assert hasattr(widgets, "draw_choice_card")
+    assert hasattr(widgets, "draw_item_card")

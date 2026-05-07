@@ -6,8 +6,16 @@ from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
 from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
-from git_dungeon.ui_pixel.text import tr
-from git_dungeon.ui_pixel.widgets import ACCENT, BG, GOOD, MUTED, TEXT, Button, draw_panel
+from git_dungeon.ui_pixel.text import rest_detail, rest_result_feedback, tr
+from git_dungeon.ui_pixel.widgets import (
+    ACCENT,
+    BG,
+    MUTED,
+    Button,
+    draw_action_bar,
+    draw_choice_card,
+    draw_panel,
+)
 
 
 class RestScreen(Screen):
@@ -66,7 +74,7 @@ class RestScreen(Screen):
     def draw(self, surface: Any) -> None:
         surface.fill(BG)
         lang = self._lang()
-        draw_panel(self.pygame, surface, (14, 18, 292, 144))
+        draw_panel(self.pygame, surface, (14, 18, 292, 136))
         self.assets.draw(surface, "node_rest", (28, 32, 24, 24))
         self.fonts.draw(surface, tr("REST NODE", lang), (62, 34), ACCENT, 22)
         self.fonts.draw_fit(
@@ -74,22 +82,28 @@ class RestScreen(Screen):
         )
 
         for option in self.runner.rest_options():
-            y = 82 if option.action == "heal" else 116
-            self.fonts.draw(surface, tr(option.label, lang), (32, y), TEXT, 16)
-            self.fonts.draw_fit(surface, _rest_detail(option.detail, lang), (84, y), 128, MUTED, 14)
+            rect = (28, 78 if option.action == "heal" else 112, 184, 28)
+            button = self._buttons()[option.action]
+            draw_choice_card(
+                self.pygame,
+                surface,
+                self.fonts,
+                rect,
+                tr(option.label, lang),
+                rest_detail(option.detail, lang),
+                hover=button.contains(self.hover_pos),
+            )
 
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
 
-        if self.result:
-            self.fonts.draw_fit(surface, self.result, (32, 144), 232, GOOD, 14)
-        else:
-            self.fonts.draw(surface, tr("1/H: Heal   2/F: Focus", lang), (32, 144), MUTED, 14)
+        message = self.result if self.result else tr("1/H: Heal   2/F: Focus", lang)
+        draw_action_bar(self.pygame, surface, self.fonts, message)
 
     def _buttons(self) -> dict[str, Button]:
         return {
-            "heal": Button((220, 78, 60, 20), tr("Heal", self._lang())),
-            "focus": Button((220, 112, 60, 20), tr("Focus", self._lang())),
+            "heal": Button((224, 82, 58, 18), tr("Heal", self._lang())),
+            "focus": Button((224, 116, 58, 18), tr("Focus", self._lang())),
         }
 
     def _choose(self, action: str) -> ScreenAction | None:
@@ -102,7 +116,7 @@ class RestScreen(Screen):
                 self.fonts,
                 self.runner,
                 self.assets,
-                message=f"Rest: {result.message}",
+                message=rest_result_feedback(result.message, self._lang()),
                 audio=self.audio,
                 settings=self.settings,
             )
@@ -110,9 +124,3 @@ class RestScreen(Screen):
 
     def _lang(self) -> str:
         return getattr(self.settings, "lang", "en")
-
-
-def _rest_detail(detail: str, lang: str) -> str:
-    if detail.startswith("Restore ") and detail.endswith(" HP"):
-        return detail.replace("Restore", tr("Restore", lang), 1)
-    return tr(detail, lang)

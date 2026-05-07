@@ -43,6 +43,14 @@ class Button:
         fonts.draw(surface, label, (x, y), text_color, 15)
 
 
+@dataclass(frozen=True)
+class PixelUIRects:
+    """Shared logical-space regions for running screens."""
+
+    main_panel: tuple[int, int, int, int] = (14, 12, 292, 156)
+    action_bar: tuple[int, int, int, int] = (14, 156, 292, 18)
+
+
 def draw_panel(
     pygame: Any,
     surface: Any,
@@ -52,6 +60,131 @@ def draw_panel(
 ) -> None:
     pygame.draw.rect(surface, SURFACE, rect)
     pygame.draw.rect(surface, border, rect, 1)
+
+
+def draw_dialog(
+    pygame: Any,
+    surface: Any,
+    fonts: Any,
+    rect: tuple[int, int, int, int],
+    title: str,
+    body: str = "",
+    *,
+    border: tuple[int, int, int] = ACCENT,
+) -> None:
+    draw_panel(pygame, surface, rect, border=border)
+    fonts.draw_fit(surface, title, (rect[0] + 10, rect[1] + 10), rect[2] - 20, border, 18)
+    if body:
+        fonts.draw_fit(surface, body, (rect[0] + 10, rect[1] + 32), rect[2] - 20, MUTED, 13)
+
+
+def draw_action_bar(
+    pygame: Any,
+    surface: Any,
+    fonts: Any,
+    message: str,
+    *,
+    rect: tuple[int, int, int, int] = PixelUIRects().action_bar,
+    right_text: str = "",
+    reserve_right: int = 0,
+    alert: bool = False,
+) -> None:
+    pygame.draw.rect(surface, (27, 25, 35), rect)
+    pygame.draw.rect(surface, BAD if alert else SURFACE_2, rect, 1)
+    color = BAD if alert else TEXT
+    right_width = max(reserve_right, 82 if right_text else 0)
+    fonts.draw_fit(
+        surface, message, (rect[0] + 4, rect[1] + 4), rect[2] - 10 - right_width, color, 12
+    )
+    if right_text:
+        fonts.draw_fit(
+            surface,
+            right_text,
+            (rect[0] + rect[2] - right_width + 4, rect[1] + 4),
+            right_width - 8,
+            MUTED,
+            11,
+        )
+
+
+def draw_tooltip(
+    pygame: Any,
+    surface: Any,
+    fonts: Any,
+    text: str,
+    anchor: tuple[int, int],
+    *,
+    width: int = 112,
+) -> None:
+    rect = (anchor[0], anchor[1], width, 18)
+    pygame.draw.rect(surface, (27, 25, 35), rect)
+    pygame.draw.rect(surface, ACCENT, rect, 1)
+    fonts.draw_fit(surface, text, (rect[0] + 5, rect[1] + 4), rect[2] - 10, TEXT, 11)
+
+
+def draw_toast(
+    pygame: Any,
+    surface: Any,
+    fonts: Any,
+    message: str,
+    *,
+    rect: tuple[int, int, int, int] = (42, 18, 236, 20),
+    alert: bool = False,
+) -> None:
+    pygame.draw.rect(surface, (27, 25, 35), rect)
+    pygame.draw.rect(surface, BAD if alert else ACCENT, rect, 1)
+    fonts.draw_fit(
+        surface, message, (rect[0] + 6, rect[1] + 4), rect[2] - 12, BAD if alert else TEXT, 12
+    )
+
+
+def draw_choice_card(
+    pygame: Any,
+    surface: Any,
+    fonts: Any,
+    rect: tuple[int, int, int, int],
+    title: str,
+    detail: str,
+    *,
+    disabled: bool = False,
+    hover: bool = False,
+) -> None:
+    fill = (31, 29, 40) if not disabled else (25, 24, 32)
+    border = ACCENT if hover and not disabled else MUTED if not disabled else DISABLED
+    pygame.draw.rect(surface, fill, rect)
+    pygame.draw.rect(surface, border, rect, 1)
+    fonts.draw_fit(
+        surface,
+        title,
+        (rect[0] + 5, rect[1] + 4),
+        rect[2] - 10,
+        TEXT if not disabled else MUTED,
+        12,
+    )
+    fonts.draw_fit(surface, detail, (rect[0] + 8, rect[1] + 17), rect[2] - 12, MUTED, 10)
+
+
+def draw_item_card(
+    pygame: Any,
+    surface: Any,
+    fonts: Any,
+    rect: tuple[int, int, int, int],
+    title: str,
+    detail: str,
+    *,
+    disabled: bool = False,
+    hover: bool = False,
+) -> None:
+    draw_choice_card(
+        pygame,
+        surface,
+        fonts,
+        rect,
+        title,
+        detail,
+        disabled=disabled,
+        hover=hover,
+    )
 
 
 def draw_stat_bar(

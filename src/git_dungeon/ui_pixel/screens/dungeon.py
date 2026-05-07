@@ -18,7 +18,8 @@ from git_dungeon.ui_pixel.text import (
     key_label,
     locked_message,
     reward_feedback,
-    stat_label,
+    stat_value,
+    trap_feedback,
     tr,
 )
 from git_dungeon.ui_pixel.widgets import (
@@ -30,6 +31,7 @@ from git_dungeon.ui_pixel.widgets import (
     SURFACE_2,
     TEXT,
     Button,
+    draw_action_bar,
     draw_panel,
     draw_stat_bar,
 )
@@ -122,7 +124,7 @@ class DungeonScreen(Screen):
         draw_stat_bar(self.pygame, surface, (20, 37, 78, 7), player.hp, player.max_hp, GOOD)
         self.fonts.draw_fit(
             surface,
-            f"{stat_label('hp', lang)} {player.hp}/{player.max_hp}",
+            stat_value("hp", player.hp, lang, player.max_hp),
             (20, 46),
             88,
             TEXT,
@@ -131,36 +133,34 @@ class DungeonScreen(Screen):
         draw_stat_bar(self.pygame, surface, (112, 37, 62, 7), player.mp, player.max_mp, ACCENT)
         self.fonts.draw_fit(
             surface,
-            f"{stat_label('mp', lang)} {player.mp}/{player.max_mp}",
+            stat_value("mp", player.mp, lang, player.max_mp),
             (112, 46),
             78,
             TEXT,
             11,
         )
         self.fonts.draw_fit(
-            surface, f"{stat_label('attack', lang)} {player.attack}", (204, 35), 76, TEXT, 12
+            surface, stat_value("attack", player.attack, lang), (204, 35), 76, TEXT, 12
         )
         self.fonts.draw_fit(
-            surface, f"{stat_label('gold', lang)} {player.gold}", (204, 48), 76, ACCENT, 12
+            surface, stat_value("gold", player.gold, lang), (204, 48), 76, ACCENT, 12
         )
         self._draw_key_status(surface)
 
         self._draw_floor(surface)
+        audio_text = ""
+        if self.audio is not None:
+            audio_text = audio_label(self.audio.status().label(), lang)
+        draw_action_bar(
+            self.pygame,
+            surface,
+            self.fonts,
+            audio_text or self._action_hint(),
+            reserve_right=70,
+            alert=bool(audio_text),
+        )
         button = self._enter_button()
         button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
-        self.fonts.draw_fit(surface, self._action_hint(), (18, 154), 118, MUTED, 11)
-        if self.audio is not None:
-            label = audio_label(self.audio.status().label(), lang)
-            if not label:
-                return
-            self.fonts.draw_fit(
-                surface,
-                label,
-                (204, 154),
-                92,
-                MUTED,
-                11,
-            )
 
     def _draw_floor(self, surface: Any) -> None:
         origin_x, origin_y = FLOOR_ORIGIN
@@ -272,7 +272,7 @@ class DungeonScreen(Screen):
             self.message = "Trap already spent"
             return None
         if result.damage <= 0:
-            self.message = "Trap hit: no HP lost"
+            self.message = trap_feedback(0, self._lang())
             return None
         player = self.runner.player_snapshot()
         if player.hp <= 0:
@@ -290,7 +290,7 @@ class DungeonScreen(Screen):
                     settings=self.settings,
                 )
             )
-        self.message = f"Trap hit: -{result.damage} HP"
+        self.message = trap_feedback(result.damage, self._lang())
         return None
 
     def _trap_consumed(self, trap_id: str) -> bool:
@@ -345,7 +345,7 @@ class DungeonScreen(Screen):
     def _enter_button(self) -> Button:
         label = self._primary_button_label()
         enabled = self._can_enter_current_room() or self._claimable_reward() is not None
-        return Button((140, 150, 60, 18), label, enabled=enabled)
+        return Button((238, 157, 58, 16), label, enabled=enabled)
 
     def _can_enter_current_room(self) -> bool:
         current = self.runner.current_node_snapshot()
@@ -496,9 +496,7 @@ class DungeonScreen(Screen):
         if self.floor.trap_at(coord) is not None:
             trap = self.floor.trap_at(coord)
             assert trap is not None
-            self.message = (
-                f"{tr('Trap', self._lang())}: -{trap.damage} {stat_label('hp', self._lang())}"
-            )
+            self.message = trap_feedback(trap.damage, self._lang())
             return None
         reward = self.floor.reward_at(coord)
         if reward is not None:

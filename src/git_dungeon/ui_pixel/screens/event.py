@@ -14,7 +14,17 @@ from git_dungeon.ui_pixel.text import (
     event_title,
     tr,
 )
-from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, Button, draw_panel
+from git_dungeon.ui_pixel.widgets import (
+    ACCENT,
+    BAD,
+    BG,
+    MUTED,
+    TEXT,
+    Button,
+    draw_action_bar,
+    draw_choice_card,
+    draw_panel,
+)
 
 
 class EventScreen(Screen):
@@ -61,7 +71,7 @@ class EventScreen(Screen):
     def draw(self, surface: Any) -> None:
         surface.fill(BG)
         lang = self._lang()
-        draw_panel(self.pygame, surface, (14, 14, 292, 152))
+        draw_panel(self.pygame, surface, (14, 14, 292, 138))
         self.assets.draw(surface, "node_event", (28, 28, 24, 24))
         self.fonts.draw(surface, tr("EVENT", lang), (62, 28), ACCENT, 22)
 
@@ -69,7 +79,9 @@ class EventScreen(Screen):
             self.fonts.draw(surface, tr(self.error, lang), (32, 78), BAD, 16)
             return
 
-        self.fonts.draw_fit(surface, event_title(self.event.event_id, lang), (62, 50), 190, TEXT, 15)
+        self.fonts.draw_fit(
+            surface, event_title(self.event.event_id, lang), (62, 50), 190, TEXT, 15
+        )
         self.fonts.draw_fit(
             surface,
             event_description(self.event.event_id, lang),
@@ -79,29 +91,33 @@ class EventScreen(Screen):
             13,
         )
         for choice in self.event.choices:
-            y = 86 + choice.index * 22
-            self.fonts.draw_fit(
-                surface,
-                event_choice_label(choice.index, choice.effects, lang),
-                (32, y),
-                176,
-                TEXT,
-                15,
-            )
+            rect = (30, 82 + choice.index * 24, 188, 22)
+            button = self._buttons()[choice.index]
             detail = event_effect_preview(choice.effects, lang)
-            self.fonts.draw_fit(surface, detail, (48, y + 13), 168, MUTED, 13)
+            draw_choice_card(
+                self.pygame,
+                surface,
+                self.fonts,
+                rect,
+                event_choice_label(choice.index, choice.effects, lang),
+                detail,
+                hover=button.contains(self.hover_pos),
+            )
 
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
-        self.fonts.draw_fit(
-            surface, tr("Choose visibly; effects apply once", lang), (32, 148), 248, GOOD, 13
+        draw_action_bar(
+            self.pygame,
+            surface,
+            self.fonts,
+            tr("Choose visibly; effects apply once", lang),
         )
 
     def _buttons(self) -> dict[int, Button]:
         if not self.event:
             return {}
         return {
-            choice.index: Button((234, 84 + choice.index * 22, 48, 18), tr("Pick", self._lang()))
+            choice.index: Button((234, 84 + choice.index * 24, 48, 18), tr("Pick", self._lang()))
             for choice in self.event.choices[:3]
         }
 

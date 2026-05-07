@@ -154,7 +154,7 @@ def test_vault_requires_key_before_reward_can_be_claimed_once() -> None:
 
     assert runner.hp == 78
     assert runner.gold == 30
-    assert screen.message == "Vault: +8 HP +30 Gold"
+    assert screen.message == "Vault: +8 Health +30 Gold"
 
     assert screen.handle(_key(FakePygame.K_RETURN)) is None
 

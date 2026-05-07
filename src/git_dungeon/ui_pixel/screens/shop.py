@@ -6,8 +6,22 @@ from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
 from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
-from git_dungeon.ui_pixel.text import stat_label, tr
-from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, Button, draw_panel
+from git_dungeon.ui_pixel.text import (
+    shop_offer_detail,
+    shop_result_feedback,
+    stat_value,
+    tr,
+)
+from git_dungeon.ui_pixel.widgets import (
+    ACCENT,
+    BAD,
+    BG,
+    TEXT,
+    Button,
+    draw_action_bar,
+    draw_item_card,
+    draw_panel,
+)
 
 
 class ShopScreen(Screen):
@@ -57,22 +71,31 @@ class ShopScreen(Screen):
     def draw(self, surface: Any) -> None:
         surface.fill(BG)
         lang = self._lang()
-        draw_panel(self.pygame, surface, (14, 12, 292, 156))
+        draw_panel(self.pygame, surface, (14, 12, 292, 142))
         self.assets.draw(surface, "node_shop", (26, 24, 24, 24))
         player = self.runner.player_snapshot()
         self.fonts.draw(surface, tr("SHOP", lang), (58, 24), ACCENT, 22)
-        self.fonts.draw(surface, f"{stat_label('gold', lang)} {player.gold}", (210, 28), TEXT, 15)
+        self.fonts.draw_fit(surface, stat_value("gold", player.gold, lang), (202, 28), 82, TEXT, 15)
 
         for offer in self.offers:
-            y = 58 + offer.index * 30
-            color = TEXT if offer.affordable else MUTED
-            self.fonts.draw_fit(
-                surface, f"{offer.index + 1}. {offer.label}", (28, y), 150, color, 15
+            rect = (28, 54 + offer.index * 31, 196, 28)
+            button = self._buttons()[offer.index]
+            title = f"{offer.index + 1}. {tr(offer.label, lang)}"
+            detail = shop_offer_detail(offer, lang)
+            draw_item_card(
+                self.pygame,
+                surface,
+                self.fonts,
+                rect,
+                title,
+                detail,
+                disabled=not offer.affordable,
+                hover=button.contains(self.hover_pos),
             )
-            detail = _offer_detail(offer, lang)
-            self.fonts.draw_fit(surface, detail, (42, y + 13), 184, MUTED, 12)
             if not offer.affordable:
-                self.fonts.draw(surface, tr("not enough gold", lang), (176, y), BAD, 12)
+                self.fonts.draw_fit(
+                    surface, tr("not enough gold", lang), (164, rect[1] + 5), 58, BAD, 11
+                )
 
         for index, button in self._buttons().items():
             offer = self.offers[index]
@@ -80,24 +103,32 @@ class ShopScreen(Screen):
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
         skip = self._skip_button()
         skip.draw(self.pygame, surface, self.fonts, skip.contains(self.hover_pos))
-        self.fonts.draw_fit(surface, tr(self.message, lang), (28, 148), 200, GOOD, 13)
+        draw_action_bar(
+            self.pygame,
+            surface,
+            self.fonts,
+            tr(self.message, lang),
+            reserve_right=70,
+            alert=self.message == "Not enough gold",
+        )
 
     def _buttons(self) -> dict[int, Button]:
         return {
             offer.index: Button(
-                (236, 56 + offer.index * 30, 44, 18),
+                (236, 59 + offer.index * 31, 44, 18),
                 tr("Buy", self._lang()),
                 enabled=offer.affordable,
+                tooltip=tr("not enough gold", self._lang()),
             )
             for offer in self.offers
         }
 
     def _skip_button(self) -> Button:
-        return Button((236, 134, 44, 18), tr("Skip", self._lang()))
+        return Button((236, 157, 44, 16), tr("Skip", self._lang()))
 
-    def _choose(self, index: int | None) -> ScreenAction:
+    def _choose(self, index: int | None) -> ScreenAction | None:
         if index is not None and not self.offers[index].affordable:
-            self.message = tr("Not enough gold", self._lang())
+            self.message = "Not enough gold"
             if self.audio is not None:
                 self.audio.play_sfx("ui_denied")
             return None
@@ -110,7 +141,7 @@ class ShopScreen(Screen):
                 self.fonts,
                 self.runner,
                 self.assets,
-                message=f"Shop: {result.message}",
+                message=shop_result_feedback(result.message, self._lang()),
                 audio=self.audio,
                 settings=self.settings,
             )
@@ -118,20 +149,3 @@ class ShopScreen(Screen):
 
     def _lang(self) -> str:
         return getattr(self.settings, "lang", "en")
-
-
-def _offer_detail(offer: Any, lang: str) -> str:
-    if lang == "zh_CN":
-        parts = [f"{stat_label('gold', lang)} {offer.cost}"]
-        if offer.heal:
-            parts.append(f"{stat_label('hp', lang)} +{offer.heal}")
-        if offer.attack:
-            parts.append(f"{stat_label('attack', lang)} +{offer.attack}")
-        if offer.mp:
-            parts.append(f"{stat_label('mp', lang)} +{offer.mp}")
-        if offer.max_hp:
-            parts.append(f"生命上限 +{offer.max_hp}")
-        return "  ".join(parts)
-    return (
-        f"cost {offer.cost} hp {offer.heal} atk {offer.attack} mp {offer.mp} maxhp {offer.max_hp}"
-    )

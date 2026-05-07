@@ -126,7 +126,7 @@ def test_dungeon_screen_reports_trap_before_door_check() -> None:
     assert screen.player_coord == (3, 2)
     assert runner.dungeon_player_coord == (3, 2)
     assert runner.hp == 92
-    assert screen.message == "Trap hit: -8 HP"
+    assert screen.message == "Trap hit: Health -8"
 
 
 def test_dungeon_screen_reuses_previous_player_room_after_node_resolution() -> None:

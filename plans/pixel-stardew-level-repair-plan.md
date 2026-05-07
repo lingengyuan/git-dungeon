@@ -211,6 +211,8 @@ Phase 17 生成标题和主题资产：
 
 ### Phase 14A：统一 UI kit 和玩家语言层
 
+> 状态：已完成（2026-05-07，见 `handoffs/2026-05-07-pixel-phase-14a-handoff.md`）。
+
 目标：先让所有界面共用同一套 UI 规则。
 
 交付：
@@ -347,8 +349,8 @@ Phase 17 生成标题和主题资产：
 
 ## 7. 立即执行顺序
 
-1. Phase 13R 已完成，下一步从 Phase 14A 开始。
-2. Phase 14A：不开始画更多地牢前先统一 UI 和玩家语言。
+1. Phase 13R 已完成。
+2. Phase 14A 已完成：统一 UI kit 和玩家语言层。
 3. Phase 14B：打通 gpt-image-2 生成、后处理、contact sheet 和 manifest。
 4. Phase 14C：把地牢改成 tile 场景。
 5. 后续按 Phase 15-18 推进，每个 phase 完成后写 handoff 并验证。
@@ -359,3 +361,4 @@ Phase 17 生成标题和主题资产：
 |---|---|---|
 | 2026-05-07 | 初始创建 | 用户要求统一 UI、使用 gpt-image-2 标准像素素材，并把修复验收提高到成熟像素游戏标准 |
 | 2026-05-07 | 标记 Phase 13R 完成 | 暂停语义、中文奖励/事件反馈、Q 暂停和事件 ID 暴露已修复 |
+| 2026-05-07 | 标记 Phase 14A 完成 | UI kit、玩家语言 formatter、运行页 action bar 和截图/测试验收已完成 |

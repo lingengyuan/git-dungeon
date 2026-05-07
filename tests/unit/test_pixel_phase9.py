@@ -99,7 +99,7 @@ def test_dungeon_trap_consumes_hp_once() -> None:
     assert runner.hp == 92
     assert runner.consumed_traps == {"trap_00"}
     assert screen.player_coord == (3, 2)
-    assert screen.message == "Trap hit: -8 HP"
+    assert screen.message == "Trap hit: Health -8"
 
     assert screen.handle(_key(FakePygame.K_UP)) is None
 

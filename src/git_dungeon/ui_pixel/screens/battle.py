@@ -13,7 +13,8 @@ from git_dungeon.ui_pixel.text import (
     audio_label,
     battle_reward_feedback,
     battle_reward_float,
-    stat_label,
+    skill_cost_text,
+    stat_value,
     tr,
 )
 from git_dungeon.ui_pixel.widgets import (
@@ -24,8 +25,10 @@ from git_dungeon.ui_pixel.widgets import (
     MUTED,
     TEXT,
     Button,
+    draw_action_bar,
     draw_panel,
     draw_stat_bar,
+    draw_tooltip,
 )
 
 
@@ -147,7 +150,7 @@ class BattleScreen(Screen):
         )
         self.fonts.draw_fit(
             surface,
-            f"{stat_label('hp', lang)} {snap.player.hp}/{snap.player.max_hp}",
+            stat_value("hp", snap.player.hp, lang, snap.player.max_hp),
             (28, 112),
             106,
             TEXT,
@@ -155,7 +158,7 @@ class BattleScreen(Screen):
         )
         self.fonts.draw_fit(
             surface,
-            f"{stat_label('mp', lang)} {snap.player.mp}/{snap.player.max_mp}",
+            stat_value("mp", snap.player.mp, lang, snap.player.max_mp),
             (28, 126),
             106,
             ACCENT,
@@ -167,14 +170,14 @@ class BattleScreen(Screen):
         draw_stat_bar(self.pygame, surface, (184, 62, 92, 8), snap.enemy.hp, snap.enemy.max_hp, BAD)
         self.fonts.draw_fit(
             surface,
-            f"{stat_label('hp', lang)} {snap.enemy.hp}/{snap.enemy.max_hp}",
+            stat_value("hp", snap.enemy.hp, lang, snap.enemy.max_hp),
             (184, 102),
             100,
             TEXT,
             13,
         )
         self.fonts.draw_fit(
-            surface, f"{stat_label('attack', lang)} {snap.enemy.attack}", (184, 116), 100, MUTED, 13
+            surface, stat_value("attack", snap.enemy.attack, lang), (184, 116), 100, MUTED, 13
         )
         if snap.enemy.phase:
             self.fonts.draw_fit(surface, snap.enemy.phase, (184, 130), 92, BAD, 13)
@@ -185,13 +188,19 @@ class BattleScreen(Screen):
 
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
-        self.fonts.draw_fit(
-            surface, self.message, (22, 150), 184, BAD if "Need" in self.message else TEXT, 13
-        )
+        label = ""
         if self.audio is not None:
             label = audio_label(self.audio.status().label(), lang)
-            if label:
-                self.fonts.draw_fit(surface, label, (214, 150), 76, MUTED, 11)
+        draw_action_bar(
+            self.pygame,
+            surface,
+            self.fonts,
+            self.message,
+            rect=(18, 150, 274, 16),
+            right_text=label,
+            alert=self.message.startswith(tr("Need", lang)),
+        )
+        self._draw_tooltip(surface)
 
     def _buttons(self) -> dict[str, Button]:
         snap = self.snapshot
@@ -203,12 +212,18 @@ class BattleScreen(Screen):
                 (138, 132, 54, 16),
                 tr("Skill", self._lang()),
                 enabled=can_skill,
-                tooltip=f"{tr('Need', self._lang())} {snap.skill_cost} {stat_label('mp', self._lang())}",
+                tooltip=skill_cost_text(snap.skill_cost, self._lang()),
             ),
             ACTION_ESCAPE: Button(
                 (198, 132, 54, 16), tr("Escape", self._lang()), enabled=snap.can_escape
             ),
         }
+
+    def _draw_tooltip(self, surface: Any) -> None:
+        for button in self._buttons().values():
+            if button.tooltip and button.contains(self.hover_pos) and not button.enabled:
+                draw_tooltip(self.pygame, surface, self.fonts, button.tooltip, (118, 112))
+                return
 
     def _act(self, action: str) -> ScreenAction | None:
         if action == ACTION_ESCAPE and not self.snapshot.can_escape:
@@ -217,10 +232,7 @@ class BattleScreen(Screen):
                 self.audio.play_sfx("ui_denied")
             return None
         if action == ACTION_SKILL and self.snapshot.player.mp < self.snapshot.skill_cost:
-            self.message = (
-                f"{tr('Need', self._lang())} {self.snapshot.skill_cost} "
-                f"{stat_label('mp', self._lang())}"
-            )
+            self.message = skill_cost_text(self.snapshot.skill_cost, self._lang())
             if self.audio is not None:
                 self.audio.play_sfx("ui_denied")
             return None

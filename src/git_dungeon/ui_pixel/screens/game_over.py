@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
-from git_dungeon.ui_pixel.text import audio_label, stat_label, tr
+from git_dungeon.ui_pixel.text import audio_label, stat_value, tr
 from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, draw_panel
 
 
@@ -48,9 +48,9 @@ class GameOverScreen(Screen):
         title = "VICTORY" if self.won else "GAME OVER"
         self.fonts.draw(surface, tr(title, lang), (92, 42), GOOD if self.won else BAD, 28)
         self.fonts.draw(
-            surface, f"{stat_label('hp', lang)} {player.hp}/{player.max_hp}", (82, 82), TEXT, 16
+            surface, stat_value("hp", player.hp, lang, player.max_hp), (82, 82), TEXT, 16
         )
-        self.fonts.draw(surface, f"{stat_label('gold', lang)} {player.gold}", (82, 102), ACCENT, 16)
+        self.fonts.draw(surface, stat_value("gold", player.gold, lang), (82, 102), ACCENT, 16)
         if self.message:
             self.fonts.draw_fit(surface, tr(self.message, lang), (82, 118), 170, BAD, 12)
         self.fonts.draw(surface, tr("Enter/Esc/Q: Quit", lang), (82, 130), MUTED, 15)

@@ -32,6 +32,7 @@ PIXEL_TEXT = {
         "Trap blocks this path": "陷阱挡住了路",
         "Trap already spent": "陷阱已触发",
         "Trap hit": "触发陷阱",
+        "Trap hit: no damage": "触发陷阱：未受伤",
         "Trap defeated you": "你被陷阱击倒了",
         "Press Enter to claim": "按确认键领取",
         "Cache already claimed": "补给已领取",
@@ -80,6 +81,8 @@ PIXEL_TEXT = {
         "Heal": "治疗",
         "Focus": "专注",
         "Restore": "恢复",
+        "Rest": "休息",
+        "Rest result": "休息结果",
         "Attack +2, Max HP +5, HP +5": "攻击+2 生命上限+5 生命+5",
         "1/H: Heal   2/F: Focus": "1/H 治疗  2/F 专注",
         "EVENT": "事件",
@@ -113,6 +116,13 @@ PIXEL_TEXT = {
         "SHOP": "商店",
         "Unavailable items are disabled": "买不起的物品会灰显",
         "not enough gold": "金币不足",
+        "Shop result": "商店结果",
+        "Cost": "价格",
+        "Health": "生命",
+        "Energy": "魔力",
+        "Experience": "经验",
+        "Max Health": "生命上限",
+        "Skip shop": "离开商店",
         "Buy": "购买",
         "Skip": "跳过",
         "Not enough gold": "金币不足",
@@ -148,11 +158,11 @@ STAT_LABELS = {
         "exp": "经验",
     },
     "en": {
-        "hp": "HP",
-        "mp": "MP",
-        "attack": "ATK",
+        "hp": "Health",
+        "mp": "Energy",
+        "attack": "Attack",
         "gold": "Gold",
-        "exp": "EXP",
+        "exp": "Experience",
     },
 }
 
@@ -163,10 +173,7 @@ def tr(text: str, lang: str) -> str:
     if text == "Trap hit: no HP lost":
         return f"{PIXEL_TEXT['zh_CN']['Trap hit']}: 未损失生命"
     if text.startswith("Trap hit: "):
-        return (
-            text.replace("Trap hit", PIXEL_TEXT["zh_CN"]["Trap hit"], 1)
-            .replace(" HP", " 生命")
-        )
+        return text.replace("Trap hit", PIXEL_TEXT["zh_CN"]["Trap hit"], 1).replace(" HP", " 生命")
     if text.startswith("Cache: "):
         return text.replace("Cache", PIXEL_TEXT["zh_CN"]["Cache"], 1)
     if text.startswith("Vault: "):
@@ -195,6 +202,17 @@ def stat_label(stat: str, lang: str) -> str:
     return labels.get(stat, stat)
 
 
+def stat_value(stat: str, current: int, lang: str, maximum: int | None = None) -> str:
+    label = stat_label(stat, lang)
+    if maximum is None:
+        return f"{label} {current}"
+    return f"{label} {current}/{maximum}"
+
+
+def stat_delta(stat: str, amount: int, lang: str) -> str:
+    return f"{stat_label(stat, lang)} {amount:+d}"
+
+
 def key_label(key_id: str | None, lang: str) -> str:
     if not key_id:
         return ""
@@ -206,13 +224,24 @@ def key_label(key_id: str | None, lang: str) -> str:
 def reward_feedback(label: str, heal: int, gold: int, lang: str) -> str:
     display_label = tr(label, lang)
     if lang == "zh_CN":
-        parts: list[str] = []
+        zh_parts: list[str] = []
         if heal:
-            parts.append(f"+{heal} {stat_label('hp', lang)}")
+            zh_parts.append(f"+{heal} {stat_label('hp', lang)}")
         if gold:
-            parts.append(f"+{gold} {stat_label('gold', lang)}")
-        return f"{display_label}：" + (" ".join(parts) if parts else "已领取")
-    return f"{label}: +{heal} HP +{gold} Gold"
+            zh_parts.append(f"+{gold} {stat_label('gold', lang)}")
+        return f"{display_label}：" + (" ".join(zh_parts) if zh_parts else "已领取")
+    parts: list[str] = []
+    if heal:
+        parts.append(f"+{heal} {stat_label('hp', lang)}")
+    if gold:
+        parts.append(f"+{gold} {stat_label('gold', lang)}")
+    return f"{label}: " + (" ".join(parts) if parts else "claimed")
+
+
+def trap_feedback(damage: int, lang: str) -> str:
+    if damage <= 0:
+        return tr("Trap hit: no damage", lang)
+    return f"{tr('Trap hit', lang)}: {stat_delta('hp', -damage, lang)}"
 
 
 def battle_reward_feedback(exp: int, gold: int, lang: str, *, level_up: bool = False) -> str:
@@ -241,6 +270,68 @@ def locked_message(key_id: str | None, lang: str) -> str:
     if lang == "zh_CN":
         return f"{tr('Locked', lang)}：{tr('need', lang)}{key_label(key_id, lang)}"
     return f"Locked: need {key_label(key_id, lang)}"
+
+
+def skill_cost_text(cost: int, lang: str) -> str:
+    return f"{tr('Need', lang)} {cost} {stat_label('mp', lang)}"
+
+
+def rest_detail(detail: str, lang: str) -> str:
+    if detail.startswith("Restore ") and detail.endswith(" HP"):
+        amount = detail.removeprefix("Restore ").removesuffix(" HP")
+        return f"{tr('Restore', lang)} {amount} {stat_label('hp', lang)}"
+    if detail == "Attack +2, Max HP +5, HP +5":
+        if lang == "zh_CN":
+            return f"{stat_label('attack', lang)}+2  上限+5  {stat_label('hp', lang)}+5"
+        return (
+            f"{stat_label('attack', lang)} +2  "
+            f"{tr('Max Health', lang)} +5  "
+            f"{stat_label('hp', lang)} +5"
+        )
+    return tr(detail, lang)
+
+
+def rest_result_feedback(message: str, lang: str) -> str:
+    if lang == "zh_CN":
+        return f"{tr('Rest result', lang)}：{rest_detail(message, lang)}"
+    return f"{tr('Rest result', lang)}: {rest_detail(message, lang)}"
+
+
+def shop_offer_detail(offer: object, lang: str) -> str:
+    cost = getattr(offer, "cost")
+    heal = getattr(offer, "heal")
+    attack = getattr(offer, "attack")
+    mp = getattr(offer, "mp")
+    max_hp = getattr(offer, "max_hp")
+    if lang == "zh_CN":
+        zh_parts = [f"{cost}{stat_label('gold', lang)}"]
+        if heal:
+            zh_parts.append(f"{stat_label('hp', lang)}+{heal}")
+        if attack:
+            zh_parts.append(f"{stat_label('attack', lang)}+{attack}")
+        if mp:
+            zh_parts.append(f"{stat_label('mp', lang)}+{mp}")
+        if max_hp:
+            zh_parts.append(f"上限+{max_hp}")
+        return " / ".join(zh_parts)
+    parts = [f"{tr('Cost', lang)} {cost} {stat_label('gold', lang)}"]
+    if heal:
+        parts.append(f"{stat_label('hp', lang)} +{heal}")
+    if attack:
+        parts.append(f"{stat_label('attack', lang)} +{attack}")
+    if mp:
+        parts.append(f"{stat_label('mp', lang)} +{mp}")
+    if max_hp:
+        parts.append(f"{tr('Max Health', lang)} +{max_hp}")
+    return " / ".join(parts)
+
+
+def shop_result_feedback(message: str, lang: str) -> str:
+    if message == "skip":
+        return tr("Skip shop", lang)
+    if lang == "zh_CN":
+        return f"{tr('Shop result', lang)}：{tr(message, lang)}"
+    return f"{tr('Shop result', lang)}: {tr(message, lang)}"
 
 
 def event_title(_event_id: str, lang: str) -> str:
@@ -293,7 +384,9 @@ def event_result_feedback(hp_delta: int, gold_delta: int, lang: str) -> str:
             parts.append(f"{stat_label('hp', lang)} {hp_delta:+d}")
         if gold_delta:
             parts.append(f"{stat_label('gold', lang)} {gold_delta:+d}")
-        return f"{tr('Event result', lang)}：" + (" ".join(parts) if parts else tr("No visible change", lang))
+        return f"{tr('Event result', lang)}：" + (
+            " ".join(parts) if parts else tr("No visible change", lang)
+        )
     parts = []
     if hp_delta:
         parts.append(f"Health {hp_delta:+d}")

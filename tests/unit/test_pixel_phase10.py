@@ -55,7 +55,9 @@ class FakeRunner:
     def is_dungeon_reward_claimed(self, reward_id: str) -> bool:
         return reward_id in self.claimed_rewards
 
-    def claim_dungeon_reward(self, reward_id: str, heal: int, gold: int, key_id: str | None = None) -> Any:
+    def claim_dungeon_reward(
+        self, reward_id: str, heal: int, gold: int, key_id: str | None = None
+    ) -> Any:
         if reward_id in self.claimed_rewards:
             return SimpleNamespace(reward_id=reward_id, heal=0, gold=0, already_claimed=True)
         actual_heal = min(heal, 100 - self.hp)
@@ -121,7 +123,7 @@ def test_dungeon_reward_room_can_be_claimed_once_and_return_to_route() -> None:
     assert runner.hp == 92
     assert runner.gold == 15
     assert runner.claimed_rewards == {"cache_00"}
-    assert screen.message == "Cache: +12 HP +15 Gold"
+    assert screen.message == "Cache: +12 Health +15 Gold"
 
     assert screen.handle(_key(FakePygame.K_RETURN)) is None
 

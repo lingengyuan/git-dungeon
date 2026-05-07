@@ -6,7 +6,7 @@ from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
 from git_dungeon.ui_pixel.text import tr
-from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, MUTED, Button, draw_panel
+from git_dungeon.ui_pixel.widgets import BAD, BG, MUTED, Button, draw_dialog
 
 
 class PauseScreen(Screen):
@@ -63,8 +63,7 @@ class PauseScreen(Screen):
     def draw(self, surface: Any) -> None:
         lang = self._lang()
         surface.fill(BG)
-        draw_panel(self.pygame, surface, (58, 36, 204, 108), border=ACCENT)
-        self.fonts.draw(surface, tr("PAUSED", lang), (116, 54), ACCENT, 24)
+        draw_dialog(self.pygame, surface, self.fonts, (58, 36, 204, 108), tr("PAUSED", lang))
         self.fonts.draw_fit(
             surface,
             tr(self.message, lang),
