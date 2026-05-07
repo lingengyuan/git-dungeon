@@ -37,6 +37,7 @@ Phase 13R 修掉了最明显的 review findings，但界面层仍有两个结构
 - [x] 二次截图复查修正：按钮/卡片文字按框高收缩，中文字体优先使用完整系统中文字体且整体缩小，设置页移除挤压控件的快捷键提示。
 - [x] 三次截图复查修正：地牢页 `金币 60` 不再压到状态栏底线，战斗页生命/魔力不再挤到动作按钮。
 - [x] 四次截图复查修正：战斗页角色名、血条、状态文字、动作按钮和日志栏改为常量布局，避免开发者文字压血条、魔力压按钮。
+- [x] 五次截图复查修正：战斗页生命/魔力改到角色右侧，避免生命文字压到绿色角色块。
 - [x] 测试覆盖 formatter、UI kit 暴露和 screen 源码中 raw 字段禁用。
 - [x] 渲染 smoke 生成 8 个主要页面截图并人工检查。
 
@@ -121,3 +122,4 @@ PYTHONPATH=src .venv/bin/python -m mypy src/git_dungeon/ui_pixel --ignore-missin
 - 二次复查截图生成到 `/tmp/git-dungeon-phase14a-recheck/contact-2x.png`，用于确认文字不再压出紧凑卡片，设置页不再显示挤压按钮的快捷键提示。
 - 三次复查截图生成到 `/tmp/git-dungeon-phase14a-font-recheck/contact-2x.png`，用于确认中文整体字号缩小、地牢金币不压边、战斗状态不压按钮。
 - 四次复查截图生成到 `/tmp/git-dungeon-phase14a-battle-recheck/battle-4x.png`，用于确认战斗页开发者文字、血条、魔力和按钮不再重叠。
+- 五次复查截图生成到 `/tmp/git-dungeon-phase14a-battle-hp-recheck/battle-4x.png`，用于确认战斗页生命/魔力与角色块不再重叠。

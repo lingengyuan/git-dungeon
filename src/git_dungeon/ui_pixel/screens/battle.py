@@ -33,8 +33,11 @@ from git_dungeon.ui_pixel.widgets import (
 
 BATTLE_PLAYER_NAME_POS = (28, 44)
 BATTLE_PLAYER_BAR_RECT = (28, 64, 92, 8)
-BATTLE_PLAYER_HP_POS = (28, 106)
-BATTLE_PLAYER_MP_POS = (28, 116)
+BATTLE_PLAYER_SPRITE_RECT = (42, 76, 32, 32)
+BATTLE_PLAYER_HIT_RECT = (40, 74, 36, 36)
+BATTLE_PLAYER_SHIELD_RECT = (36, 70, 44, 44)
+BATTLE_PLAYER_HP_POS = (82, 82)
+BATTLE_PLAYER_MP_POS = (82, 94)
 BATTLE_ENEMY_NAME_POS = (184, 44)
 BATTLE_ENEMY_BAR_RECT = (184, 64, 92, 8)
 BATTLE_ENEMY_HP_POS = (184, 100)
@@ -144,7 +147,7 @@ class BattleScreen(Screen):
         )
         self.fonts.draw(surface, f"{tr('Turn', lang)} {snap.turn}", (244, 24), MUTED, 14)
 
-        self.assets.draw(surface, "player_default", (42, 76, 32, 32))
+        self.assets.draw(surface, "player_default", BATTLE_PLAYER_SPRITE_RECT)
         enemy_alpha = 255
         if self.enemy_fade_timer > 0:
             enemy_alpha = max(70, int(255 * self.enemy_fade_timer / 0.55))
@@ -153,9 +156,9 @@ class BattleScreen(Screen):
         if self.enemy_flash_timer > 0:
             self.pygame.draw.rect(surface, BAD, (236, 64, 36, 36), 1)
         if self.player_flash_timer > 0:
-            self.pygame.draw.rect(surface, BAD, (40, 74, 36, 36), 1)
+            self.pygame.draw.rect(surface, BAD, BATTLE_PLAYER_HIT_RECT, 1)
         if self.shield_timer > 0:
-            self.pygame.draw.rect(surface, GOOD, (36, 70, 44, 44), 1)
+            self.pygame.draw.rect(surface, GOOD, BATTLE_PLAYER_SHIELD_RECT, 1)
 
         self.fonts.draw_fit(surface, tr("Developer", lang), BATTLE_PLAYER_NAME_POS, 94, TEXT, 13)
         draw_stat_bar(
@@ -165,7 +168,7 @@ class BattleScreen(Screen):
             surface,
             stat_value("hp", snap.player.hp, lang, snap.player.max_hp),
             BATTLE_PLAYER_HP_POS,
-            106,
+            66,
             TEXT,
             10,
         )
@@ -173,7 +176,7 @@ class BattleScreen(Screen):
             surface,
             stat_value("mp", snap.player.mp, lang, snap.player.max_mp),
             BATTLE_PLAYER_MP_POS,
-            106,
+            66,
             ACCENT,
             10,
         )

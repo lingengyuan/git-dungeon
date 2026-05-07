@@ -13,8 +13,10 @@ from git_dungeon.ui_pixel.screens.battle import (
     BATTLE_BUTTON_HEIGHT,
     BATTLE_BUTTON_TOP,
     BATTLE_PLAYER_BAR_RECT,
+    BATTLE_PLAYER_HP_POS,
     BATTLE_PLAYER_MP_POS,
     BATTLE_PLAYER_NAME_POS,
+    BATTLE_PLAYER_SPRITE_RECT,
 )
 from git_dungeon.ui_pixel.text import (
     battle_reward_feedback,
@@ -154,3 +156,6 @@ def test_battle_text_layout_keeps_status_away_from_bars_and_buttons() -> None:
     assert BATTLE_PLAYER_NAME_POS[1] + 13 <= BATTLE_PLAYER_BAR_RECT[1] - 4
     assert BATTLE_PLAYER_MP_POS[1] + 10 <= BATTLE_BUTTON_TOP - 6
     assert BATTLE_BUTTON_TOP + BATTLE_BUTTON_HEIGHT <= BATTLE_ACTION_BAR_RECT[1] - 3
+    sprite_right = BATTLE_PLAYER_SPRITE_RECT[0] + BATTLE_PLAYER_SPRITE_RECT[2]
+    assert BATTLE_PLAYER_HP_POS[0] >= sprite_right + 6
+    assert BATTLE_PLAYER_MP_POS[0] >= sprite_right + 6
