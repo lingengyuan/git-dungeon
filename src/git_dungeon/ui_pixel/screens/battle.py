@@ -40,6 +40,8 @@ BATTLE_PLAYER_HP_POS = (82, 82)
 BATTLE_PLAYER_MP_POS = (82, 94)
 BATTLE_ENEMY_NAME_POS = (184, 44)
 BATTLE_ENEMY_BAR_RECT = (184, 64, 92, 8)
+BATTLE_ENEMY_SPRITE_RECT = (238, 78, 32, 32)
+BATTLE_ENEMY_HIT_RECT = (236, 76, 36, 36)
 BATTLE_ENEMY_HP_POS = (184, 100)
 BATTLE_ENEMY_ATTACK_POS = (184, 112)
 BATTLE_ENEMY_PHASE_POS = (184, 124)
@@ -152,9 +154,15 @@ class BattleScreen(Screen):
         if self.enemy_fade_timer > 0:
             enemy_alpha = max(70, int(255 * self.enemy_fade_timer / 0.55))
         shake = 2 if self.critical_timer > 0 and int(self.critical_timer * 30) % 2 == 0 else 0
-        self._draw_sprite(surface, "enemy_default", (238 + shake, 66, 32, 32), alpha=enemy_alpha)
+        enemy_rect = (
+            BATTLE_ENEMY_SPRITE_RECT[0] + shake,
+            BATTLE_ENEMY_SPRITE_RECT[1],
+            BATTLE_ENEMY_SPRITE_RECT[2],
+            BATTLE_ENEMY_SPRITE_RECT[3],
+        )
+        self._draw_sprite(surface, "enemy_default", enemy_rect, alpha=enemy_alpha)
         if self.enemy_flash_timer > 0:
-            self.pygame.draw.rect(surface, BAD, (236, 64, 36, 36), 1)
+            self.pygame.draw.rect(surface, BAD, BATTLE_ENEMY_HIT_RECT, 1)
         if self.player_flash_timer > 0:
             self.pygame.draw.rect(surface, BAD, BATTLE_PLAYER_HIT_RECT, 1)
         if self.shield_timer > 0:
