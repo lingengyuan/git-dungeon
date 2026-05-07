@@ -8,6 +8,14 @@ from typing import Any
 
 from git_dungeon.ui_pixel.app import PixelFont
 from git_dungeon.ui_pixel import widgets
+from git_dungeon.ui_pixel.screens.battle import (
+    BATTLE_ACTION_BAR_RECT,
+    BATTLE_BUTTON_HEIGHT,
+    BATTLE_BUTTON_TOP,
+    BATTLE_PLAYER_BAR_RECT,
+    BATTLE_PLAYER_MP_POS,
+    BATTLE_PLAYER_NAME_POS,
+)
 from git_dungeon.ui_pixel.text import (
     battle_reward_feedback,
     rest_detail,
@@ -140,3 +148,9 @@ def test_chinese_font_render_size_is_smaller_than_layout_size() -> None:
         assert font._render_size(9) == 8
     finally:
         pygame.quit()
+
+
+def test_battle_text_layout_keeps_status_away_from_bars_and_buttons() -> None:
+    assert BATTLE_PLAYER_NAME_POS[1] + 13 <= BATTLE_PLAYER_BAR_RECT[1] - 4
+    assert BATTLE_PLAYER_MP_POS[1] + 10 <= BATTLE_BUTTON_TOP - 6
+    assert BATTLE_BUTTON_TOP + BATTLE_BUTTON_HEIGHT <= BATTLE_ACTION_BAR_RECT[1] - 3

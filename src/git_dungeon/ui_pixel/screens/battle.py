@@ -31,6 +31,19 @@ from git_dungeon.ui_pixel.widgets import (
     draw_tooltip,
 )
 
+BATTLE_PLAYER_NAME_POS = (28, 44)
+BATTLE_PLAYER_BAR_RECT = (28, 64, 92, 8)
+BATTLE_PLAYER_HP_POS = (28, 106)
+BATTLE_PLAYER_MP_POS = (28, 116)
+BATTLE_ENEMY_NAME_POS = (184, 44)
+BATTLE_ENEMY_BAR_RECT = (184, 64, 92, 8)
+BATTLE_ENEMY_HP_POS = (184, 100)
+BATTLE_ENEMY_ATTACK_POS = (184, 112)
+BATTLE_ENEMY_PHASE_POS = (184, 124)
+BATTLE_BUTTON_TOP = 134
+BATTLE_BUTTON_HEIGHT = 14
+BATTLE_ACTION_BAR_RECT = (18, 151, 274, 15)
+
 
 @dataclass
 class FloatingText:
@@ -144,43 +157,48 @@ class BattleScreen(Screen):
         if self.shield_timer > 0:
             self.pygame.draw.rect(surface, GOOD, (36, 70, 44, 44), 1)
 
-        self.fonts.draw(surface, tr("Developer", lang), (28, 48), TEXT, 15)
+        self.fonts.draw_fit(surface, tr("Developer", lang), BATTLE_PLAYER_NAME_POS, 94, TEXT, 13)
         draw_stat_bar(
-            self.pygame, surface, (28, 62, 92, 8), snap.player.hp, snap.player.max_hp, GOOD
+            self.pygame, surface, BATTLE_PLAYER_BAR_RECT, snap.player.hp, snap.player.max_hp, GOOD
         )
         self.fonts.draw_fit(
             surface,
             stat_value("hp", snap.player.hp, lang, snap.player.max_hp),
-            (28, 108),
+            BATTLE_PLAYER_HP_POS,
             106,
             TEXT,
-            11,
+            10,
         )
         self.fonts.draw_fit(
             surface,
             stat_value("mp", snap.player.mp, lang, snap.player.max_mp),
-            (28, 120),
+            BATTLE_PLAYER_MP_POS,
             106,
             ACCENT,
-            11,
+            10,
         )
 
         enemy_name = snap.enemy.name[:24]
-        self.fonts.draw(surface, enemy_name, (184, 48), TEXT, 15)
-        draw_stat_bar(self.pygame, surface, (184, 62, 92, 8), snap.enemy.hp, snap.enemy.max_hp, BAD)
+        self.fonts.draw_fit(surface, enemy_name, BATTLE_ENEMY_NAME_POS, 94, TEXT, 13)
+        draw_stat_bar(self.pygame, surface, BATTLE_ENEMY_BAR_RECT, snap.enemy.hp, snap.enemy.max_hp, BAD)
         self.fonts.draw_fit(
             surface,
             stat_value("hp", snap.enemy.hp, lang, snap.enemy.max_hp),
-            (184, 100),
+            BATTLE_ENEMY_HP_POS,
             100,
             TEXT,
-            11,
+            10,
         )
         self.fonts.draw_fit(
-            surface, stat_value("attack", snap.enemy.attack, lang), (184, 112), 100, MUTED, 11
+            surface,
+            stat_value("attack", snap.enemy.attack, lang),
+            BATTLE_ENEMY_ATTACK_POS,
+            100,
+            MUTED,
+            10,
         )
         if snap.enemy.phase:
-            self.fonts.draw_fit(surface, snap.enemy.phase, (184, 124), 92, BAD, 11)
+            self.fonts.draw_fit(surface, snap.enemy.phase, BATTLE_ENEMY_PHASE_POS, 92, BAD, 10)
 
         for item in self.floating_texts:
             alpha_color = item.color if item.ttl > 0.2 else MUTED
@@ -196,7 +214,7 @@ class BattleScreen(Screen):
             surface,
             self.fonts,
             self.message,
-            rect=(18, 150, 274, 16),
+            rect=BATTLE_ACTION_BAR_RECT,
             right_text=label,
             alert=self.message.startswith(tr("Need", lang)),
         )
@@ -206,16 +224,22 @@ class BattleScreen(Screen):
         snap = self.snapshot
         can_skill = snap.player.mp >= snap.skill_cost
         return {
-            ACTION_ATTACK: Button((18, 132, 54, 16), tr("Attack", self._lang())),
-            ACTION_DEFEND: Button((78, 132, 54, 16), tr("Defend", self._lang())),
+            ACTION_ATTACK: Button(
+                (18, BATTLE_BUTTON_TOP, 54, BATTLE_BUTTON_HEIGHT), tr("Attack", self._lang())
+            ),
+            ACTION_DEFEND: Button(
+                (78, BATTLE_BUTTON_TOP, 54, BATTLE_BUTTON_HEIGHT), tr("Defend", self._lang())
+            ),
             ACTION_SKILL: Button(
-                (138, 132, 54, 16),
+                (138, BATTLE_BUTTON_TOP, 54, BATTLE_BUTTON_HEIGHT),
                 tr("Skill", self._lang()),
                 enabled=can_skill,
                 tooltip=skill_cost_text(snap.skill_cost, self._lang()),
             ),
             ACTION_ESCAPE: Button(
-                (198, 132, 54, 16), tr("Escape", self._lang()), enabled=snap.can_escape
+                (198, BATTLE_BUTTON_TOP, 54, BATTLE_BUTTON_HEIGHT),
+                tr("Escape", self._lang()),
+                enabled=snap.can_escape,
             ),
         }
 
