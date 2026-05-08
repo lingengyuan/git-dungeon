@@ -47,6 +47,14 @@
       "credit": "Codex built-in GPT Image 2",
       "license": "generated project asset",
       "contact_sheet": "assets/generated/contact_sheets/phase16_noncombat.png"
+    },
+    {
+      "id": "gpt_image_2_phase17",
+      "root": "assets/generated/processed/phase17",
+      "tile_size": 32,
+      "credit": "Codex built-in GPT Image 2",
+      "license": "generated project asset",
+      "contact_sheet": "assets/generated/contact_sheets/phase17_theme.png"
     }
   ],
   "sprites": {
@@ -73,6 +81,14 @@
     "rest_shrine": "assets/generated/processed/phase16/rest_shrine.png",
     "choice_icon_risk": "assets/generated/processed/phase16/choice_icon_risk.png",
     "choice_icon_reward": "assets/generated/processed/phase16/choice_icon_reward.png",
+    "title_banner": "assets/generated/processed/phase17/title_banner.png",
+    "dungeon_entrance": "assets/generated/processed/phase17/dungeon_entrance.png",
+    "commit_shard": "assets/generated/processed/phase17/commit_shard.png",
+    "branch_door": "assets/generated/processed/phase17/branch_door.png",
+    "merge_conflict_trap": "assets/generated/processed/phase17/merge_conflict_trap.png",
+    "ci_sentinel": "assets/generated/processed/phase17/ci_sentinel.png",
+    "release_gate": "assets/generated/processed/phase17/release_gate.png",
+    "torch_lit": "assets/generated/processed/phase17/torch_lit.png",
 
     "node_battle": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0103.png",
     "node_event": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0090.png",

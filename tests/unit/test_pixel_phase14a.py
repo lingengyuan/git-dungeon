@@ -206,7 +206,8 @@ def test_title_logo_text_fits_reserved_width_in_supported_languages() -> None:
         for lang in ("en", "zh_CN"):
             font = PixelFont(pygame, lang)
             assert font.measure("GIT DUNGEON", TITLE_LOGO_SIZE) <= TITLE_LOGO_WIDTH
-            assert font.measure("PIXEL MODE", TITLE_SUBTITLE_SIZE) <= TITLE_SUBTITLE_WIDTH
+            subtitle = "像素模式" if lang == "zh_CN" else "PIXEL MODE"
+            assert font.measure(subtitle, TITLE_SUBTITLE_SIZE) <= TITLE_SUBTITLE_WIDTH
     finally:
         pygame.quit()
 

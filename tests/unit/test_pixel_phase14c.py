@@ -119,13 +119,13 @@ def test_dungeon_draw_uses_phase14b_tile_scene_sprites() -> None:
     assert "tile_wall_stone" in drawn
     assert "tile_floor_stone" in drawn
     assert "tile_corridor" in drawn
-    assert "door_open" in drawn
-    assert "trap_spikes_armed" in drawn
-    assert "chest_closed" in drawn
+    assert "branch_door" in drawn
+    assert "merge_conflict_trap" in drawn
+    assert "commit_shard" in drawn
     assert "key_iron" in drawn
     assert "vault_locked" in drawn
     assert "room_marker_current" in drawn
-    assert "boss_gate" in drawn
+    assert "release_gate" in drawn
 
 
 def test_claimed_rewards_draw_open_state_sprites() -> None:

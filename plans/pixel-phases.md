@@ -1,7 +1,7 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：Phase 0-16 已完成最小闭环、首批体验修复、统一 UI/玩家语言层、gpt-image-2 地牢/战斗/非战斗素材流水线、tile 场景重做、战斗表现补强和非战斗地点重做（截至 2026-05-08）；后续按 `plans/pixel-stardew-level-repair-plan.md` 进入 Phase 17 主题统一
+> **状态**：Phase 0-17 已完成最小闭环、首批体验修复、统一 UI/玩家语言层、gpt-image-2 地牢/战斗/非战斗/主题素材流水线、tile 场景重做、战斗表现补强、非战斗地点重做和主题统一（截至 2026-05-08）；后续按 `plans/pixel-stardew-level-repair-plan.md` 进入 Phase 18 最终视觉回归
 > **作用**：Phase 0-18 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
@@ -39,7 +39,7 @@
 | Phase 14C | 地牢 tile 场景重做 | `pixel-stardew-level-repair-plan.md` | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-14c-handoff.md) |
 | Phase 15 | 战斗表现补强 | `pixel-game-issues.md` 战斗体验 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-15-handoff.md) |
 | Phase 16 | 非战斗场景和玩家文案 | `pixel-game-issues.md` 商店/事件/休息/标题流程 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-16-handoff.md) |
-| Phase 17 | 美术、动画和音乐方向统一 | `pixel-game-issues.md` 美术/音频/主题 | 未开始 | 待回填 |
+| Phase 17 | 美术、动画和音乐方向统一 | `pixel-game-issues.md` 美术/音频/主题 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-17-handoff.md) |
 | Phase 18 | 视觉回归保护 | `pixel-game-issues.md` 测试/可访问性/输入 | 未开始 | 待回填 |
 
 ---
@@ -429,12 +429,26 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeo
 
 详见 `plans/pixel-stardew-level-repair-plan.md`。本阶段把事件、商店、休息从数据面板改成有地点感的场景，并补齐非战斗地点素材。
 
-**状态**：已完成，交接文档见 `handoffs/2026-05-08-pixel-phase-16-handoff.md`。下一步进入 Phase 17。
+**状态**：已完成，交接文档见 `handoffs/2026-05-08-pixel-phase-16-handoff.md`。
 
 **关键约束**：
 - 事件、商店、休息页面不得暴露 `event_id`、`choice_id`、opcode 或英文原始商品标题。
 - 非战斗页面要使用地点素材，而不是继续只画节点图标和数据卡片。
 - 不改变事件、商店、休息的结算规则。
+
+---
+
+## Phase 17 — 标题、主题、美术、音乐统一
+
+详见 `plans/pixel-stardew-level-repair-plan.md`。本阶段补齐标题和 Git 主题物件，让标题、地牢和音乐有统一识别度。
+
+**状态**：已完成，交接文档见 `handoffs/2026-05-08-pixel-phase-17-handoff.md`。下一步进入 Phase 18。
+
+**关键约束**：
+- 标题页要第一眼能看出 Git Dungeon，而不是通用地牢模板。
+- Git 主题物件要进入运行画面：commit shard、branch door、merge conflict trap、CI sentinel、release gate。
+- BGM 要记录来源、用途、循环和响度处理。
+- 基础待机动效不得改变输入、结算或 CLI/Pixel parity。
 
 ---
 
@@ -477,3 +491,4 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeo
 | 2026-05-08 | Phase 14C 收口，回填 handoff 链接 | 地牢界面接入 tile、门、走廊、陷阱、宝箱、钥匙、宝库和截图验证 |
 | 2026-05-08 | Phase 15 收口，回填 handoff 链接 | Codex GPT Image 2 战斗素材、普通战/首领战场景、动作反馈和中文字段清理完成 |
 | 2026-05-08 | Phase 16 收口，回填 handoff 链接 | 非战斗地点素材、事件/商店/休息场景、商品标题和风险标签清理完成 |
+| 2026-05-08 | Phase 17 收口，回填 handoff 链接 | 标题主题素材、Git 世界物件、章节调色、基础动效和 BGM 响度记录完成 |

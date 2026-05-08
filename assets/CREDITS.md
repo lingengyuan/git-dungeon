@@ -24,10 +24,10 @@
 
 | 槽位 | 文件 | 时长 | 曲名 | 作者 | License | 下载日期 | 来源 | 处理 |
 |---|---|---:|---|---|---|---|---|---|
-| title | `assets/audio/bgm/title.ogg` | 69.4s | Adventure Theme — SuperHero_original_no_Intro | Cleyton Kauffman | CC0 1.0 | 2026-05-03 | https://opengameart.org/content/adventure-theme | 从 `Superhero_pack.zip` 取 `SuperHero_original_no_Intro.ogg`（无 intro 版本，可循环），文件原样未改 |
-| chapter | `assets/audio/bgm/chapter.ogg` | 50.9s | Mysterious, Futuristic 8-bit Music Loop | Frenchyboy | CC0 1.0 | 2026-05-03 | https://opengameart.org/content/mysterious-futuristic-8-bit-music-loop | 原文件为 mono WAV (4.5MB)，用 ffmpeg 转码为 stereo OGG vorbis @128k |
-| boss | `assets/audio/bgm/boss.ogg` | 26.7s | 8-Bit Battle Loop | Theodore Kerr (Wolfgang_) | CC0 1.0 | 2026-05-03 | https://opengameart.org/content/8-bit-battle-loop | 直接来自 `8BitBattleLoop_0.ogg`，文件原样未改 |
-| gameover | `assets/audio/bgm/gameover.ogg` | 12.0s | Chill Chiptunes Collection — "Complications" | Holizna | CC0 1.0 | 2026-05-03 | https://opengameart.org/content/chill-chiptunes-collection | 从合集中取 `05 HoliznaCC0 - Complications.ogg`，截 0:08-0:20 段并加 1s 淡入/淡出，详见 `assets/audio/bgm/gameover.notes.md` |
+| title | `assets/audio/bgm/title.ogg` | 69.4s | Adventure Theme — SuperHero_original_no_Intro | Cleyton Kauffman | CC0 1.0 | 2026-05-03 | https://opengameart.org/content/adventure-theme | 从 `Superhero_pack.zip` 取无 intro 版本；Phase 17 用 ffmpeg `volume=-2dB` 重编码为 OGG vorbis，响度记录见 `assets/audio/bgm/USAGE.md` |
+| chapter | `assets/audio/bgm/chapter.ogg` | 50.9s | Mysterious, Futuristic 8-bit Music Loop | Frenchyboy | CC0 1.0 | 2026-05-03 | https://opengameart.org/content/mysterious-futuristic-8-bit-music-loop | 原文件为 mono WAV；Phase 17 用 ffmpeg `volume=7.5dB` 重编码为 OGG vorbis，响度记录见 `assets/audio/bgm/USAGE.md` |
+| boss | `assets/audio/bgm/boss.ogg` | 26.7s | 8-Bit Battle Loop | Theodore Kerr (Wolfgang_) | CC0 1.0 | 2026-05-03 | https://opengameart.org/content/8-bit-battle-loop | Phase 17 用 ffmpeg `volume=3.5dB` 重编码为 OGG vorbis，响度记录见 `assets/audio/bgm/USAGE.md` |
+| gameover | `assets/audio/bgm/gameover.ogg` | 12.0s | Chill Chiptunes Collection — "Complications" | Holizna | CC0 1.0 | 2026-05-03 | https://opengameart.org/content/chill-chiptunes-collection | 从合集中取 `05 HoliznaCC0 - Complications.ogg`，截 0:08-0:20 段并加 1s 淡入/淡出；Phase 17 用 ffmpeg `volume=-1.5dB` 重编码为 OGG vorbis，详见 `assets/audio/bgm/gameover.notes.md` 和 `assets/audio/bgm/USAGE.md` |
 
 ## Fonts
 
@@ -56,16 +56,14 @@ license_note: generated project asset, keep source prompt and output
 
 当前清单：
 
-| ID | 状态 | Prompt | Asset card |
-|---|---|---|---|
-| title_banner | pending_generation | `assets/source_prompts/title_banner.md` | `assets/generated/asset_cards.yml` |
-| player_pixel | pending_generation | `assets/source_prompts/player_pixel.md` | `assets/generated/asset_cards.yml` |
-| boss_fix | pending_generation | `assets/source_prompts/boss_fix.md` | `assets/generated/asset_cards.yml` |
-| boss_refactor | pending_generation | `assets/source_prompts/boss_refactor.md` | `assets/generated/asset_cards.yml` |
-| boss_merge_conflict | pending_generation | `assets/source_prompts/boss_merge_conflict.md` | `assets/generated/asset_cards.yml` |
-| boss_ci_sentinel | pending_generation | `assets/source_prompts/boss_ci_sentinel.md` | `assets/generated/asset_cards.yml` |
-| boss_secret_leak | pending_generation | `assets/source_prompts/boss_secret_leak.md` | `assets/generated/asset_cards.yml` |
-| boss_release_gate | pending_generation | `assets/source_prompts/boss_release_gate.md` | `assets/generated/asset_cards.yml` |
+| 批次 | 状态 | Prompt | Asset card | Contact sheet |
+|---|---|---|---|---|
+| Phase 14B dungeon | accepted | `assets/source_prompts/phase14b/dungeon_sheet.md` | `assets/generated/phase14b/asset_plan.json` | `assets/generated/contact_sheets/phase14b_dungeon.png` |
+| Phase 15 battle | accepted | `assets/source_prompts/phase15/battle_sheet.md` | `assets/generated/phase15/asset_plan.json` | `assets/generated/contact_sheets/phase15_battle.png` |
+| Phase 16 non-combat | accepted | `assets/source_prompts/phase16/noncombat_sheet.md` | `assets/generated/phase16/asset_plan.json` | `assets/generated/contact_sheets/phase16_noncombat.png` |
+| Phase 17 theme | accepted | `assets/source_prompts/phase17/theme_sheet.md` | `assets/generated/phase17/asset_plan.json` | `assets/generated/contact_sheets/phase17_theme.png` |
+
+`assets/generated/asset_cards.yml` 保留 Phase 4 早期 pending 候选记录，不再作为已接入资源的权威清单。已接入资源以 `assets/manifest_sprites.json`、本文件和每个 phase 的 `asset_plan.json` 为准。
 
 **接入规则**：只有生成、后处理、contact sheet 人工核对、再写入 `assets/manifest_sprites.json` 后，才能算作运行时美术资源。
 

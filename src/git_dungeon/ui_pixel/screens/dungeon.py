@@ -47,24 +47,30 @@ NODE_SPRITES = {
     "event": "node_event",
     "rest": "node_rest",
     "shop": "node_shop",
-    "elite": "node_elite",
-    "boss": "node_boss",
+    "elite": "ci_sentinel",
+    "boss": "release_gate",
 }
 
 TILE_WALL_SPRITE = "tile_wall_stone"
 TILE_FLOOR_SPRITE = "tile_floor_stone"
 TILE_CORRIDOR_SPRITE = "tile_corridor"
-DOOR_OPEN_SPRITE = "door_open"
-CHEST_CLOSED_SPRITE = "chest_closed"
+DOOR_OPEN_SPRITE = "branch_door"
+CHEST_CLOSED_SPRITE = "commit_shard"
 CHEST_OPEN_SPRITE = "chest_open"
-TRAP_ARMED_SPRITE = "trap_spikes_armed"
+TRAP_ARMED_SPRITE = "merge_conflict_trap"
 TRAP_SPENT_SPRITE = "trap_spikes_spent"
 KEY_IRON_SPRITE = "key_iron"
 VAULT_LOCKED_SPRITE = "vault_locked"
 VAULT_OPEN_SPRITE = "vault_open"
 ROOM_MARKER_CURRENT_SPRITE = "room_marker_current"
 ROOM_MARKER_AVAILABLE_SPRITE = "room_marker_available"
-BOSS_GATE_SPRITE = "boss_gate"
+BOSS_GATE_SPRITE = "release_gate"
+CHAPTER_ACCENTS = (
+    ACCENT,
+    (95, 210, 167),
+    (98, 181, 230),
+    (213, 126, 104),
+)
 
 
 class DungeonScreen(Screen):
@@ -88,12 +94,17 @@ class DungeonScreen(Screen):
         self.floor: DungeonFloor = build_dungeon_floor(self.runner.route_nodes())
         self.player_coord: Coord | None = self._initial_player_coord()
         self.message = message
+        self.anim_time = 0.0
         if self._can_enter_current_room():
             self.message = "Press Enter to enter"
 
     def enter(self) -> None:
         if self.audio is not None:
             self.audio.play_bgm("chapter")
+
+    def update(self, dt: float) -> ScreenAction | None:
+        self.anim_time += dt
+        return None
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
@@ -133,10 +144,11 @@ class DungeonScreen(Screen):
         surface.fill(BG)
         lang = self._lang()
         player = self.runner.player_snapshot()
-        self.fonts.draw(surface, tr("DUNGEON", lang), (12, 8), ACCENT, 22)
+        accent = self._chapter_accent()
+        self.fonts.draw(surface, tr("DUNGEON", lang), (12, 8), accent, 22)
         self.fonts.draw_fit(surface, tr(self.message, lang), (92, 12), 202, MUTED, 13)
 
-        draw_panel(self.pygame, surface, (10, 27, 300, 34))
+        draw_panel(self.pygame, surface, (10, 27, 300, 34), border=accent)
         draw_stat_bar(self.pygame, surface, (20, 37, 78, 7), player.hp, player.max_hp, GOOD)
         self.fonts.draw_fit(
             surface,
@@ -179,6 +191,8 @@ class DungeonScreen(Screen):
         button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
 
     def _draw_floor(self, surface: Any) -> None:
+        accent = self._chapter_accent()
+        chapter_index = self._chapter_index()
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 self.assets.draw(surface, TILE_WALL_SPRITE, self._coord_rect((x, y)))
@@ -186,19 +200,27 @@ class DungeonScreen(Screen):
         floor_coords = {room.coord for room in self.floor.rooms}
         floor_coords.update(reward.coord for reward in self.floor.reward_rooms)
         for coord in floor_coords:
-            self.assets.draw(surface, TILE_FLOOR_SPRITE, self._coord_rect(coord))
+            rect = self._coord_rect(coord)
+            self.assets.draw(surface, TILE_FLOOR_SPRITE, rect)
+            if (coord[0] + coord[1] + chapter_index) % 3 == 0:
+                self.pygame.draw.rect(surface, accent, (rect[0] + 12, rect[1] + 12, 2, 2))
 
         for left, right in self.floor.doors:
             self._draw_door(surface, left, right)
 
         for trap in self.floor.traps:
             sprite = TRAP_SPENT_SPRITE if self._trap_consumed(trap.trap_id) else TRAP_ARMED_SPRITE
-            self.assets.draw(surface, sprite, self._coord_rect(trap.coord))
+            rect = self._coord_rect(trap.coord)
+            self.assets.draw(surface, sprite, rect)
+            if not self._trap_consumed(trap.trap_id) and int(self.anim_time * 4) % 2:
+                self.pygame.draw.rect(surface, BAD, rect, 1)
 
         for reward in self.floor.reward_rooms:
             rect = self._coord_rect(reward.coord)
             border = self._reward_border(reward)
             self.assets.draw(surface, self._reward_sprite(reward), rect)
+            if not self._reward_claimed(reward.reward_id) and int(self.anim_time * 3) % 2:
+                border = accent
             self.pygame.draw.rect(surface, border, rect, 1)
 
         for room in self.floor.rooms:
@@ -210,8 +232,9 @@ class DungeonScreen(Screen):
                 self.assets.draw(surface, ROOM_MARKER_AVAILABLE_SPRITE, rect)
             self.pygame.draw.rect(surface, border, rect, 1)
             if room.is_current:
+                pulse = accent if int(self.anim_time * 4) % 2 else TEXT
                 self.pygame.draw.rect(
-                    surface, ACCENT, (rect[0] + 2, rect[1] + 2, rect[2] - 4, rect[3] - 4), 1
+                    surface, pulse, (rect[0] + 2, rect[1] + 2, rect[2] - 4, rect[3] - 4), 1
                 )
             if room.is_visited:
                 self.pygame.draw.line(
@@ -224,15 +247,16 @@ class DungeonScreen(Screen):
             room_sprite = BOSS_GATE_SPRITE if room.kind == "boss" else NODE_SPRITES.get(
                 room.kind, "node_event"
             )
-            self.assets.draw(
-                surface,
-                room_sprite,
-                (rect[0] + 3, rect[1] + 3, 10, 10),
-            )
+            inset = 1 if room.kind in {"boss", "elite"} else 3
+            size = 14 if room.kind in {"boss", "elite"} else 10
+            self.assets.draw(surface, room_sprite, (rect[0] + inset, rect[1] + inset, size, size))
+        self.assets.draw(surface, "torch_lit", (14, 65, 14, 14))
+        self.assets.draw(surface, "torch_lit", (292, 65, 14, 14))
         if self.player_coord is not None:
             rect = self._coord_rect(self.player_coord)
             self.pygame.draw.rect(surface, TEXT, (rect[0] + 5, rect[1] + 11, 6, 3))
-            self.assets.draw(surface, "player_default", (rect[0] + 3, rect[1] + 4, 10, 10))
+            y_offset = 1 if int(self.anim_time * 5) % 2 else 0
+            self.assets.draw(surface, "player_idle", (rect[0] + 3, rect[1] + 4 - y_offset, 10, 10))
             self.pygame.draw.rect(surface, TEXT, rect, 1)
 
     def _coord_rect(self, coord: Coord) -> tuple[int, int, int, int]:
@@ -463,6 +487,16 @@ class DungeonScreen(Screen):
 
     def _lang(self) -> str:
         return getattr(self.settings, "lang", "en")
+
+    def _chapter_index(self) -> int:
+        current_chapter = getattr(self.runner, "current_chapter", None)
+        if not callable(current_chapter):
+            return 0
+        chapter = current_chapter()
+        return int(getattr(chapter, "chapter_index", 0) or 0)
+
+    def _chapter_accent(self) -> tuple[int, int, int]:
+        return CHAPTER_ACCENTS[self._chapter_index() % len(CHAPTER_ACCENTS)]
 
     def _draw_key_status(self, surface: Any) -> None:
         if not any(reward.grants_key or reward.requires_key for reward in self.floor.reward_rooms):

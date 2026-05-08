@@ -16,6 +16,13 @@ BGM_FILES = {
     "gameover": "assets/audio/bgm/gameover.ogg",
 }
 
+BGM_LOOPS = {
+    "title": -1,
+    "chapter": -1,
+    "boss": -1,
+    "gameover": 0,
+}
+
 SFX_FILES = {
     "ui_confirm": "assets/audio/sfx/kenney_ui_audio/Audio/click1.ogg",
     "ui_cancel": "assets/audio/sfx/kenney_ui_audio/Audio/click2.ogg",
@@ -115,7 +122,7 @@ class AudioManager:
         try:
             self._pygame.mixer.music.load(str(path))
             self._pygame.mixer.music.set_volume(self._bgm_volume)
-            self._pygame.mixer.music.play(-1)
+            self._pygame.mixer.music.play(BGM_LOOPS[slot])
         except Exception as exc:
             self._mute(str(exc)[:48])
             return

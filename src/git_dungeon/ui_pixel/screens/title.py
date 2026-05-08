@@ -11,14 +11,23 @@ from git_dungeon.ui_pixel.screens.settings import SettingsScreen
 from git_dungeon.ui_pixel.text import audio_label, tr
 from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, Button, draw_panel
 
-TITLE_PLAYER_SPRITE_RECT = (36, 42, 32, 32)
-TITLE_ENEMY_SPRITE_RECT = (252, 42, 32, 32)
-TITLE_LOGO_POS = (82, 42)
+TITLE_PLAYER_SPRITE_RECT = (42, 88, 32, 32)
+TITLE_ENEMY_SPRITE_RECT = (260, 88, 32, 32)
+TITLE_BANNER_RECT = (70, 20, 180, 46)
+TITLE_ENTRANCE_RECT = (134, 72, 52, 52)
+TITLE_TORCH_LEFT_RECT = (112, 82, 22, 22)
+TITLE_TORCH_RIGHT_RECT = (186, 82, 22, 22)
+TITLE_LOGO_POS = (82, 32)
 TITLE_LOGO_WIDTH = 162
 TITLE_LOGO_SIZE = 24
-TITLE_SUBTITLE_POS = (112, 70)
+TITLE_SUBTITLE_POS = (112, 58)
 TITLE_SUBTITLE_WIDTH = 108
-TITLE_SUBTITLE_SIZE = 18
+TITLE_SUBTITLE_SIZE = 14
+TITLE_STATUS_POS = (62, 122)
+TITLE_BUTTON_START_RECT = (74, 132, 68, 18)
+TITLE_BUTTON_SETTINGS_RECT = (156, 132, 80, 18)
+TITLE_HELP_POS = (42, 154)
+TITLE_FOOTER_POS = (42, 166)
 
 
 class TitleScreen(Screen):
@@ -43,10 +52,15 @@ class TitleScreen(Screen):
         self.settings_error = settings_error
         self.hover_pos: tuple[int, int] | None = None
         self.status = "Press Enter to load repository"
+        self.anim_time = 0.0
 
     def enter(self) -> None:
         if self.audio is not None:
             self.audio.play_bgm("title")
+
+    def update(self, dt: float) -> ScreenAction | None:
+        self.anim_time += dt
+        return None
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
@@ -95,9 +109,9 @@ class TitleScreen(Screen):
     def draw(self, surface: Any) -> None:
         lang = self._lang()
         surface.fill(BG)
-        draw_panel(self.pygame, surface, (18, 18, 284, 144))
-        self.assets.draw(surface, "player_default", TITLE_PLAYER_SPRITE_RECT)
-        self.assets.draw(surface, "enemy_default", TITLE_ENEMY_SPRITE_RECT)
+        self._draw_backdrop(surface)
+        draw_panel(self.pygame, surface, (18, 14, 284, 152))
+        self.assets.draw(surface, "title_banner", TITLE_BANNER_RECT)
         self.fonts.draw_fit(
             surface,
             "GIT DUNGEON",
@@ -108,35 +122,57 @@ class TitleScreen(Screen):
         )
         self.fonts.draw_fit(
             surface,
-            "PIXEL MODE",
+            "像素模式" if lang == "zh_CN" else "PIXEL MODE",
             TITLE_SUBTITLE_POS,
             TITLE_SUBTITLE_WIDTH,
             TEXT,
             TITLE_SUBTITLE_SIZE,
         )
-        self.fonts.draw_fit(surface, tr(self.status, lang), (58, 96), 204, MUTED, 14)
+        torch_lift = 1 if int(self.anim_time * 6) % 2 else 0
+        self.assets.draw(surface, "dungeon_entrance", TITLE_ENTRANCE_RECT)
+        self.assets.draw(
+            surface,
+            "torch_lit",
+            (TITLE_TORCH_LEFT_RECT[0], TITLE_TORCH_LEFT_RECT[1] - torch_lift, 22, 22),
+        )
+        self.assets.draw(
+            surface,
+            "torch_lit",
+            (TITLE_TORCH_RIGHT_RECT[0], TITLE_TORCH_RIGHT_RECT[1] - torch_lift, 22, 22),
+        )
+        self.assets.draw(surface, "player_idle", TITLE_PLAYER_SPRITE_RECT)
+        self.assets.draw(surface, "ci_sentinel", TITLE_ENEMY_SPRITE_RECT)
+        self.fonts.draw_fit(surface, tr(self.status, lang), TITLE_STATUS_POS, 196, MUTED, 13)
         for button in self._buttons().values():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
         self.fonts.draw_fit(
             surface,
             tr("Enter: Start   S: Settings   Esc/Q: Quit", lang),
-            (42, 132),
+            TITLE_HELP_POS,
             238,
             TEXT,
             13,
         )
         if self.settings_error:
-            self.fonts.draw_fit(surface, self.settings_error, (42, 146), 144, BAD, 11)
+            self.fonts.draw_fit(surface, self.settings_error, TITLE_FOOTER_POS, 144, BAD, 11)
         if self.audio is not None:
             label = audio_label(self.audio.status().label(), lang)
             if label:
-                self.fonts.draw_fit(surface, label, (194, 146), 86, MUTED, 11)
+                self.fonts.draw_fit(surface, label, (194, TITLE_FOOTER_POS[1]), 86, MUTED, 11)
+
+    def _draw_backdrop(self, surface: Any) -> None:
+        for x in range(0, 320, 16):
+            self.assets.draw(surface, "tile_wall_stone", (x, 0, 16, 16))
+            self.assets.draw(surface, "tile_floor_stone", (x, 164, 16, 16))
+        for y in range(16, 164, 16):
+            self.assets.draw(surface, "tile_wall_stone", (0, y, 16, 16))
+            self.assets.draw(surface, "tile_wall_stone", (304, y, 16, 16))
 
     def _buttons(self) -> dict[str, Button]:
         lang = self._lang()
         return {
-            "start": Button((74, 112, 68, 18), tr("Start", lang)),
-            "settings": Button((156, 112, 80, 18), tr("Settings", lang)),
+            "start": Button(TITLE_BUTTON_START_RECT, tr("Start", lang)),
+            "settings": Button(TITLE_BUTTON_SETTINGS_RECT, tr("Settings", lang)),
         }
 
     def _open_settings(self) -> ScreenAction | None:

@@ -1,0 +1,23 @@
+{
+  "phase": "phase17",
+  "source": "codex_builtin_gpt_image_2",
+  "prompt_file": "assets/source_prompts/phase17/theme_sheet.md",
+  "raw_file": "assets/generated/raw/phase17/theme_sheet.png",
+  "contact_sheet": "assets/generated/contact_sheets/phase17_theme.png",
+  "generated_at": "2026-05-08",
+  "license_note": "generated project asset; keep prompt, raw output, processed output, and asset card together",
+  "sheet": {
+    "columns": 4,
+    "rows": 2
+  },
+  "assets": [
+    {"id": "title_banner", "cell": [0, 0], "size": [32, 32]},
+    {"id": "dungeon_entrance", "cell": [1, 0], "size": [32, 32]},
+    {"id": "commit_shard", "cell": [2, 0], "size": [32, 32]},
+    {"id": "branch_door", "cell": [3, 0], "size": [32, 32]},
+    {"id": "merge_conflict_trap", "cell": [0, 1], "size": [32, 32]},
+    {"id": "ci_sentinel", "cell": [1, 1], "size": [32, 32]},
+    {"id": "release_gate", "cell": [2, 1], "size": [32, 32]},
+    {"id": "torch_lit", "cell": [3, 1], "size": [32, 32]}
+  ]
+}

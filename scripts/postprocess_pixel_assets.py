@@ -22,7 +22,17 @@ def _project_path(value: str) -> Path:
 
 def _is_key(pixel: tuple[int, int, int, int]) -> bool:
     r, g, b, _a = pixel
-    return g >= 120 and g >= r + 35 and g >= b + 35
+    green_key = g >= 80 and g >= r + 20 and g >= b + 20
+    grid_key = r >= 235 and g >= 235 and b >= 235
+    dark_grid_key = r <= 28 and g <= 28 and b <= 28
+    return green_key or _is_magenta_key(pixel) or grid_key or dark_grid_key
+
+
+def _is_magenta_key(pixel: tuple[int, int, int, int]) -> bool:
+    r, g, b, _a = pixel
+    bright_magenta = r >= 70 and b >= 70 and r >= g + 20 and b >= g + 20
+    dark_magenta = r >= 45 and b >= 45 and g <= 35 and r >= g + 30 and b >= g + 30
+    return bright_magenta or dark_magenta
 
 
 def _pixel_at(pixels: Any, x: int, y: int) -> tuple[int, int, int, int]:
@@ -85,9 +95,10 @@ def _remove_background(
     rgba = image.convert("RGBA")
     cropped = rgba.crop(bbox)
     pixels = cropped.load()
+    source_pixels = rgba.load()
     for y in range(upper, lower):
         for x in range(left, right):
-            if background[y][x]:
+            if background[y][x] or _is_magenta_key(_pixel_at(source_pixels, x, y)):
                 pixels[x - left, y - upper] = (0, 0, 0, 0)
     return cropped
 
@@ -124,6 +135,11 @@ def postprocess(config_path: Path, out_dir: Path | None = None) -> list[Path]:
         upper = round(row * cell_h)
         right = round((col + 1) * cell_w)
         lower = round((row + 1) * cell_h)
+        trim_margin = max(2, round(min(cell_w, cell_h) * 0.05))
+        left += trim_margin
+        upper += trim_margin
+        right -= trim_margin
+        lower -= trim_margin
         cell = sheet.crop((left, upper, right, lower))
         sprite = _center_on_square(cell).resize((width, height), Image.Resampling.NEAREST)
         out_path = output_dir / f"{asset_id}.png"
