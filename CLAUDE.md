@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Principles (强制)
 
-任何代码改动、设计决策、PR 都必须满足以下 6 条；冲突时以本节为准。
+任何代码改动、设计决策、PR 都必须满足以下 7 条；冲突时以本节为准。
 
 1. **第一性原理** — 遇到问题先回到本质：「这件事到底是什么？必须经过哪些环节？」再决定方案。不照搬既有抽象、不沿用「之前都是这么做的」。结论先标注「未验证」，再用实验/测试确认。
 2. **DRY (Don't Repeat Yourself)** — 每个知识点（规则、配置、数据结构、文案）在系统中只能有一个权威来源。发现重复立即抽取，不允许「再写一个类似的」。
@@ -18,6 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - **完成情况**：实际交付物、关键决策、偏离原计划的地方及原因。
    - **后续任务**：下一个 phase 需要做什么、已知风险、未决问题、需要新会话立刻读哪些文件。
    - 文档要让一个**没有当前会话上下文**的新 Claude 实例读完即可接手，不依赖口头说明。
+7. **Phase 完成后必须提交并推送（强制）** — Phase 14B 到 Phase 18 必须按顺序完成；每完成一个 phase，先验证，再写 handoff，再提交，再推送到 GitHub，最后再进入下一个 phase。禁止把多个 phase 的交接、提交、推送混在一起。
 
 ## Session Bootstrap（新会话入口）
 
@@ -28,7 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **`handoffs/`** 下最新一份 — 拿到精确进度、未决问题、推荐验证命令。
 4. 仅在以上三步无法回答问题时再读源代码。
 
-当前活跃 plan：`plans/pixel-phases.md`（像素化改造，Phase 0-14A 已完成；后续按 `plans/pixel-stardew-level-repair-plan.md` 从 Phase 14B 接手）。
+当前活跃 plan：`plans/pixel-phases.md`（像素化改造，Phase 0-14B 已完成；后续按 `plans/pixel-stardew-level-repair-plan.md` 从 Phase 14C 接手）。
 
 ## Project Snapshot
 

@@ -23,6 +23,14 @@
       "credit": "Kenney (kenney.nl)",
       "license": "CC0 1.0",
       "contact_sheet": null
+    },
+    {
+      "id": "gpt_image_2_phase14b",
+      "root": "assets/generated/processed/phase14b",
+      "tile_size": 16,
+      "credit": "Codex built-in GPT Image 2",
+      "license": "generated project asset",
+      "contact_sheet": "assets/generated/contact_sheets/phase14b_dungeon.png"
     }
   ],
   "sprites": {
@@ -35,6 +43,22 @@
     "node_shop": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0066.png",
     "node_elite": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0122.png",
     "node_boss": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0123.png",
+
+    "tile_floor_stone": "assets/generated/processed/phase14b/tile_floor_stone.png",
+    "tile_wall_stone": "assets/generated/processed/phase14b/tile_wall_stone.png",
+    "tile_corridor": "assets/generated/processed/phase14b/tile_corridor.png",
+    "door_open": "assets/generated/processed/phase14b/door_open.png",
+    "door_locked": "assets/generated/processed/phase14b/door_locked.png",
+    "chest_closed": "assets/generated/processed/phase14b/chest_closed.png",
+    "chest_open": "assets/generated/processed/phase14b/chest_open.png",
+    "trap_spikes_armed": "assets/generated/processed/phase14b/trap_spikes_armed.png",
+    "trap_spikes_spent": "assets/generated/processed/phase14b/trap_spikes_spent.png",
+    "key_iron": "assets/generated/processed/phase14b/key_iron.png",
+    "vault_locked": "assets/generated/processed/phase14b/vault_locked.png",
+    "vault_open": "assets/generated/processed/phase14b/vault_open.png",
+    "room_marker_current": "assets/generated/processed/phase14b/room_marker_current.png",
+    "room_marker_available": "assets/generated/processed/phase14b/room_marker_available.png",
+    "boss_gate": "assets/generated/processed/phase14b/boss_gate.png",
 
     "ui_button_default": "assets/sprites/kenney_ui/PNG/Blue/Default/button_rectangle_flat.png",
     "ui_button_hover": "assets/sprites/kenney_ui/PNG/Blue/Default/button_rectangle_depth_flat.png",

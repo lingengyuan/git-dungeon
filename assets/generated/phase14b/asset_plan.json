@@ -1,0 +1,30 @@
+{
+  "phase": "phase14b",
+  "source": "codex_builtin_gpt_image_2",
+  "prompt_file": "assets/source_prompts/phase14b/dungeon_sheet.md",
+  "raw_file": "assets/generated/raw/phase14b/dungeon_sheet.png",
+  "contact_sheet": "assets/generated/contact_sheets/phase14b_dungeon.png",
+  "generated_at": "2026-05-08",
+  "license_note": "generated project asset; keep prompt, raw output, processed output, and asset card together",
+  "sheet": {
+    "columns": 5,
+    "rows": 3
+  },
+  "assets": [
+    {"id": "tile_floor_stone", "cell": [0, 0], "size": [16, 16]},
+    {"id": "tile_wall_stone", "cell": [1, 0], "size": [16, 16]},
+    {"id": "tile_corridor", "cell": [2, 0], "size": [16, 16]},
+    {"id": "door_open", "cell": [3, 0], "size": [16, 16]},
+    {"id": "door_locked", "cell": [4, 0], "size": [16, 16]},
+    {"id": "chest_closed", "cell": [0, 1], "size": [16, 16]},
+    {"id": "chest_open", "cell": [1, 1], "size": [16, 16]},
+    {"id": "trap_spikes_armed", "cell": [2, 1], "size": [16, 16]},
+    {"id": "trap_spikes_spent", "cell": [3, 1], "size": [16, 16]},
+    {"id": "key_iron", "cell": [4, 1], "size": [16, 16]},
+    {"id": "vault_locked", "cell": [0, 2], "size": [16, 16]},
+    {"id": "vault_open", "cell": [1, 2], "size": [16, 16]},
+    {"id": "room_marker_current", "cell": [2, 2], "size": [16, 16]},
+    {"id": "room_marker_available", "cell": [3, 2], "size": [16, 16]},
+    {"id": "boss_gate", "cell": [4, 2], "size": [16, 16]}
+  ]
+}

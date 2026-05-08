@@ -230,6 +230,8 @@ Phase 17 生成标题和主题资产：
 
 ### Phase 14B：gpt-image-2 地牢素材流水线
 
+> 状态：已完成（2026-05-08，见 `handoffs/2026-05-08-pixel-phase-14b-handoff.md`）。
+
 目标：先把素材生产变成可复用、可验证、可追溯的流程。
 
 交付：
@@ -351,7 +353,7 @@ Phase 17 生成标题和主题资产：
 
 1. Phase 13R 已完成。
 2. Phase 14A 已完成：统一 UI kit 和玩家语言层。
-3. Phase 14B：打通 gpt-image-2 生成、后处理、contact sheet 和 manifest。
+3. Phase 14B 已完成：打通 gpt-image-2 生成、后处理、contact sheet 和 manifest。
 4. Phase 14C：把地牢改成 tile 场景。
 5. 后续按 Phase 15-18 推进，每个 phase 完成后写 handoff 并验证。
 
@@ -362,3 +364,4 @@ Phase 17 生成标题和主题资产：
 | 2026-05-07 | 初始创建 | 用户要求统一 UI、使用 gpt-image-2 标准像素素材，并把修复验收提高到成熟像素游戏标准 |
 | 2026-05-07 | 标记 Phase 13R 完成 | 暂停语义、中文奖励/事件反馈、Q 暂停和事件 ID 暴露已修复 |
 | 2026-05-07 | 标记 Phase 14A 完成 | UI kit、玩家语言 formatter、运行页 action bar 和截图/测试验收已完成 |
+| 2026-05-08 | 标记 Phase 14B 完成 | Codex GPT Image 2 地牢素材流水线、asset card、contact sheet、manifest 和校验脚本已完成 |
