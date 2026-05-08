@@ -4,6 +4,7 @@
 > 范围：Pixel mode 在 Phase 0-12 完成后的整体审查。
 > 依据：真实窗口试玩 `--pixel --seed 42 --lang zh_CN`，以及当前 screen / widget / text / asset / audio 相关代码与资源检查。
 > 目标：让 Pixel mode 从“像素风界面原型”继续推进到“可以被当作像素游戏来玩的版本”。
+> Phase 18 收口记录：见 `plans/pixel-phase18-final-playtest.md`，包含截图包、最终验证命令、P0/P1/P2 关闭与延期清单。
 
 ## 审查标准
 

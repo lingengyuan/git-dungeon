@@ -74,9 +74,10 @@ class ScreenStack:
 
 
 class PixelFont:
-    def __init__(self, pygame_module, lang: str = "en") -> None:
+    def __init__(self, pygame_module, lang: str = "en", text_size: str = "normal") -> None:
         self._pygame = pygame_module
         self.lang = lang
+        self.text_size = text_size
         try:
             root = resolve_asset_root()
         except FileNotFoundError:
@@ -93,7 +94,7 @@ class PixelFont:
 
     def get(self, size: int):
         family = "cjk" if self.lang == "zh_CN" else "latin"
-        key = (family, size)
+        key = (family, self.text_size, size)
         if key not in self._cache:
             path = self._cjk_font if family == "cjk" and self._cjk_font.exists() else self._latin_font
             self._cache[key] = self._pygame.font.Font(
@@ -124,7 +125,14 @@ class PixelFont:
     def set_lang(self, lang: str) -> None:
         self.lang = lang
 
+    def set_text_size(self, text_size: str) -> None:
+        if text_size == self.text_size:
+            return
+        self.text_size = text_size
+        self._cache.clear()
+
     def _render_size(self, size: int) -> int:
+        size = size + 1 if self.text_size == "large" else size
         if self.lang != "zh_CN":
             return size
         return max(8, size - 2)
@@ -188,7 +196,7 @@ def run(
         pygame.display.set_caption("Git Dungeon Pixel")
         surface = pygame.Surface(LOGICAL_SIZE)
         clock = pygame.time.Clock()
-        fonts = PixelFont(pygame, settings.lang)
+        fonts = PixelFont(pygame, settings.lang, settings.text_size)
         try:
             assets = SpriteCatalog(pygame)
             assets.load()

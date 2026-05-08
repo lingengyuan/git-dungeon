@@ -6,7 +6,7 @@ from dataclasses import replace
 from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
-from git_dungeon.ui_pixel.settings import LANGUAGES, WINDOW_MODES, PixelSettings
+from git_dungeon.ui_pixel.settings import LANGUAGES, TEXT_SIZES, WINDOW_MODES, PixelSettings
 from git_dungeon.ui_pixel.text import tr
 from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, Button, draw_panel
 
@@ -51,6 +51,12 @@ class SettingsScreen(Screen):
                 self._cycle_lang()
             if event.key == self.pygame.K_m:
                 self._cycle_window()
+            if event.key == getattr(self.pygame, "K_t", None):
+                self._cycle_text_size()
+            if event.key == getattr(self.pygame, "K_h", None):
+                self._toggle_high_contrast()
+            if event.key == getattr(self.pygame, "K_r", None):
+                self._toggle_reduce_motion()
         if event.type == self.pygame.MOUSEMOTION:
             self.hover_pos = getattr(event, "logical_pos", None)
         if event.type == self.pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -63,7 +69,8 @@ class SettingsScreen(Screen):
     def draw(self, surface: Any) -> None:
         lang = self.settings.lang
         surface.fill(BG)
-        draw_panel(self.pygame, surface, (14, 12, 292, 156))
+        border = TEXT if self.settings.high_contrast else ACCENT
+        draw_panel(self.pygame, surface, (14, 12, 292, 156), border=border)
         self.fonts.draw(surface, tr("SETTINGS", lang), (28, 24), ACCENT, 22)
 
         rows = [
@@ -71,26 +78,29 @@ class SettingsScreen(Screen):
             (tr("SFX Volume", lang), f"{self.settings.sfx_volume:3d}%"),
             (tr("Language", lang), self._lang_label()),
             (tr("Window", lang), tr(self.settings.window_mode.title(), lang)),
+            (tr("Text Size", lang), tr(self.settings.text_size.title(), lang)),
+            (tr("High Contrast", lang), tr("On" if self.settings.high_contrast else "Off", lang)),
+            (tr("Reduce Motion", lang), tr("On" if self.settings.reduce_motion else "Off", lang)),
         ]
         for index, (label, value) in enumerate(rows):
-            y = 54 + index * 20
-            self.fonts.draw_fit(surface, label, (28, y), 84, TEXT, 15)
-            self.fonts.draw_fit(surface, value, (126, y), 76, ACCENT, 15)
+            y = 44 + index * 14
+            self.fonts.draw_fit(surface, label, (28, y), 92, TEXT, 12)
+            self.fonts.draw_fit(surface, value, (126, y), 64, ACCENT, 12)
 
         for key, button in self._buttons().items():
             button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
 
         if self.load_error:
             self.fonts.draw_fit(
-                surface, self._localized_error(self.load_error), (28, 134), 250, BAD, 12
+                surface, self._localized_error(self.load_error), (28, 142), 250, BAD, 10
             )
         self.fonts.draw_fit(
             surface,
             self.message,
-            (28, 150),
+            (28, 154),
             252,
             GOOD if tr("Saved", lang) in self.message else MUTED,
-            12,
+            10,
         )
 
     def _buttons(self) -> dict[str, Button]:
@@ -98,12 +108,21 @@ class SettingsScreen(Screen):
         return {
             "bgm_minus": Button((184, 50, 18, 16), "-"),
             "bgm_plus": Button((204, 50, 18, 16), "+"),
-            "sfx_minus": Button((184, 70, 18, 16), "-"),
-            "sfx_plus": Button((204, 70, 18, 16), "+"),
-            "lang": Button((184, 90, 38, 16), tr("Language", lang)),
-            "window": Button((184, 110, 38, 16), tr("Window", lang)),
-            "save": Button((228, 132, 48, 18), tr("Save", lang)),
-            "back": Button((174, 132, 48, 18), tr("Back", lang)),
+            "sfx_minus": Button((184, 64, 18, 16), "-"),
+            "sfx_plus": Button((204, 64, 18, 16), "+"),
+            "lang": Button((184, 78, 58, 16), self._lang_label()),
+            "window": Button((184, 92, 58, 16), tr(self.settings.window_mode.title(), lang)),
+            "text_size": Button((184, 106, 58, 16), tr(self.settings.text_size.title(), lang)),
+            "contrast": Button(
+                (184, 120, 58, 16),
+                tr("On" if self.settings.high_contrast else "Off", lang),
+            ),
+            "motion": Button(
+                (184, 134, 58, 16),
+                tr("On" if self.settings.reduce_motion else "Off", lang),
+            ),
+            "save": Button((248, 136, 42, 18), tr("Save", lang)),
+            "back": Button((248, 114, 42, 18), tr("Back", lang)),
         }
 
     def _activate(self, key: str) -> ScreenAction | None:
@@ -119,6 +138,12 @@ class SettingsScreen(Screen):
             self._cycle_lang()
         elif key == "window":
             self._cycle_window()
+        elif key == "text_size":
+            self._cycle_text_size()
+        elif key == "contrast":
+            self._toggle_high_contrast()
+        elif key == "motion":
+            self._toggle_reduce_motion()
         elif key == "save":
             self._save()
         elif key == "back":
@@ -162,6 +187,32 @@ class SettingsScreen(Screen):
         self._apply_settings()
         self.message = tr("Restart applies window mode", self.settings.lang)
 
+    def _cycle_text_size(self) -> None:
+        current = (
+            TEXT_SIZES.index(self.settings.text_size)
+            if self.settings.text_size in TEXT_SIZES
+            else 0
+        )
+        self.settings = replace(
+            self.settings,
+            text_size=TEXT_SIZES[(current + 1) % len(TEXT_SIZES)],
+        ).normalized()
+        self._apply_settings()
+
+    def _toggle_high_contrast(self) -> None:
+        self.settings = replace(
+            self.settings,
+            high_contrast=not self.settings.high_contrast,
+        ).normalized()
+        self._apply_settings()
+
+    def _toggle_reduce_motion(self) -> None:
+        self.settings = replace(
+            self.settings,
+            reduce_motion=not self.settings.reduce_motion,
+        ).normalized()
+        self._apply_settings()
+
     def _save(self) -> None:
         try:
             self.store.save(self.settings)
@@ -176,6 +227,8 @@ class SettingsScreen(Screen):
 
     def _apply_settings(self) -> None:
         self.fonts.set_lang(self.settings.lang)
+        if hasattr(self.fonts, "set_text_size"):
+            self.fonts.set_text_size(self.settings.text_size)
         if self.audio is not None:
             self.audio.set_volumes(self.settings.bgm_volume, self.settings.sfx_volume)
         if self.apply_settings is not None:

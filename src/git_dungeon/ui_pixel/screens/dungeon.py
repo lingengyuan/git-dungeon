@@ -103,6 +103,8 @@ class DungeonScreen(Screen):
             self.audio.play_bgm("chapter")
 
     def update(self, dt: float) -> ScreenAction | None:
+        if getattr(self.settings, "reduce_motion", False):
+            return None
         self.anim_time += dt
         return None
 
@@ -496,6 +498,8 @@ class DungeonScreen(Screen):
         return int(getattr(chapter, "chapter_index", 0) or 0)
 
     def _chapter_accent(self) -> tuple[int, int, int]:
+        if getattr(self.settings, "high_contrast", False):
+            return TEXT
         return CHAPTER_ACCENTS[self._chapter_index() % len(CHAPTER_ACCENTS)]
 
     def _draw_key_status(self, surface: Any) -> None:

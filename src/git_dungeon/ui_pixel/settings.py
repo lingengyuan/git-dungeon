@@ -11,6 +11,21 @@ from git_dungeon.i18n import normalize_lang
 
 LANGUAGES = ("en", "zh_CN")
 WINDOW_MODES = ("windowed", "fullscreen")
+TEXT_SIZES = ("normal", "large")
+
+
+def _setting_bool(value: object, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return bool(value)
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "1", "yes", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "off"}:
+            return False
+    return default
 
 
 @dataclass(frozen=True)
@@ -19,18 +34,25 @@ class PixelSettings:
     sfx_volume: int = 70
     lang: str = "en"
     window_mode: str = "windowed"
+    text_size: str = "normal"
+    high_contrast: bool = False
+    reduce_motion: bool = False
 
     def normalized(self) -> "PixelSettings":
         lang = normalize_lang(self.lang)
         if lang not in LANGUAGES:
             lang = "en"
         window_mode = self.window_mode if self.window_mode in WINDOW_MODES else "windowed"
+        text_size = self.text_size if self.text_size in TEXT_SIZES else "normal"
         return replace(
             self,
             bgm_volume=max(0, min(100, int(self.bgm_volume))),
             sfx_volume=max(0, min(100, int(self.sfx_volume))),
             lang=lang,
             window_mode=window_mode,
+            text_size=text_size,
+            high_contrast=bool(self.high_contrast),
+            reduce_motion=bool(self.reduce_motion),
         )
 
 
@@ -68,6 +90,15 @@ class PixelSettingsStore:
                 sfx_volume=int(settings_data.get("sfx_volume", default.sfx_volume)),
                 lang=str(settings_data.get("lang", default.lang)),
                 window_mode=str(settings_data.get("window_mode", default.window_mode)),
+                text_size=str(settings_data.get("text_size", default.text_size)),
+                high_contrast=_setting_bool(
+                    settings_data.get("high_contrast", default.high_contrast),
+                    default.high_contrast,
+                ),
+                reduce_motion=_setting_bool(
+                    settings_data.get("reduce_motion", default.reduce_motion),
+                    default.reduce_motion,
+                ),
             ).normalized()
         except Exception as exc:
             return SettingsLoadResult(default, self.path, f"settings damaged: {exc}")
@@ -85,5 +116,8 @@ class PixelSettingsStore:
             f"sfx_volume = {normalized.sfx_volume}\n"
             f'lang = "{normalized.lang}"\n'
             f'window_mode = "{normalized.window_mode}"\n'
+            f'text_size = "{normalized.text_size}"\n'
+            f"high_contrast = {str(normalized.high_contrast).lower()}\n"
+            f"reduce_motion = {str(normalized.reduce_motion).lower()}\n"
         )
         self.path.write_text(text, encoding="utf-8")

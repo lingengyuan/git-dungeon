@@ -59,6 +59,8 @@ class TitleScreen(Screen):
             self.audio.play_bgm("title")
 
     def update(self, dt: float) -> ScreenAction | None:
+        if getattr(self.settings, "reduce_motion", False):
+            return None
         self.anim_time += dt
         return None
 
@@ -109,15 +111,16 @@ class TitleScreen(Screen):
     def draw(self, surface: Any) -> None:
         lang = self._lang()
         surface.fill(BG)
+        accent = TEXT if getattr(self.settings, "high_contrast", False) else ACCENT
         self._draw_backdrop(surface)
-        draw_panel(self.pygame, surface, (18, 14, 284, 152))
+        draw_panel(self.pygame, surface, (18, 14, 284, 152), border=accent)
         self.assets.draw(surface, "title_banner", TITLE_BANNER_RECT)
         self.fonts.draw_fit(
             surface,
             "GIT DUNGEON",
             TITLE_LOGO_POS,
             TITLE_LOGO_WIDTH,
-            ACCENT,
+            accent,
             TITLE_LOGO_SIZE,
         )
         self.fonts.draw_fit(
@@ -195,6 +198,8 @@ class TitleScreen(Screen):
     def _apply_settings(self, settings: Any) -> None:
         self.settings = settings
         self.fonts.set_lang(settings.lang)
+        if hasattr(self.fonts, "set_text_size"):
+            self.fonts.set_text_size(settings.text_size)
         if self.audio is not None:
             self.audio.set_volumes(settings.bgm_volume, settings.sfx_volume)
 

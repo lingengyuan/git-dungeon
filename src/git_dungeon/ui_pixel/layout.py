@@ -18,7 +18,7 @@ def window_to_logical(
     if win_w <= 0 or win_h <= 0 or logical_w <= 0 or logical_h <= 0:
         raise ValueError("window and logical sizes must be positive")
 
-    scale = min(win_w / logical_w, win_h / logical_h)
+    scale = _pixel_scale(window_size, logical_size)
     scaled_w = int(logical_w * scale)
     scaled_h = int(logical_h * scale)
     offset_x = (win_w - scaled_w) // 2
@@ -42,7 +42,19 @@ def scale_rect(
     """Return the destination rect for drawing logical canvas into a window."""
     logical_w, logical_h = logical_size
     win_w, win_h = window_size
-    scale = min(win_w / logical_w, win_h / logical_h)
+    scale = _pixel_scale(window_size, logical_size)
     scaled_w = int(logical_w * scale)
     scaled_h = int(logical_h * scale)
     return ((win_w - scaled_w) // 2, (win_h - scaled_h) // 2, scaled_w, scaled_h)
+
+
+def _pixel_scale(
+    window_size: tuple[int, int],
+    logical_size: tuple[int, int],
+) -> float:
+    win_w, win_h = window_size
+    logical_w, logical_h = logical_size
+    integer_scale = min(win_w // logical_w, win_h // logical_h)
+    if integer_scale >= 1:
+        return float(integer_scale)
+    return min(win_w / logical_w, win_h / logical_h)

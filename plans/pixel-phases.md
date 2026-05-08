@@ -1,7 +1,7 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：Phase 0-17 已完成最小闭环、首批体验修复、统一 UI/玩家语言层、gpt-image-2 地牢/战斗/非战斗/主题素材流水线、tile 场景重做、战斗表现补强、非战斗地点重做和主题统一（截至 2026-05-08）；后续按 `plans/pixel-stardew-level-repair-plan.md` 进入 Phase 18 最终视觉回归
+> **状态**：Phase 0-18 已完成最小闭环、首批体验修复、统一 UI/玩家语言层、gpt-image-2 地牢/战斗/非战斗/主题素材流水线、tile 场景重做、战斗表现补强、非战斗地点重做、主题统一和最终视觉回归（截至 2026-05-08）；后续若继续打磨，先读 `plans/pixel-phase18-final-playtest.md` 的延期项
 > **作用**：Phase 0-18 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
@@ -40,7 +40,7 @@
 | Phase 15 | 战斗表现补强 | `pixel-game-issues.md` 战斗体验 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-15-handoff.md) |
 | Phase 16 | 非战斗场景和玩家文案 | `pixel-game-issues.md` 商店/事件/休息/标题流程 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-16-handoff.md) |
 | Phase 17 | 美术、动画和音乐方向统一 | `pixel-game-issues.md` 美术/音频/主题 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-17-handoff.md) |
-| Phase 18 | 视觉回归保护 | `pixel-game-issues.md` 测试/可访问性/输入 | 未开始 | 待回填 |
+| Phase 18 | 视觉回归保护 | `pixel-game-issues.md` 测试/可访问性/输入 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-18-handoff.md) |
 
 ---
 
@@ -452,6 +452,20 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeo
 
 ---
 
+## Phase 18 — 视觉回归和最终试玩验收
+
+详见 `plans/pixel-stardew-level-repair-plan.md` 和 `plans/pixel-phase18-final-playtest.md`。本阶段把截图检查、窗口缩放、玩家语言回归和可访问性基础选项沉淀为测试与文档。
+
+**状态**：已完成，交接文档见 `handoffs/2026-05-08-pixel-phase-18-handoff.md`。
+
+**关键交付**：
+- `scripts/render_pixel_screens.py` 可生成中英文标题、地牢、战斗、事件、商店、休息、设置截图。
+- `tests/unit/test_pixel_phase18.py` 覆盖截图脚本、常见窗口缩放和可访问性设置。
+- `plans/pixel-phase18-final-playtest.md` 记录最终截图复查、P0/P1/P2 关闭与延期清单。
+- `PixelSettings` 支持文字大小、高对比、减少动画。
+
+---
+
 ## 跨 Phase 强制约束（每个 phase 都要满足）
 
 引自 CLAUDE.md「Project Principles」与源 plan：
@@ -492,3 +506,4 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeo
 | 2026-05-08 | Phase 15 收口，回填 handoff 链接 | Codex GPT Image 2 战斗素材、普通战/首领战场景、动作反馈和中文字段清理完成 |
 | 2026-05-08 | Phase 16 收口，回填 handoff 链接 | 非战斗地点素材、事件/商店/休息场景、商品标题和风险标签清理完成 |
 | 2026-05-08 | Phase 17 收口，回填 handoff 链接 | 标题主题素材、Git 世界物件、章节调色、基础动效和 BGM 响度记录完成 |
+| 2026-05-08 | Phase 18 收口，回填 handoff 链接 | 截图回归脚本、整数倍缩放、可访问性基础选项和最终问题清单完成 |
