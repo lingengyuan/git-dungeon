@@ -1,0 +1,23 @@
+{
+  "phase": "phase16",
+  "source": "codex_builtin_gpt_image_2",
+  "prompt_file": "assets/source_prompts/phase16/noncombat_sheet.md",
+  "raw_file": "assets/generated/raw/phase16/noncombat_sheet.png",
+  "contact_sheet": "assets/generated/contact_sheets/phase16_noncombat.png",
+  "generated_at": "2026-05-08",
+  "license_note": "generated project asset; keep prompt, raw output, processed output, and asset card together",
+  "sheet": {
+    "columns": 4,
+    "rows": 2
+  },
+  "assets": [
+    {"id": "event_shrine", "cell": [0, 0], "size": [32, 32]},
+    {"id": "event_terminal_ruin", "cell": [1, 0], "size": [32, 32]},
+    {"id": "shopkeeper", "cell": [2, 0], "size": [32, 32]},
+    {"id": "shop_counter", "cell": [3, 0], "size": [32, 32]},
+    {"id": "rest_campfire", "cell": [0, 1], "size": [32, 32]},
+    {"id": "rest_shrine", "cell": [1, 1], "size": [32, 32]},
+    {"id": "choice_icon_risk", "cell": [2, 1], "size": [32, 32]},
+    {"id": "choice_icon_reward", "cell": [3, 1], "size": [32, 32]}
+  ]
+}

@@ -23,8 +23,21 @@ from git_dungeon.ui_pixel.widgets import (
     Button,
     draw_action_bar,
     draw_choice_card,
+    draw_location_stage,
     draw_panel,
 )
+
+EVENT_STAGE_RECT = (22, 24, 276, 50)
+EVENT_GROUND_Y = 62
+EVENT_LOCATION_RECT = (34, 36, 34, 34)
+EVENT_TITLE_POS = (78, 31)
+EVENT_DESC_POS = (78, 51)
+EVENT_CHOICE_X = 30
+EVENT_CHOICE_Y = 80
+EVENT_CHOICE_GAP = 24
+EVENT_CHOICE_RECT = (EVENT_CHOICE_X, EVENT_CHOICE_Y, 188, 23)
+EVENT_BUTTON_X = 234
+EVENT_BUTTON_Y = 83
 
 
 class EventScreen(Screen):
@@ -72,26 +85,33 @@ class EventScreen(Screen):
         surface.fill(BG)
         lang = self._lang()
         draw_panel(self.pygame, surface, (14, 14, 292, 138))
-        self.assets.draw(surface, "node_event", (28, 28, 24, 24))
-        self.fonts.draw(surface, tr("EVENT", lang), (62, 28), ACCENT, 22)
+        draw_location_stage(
+            self.pygame,
+            surface,
+            self.assets,
+            EVENT_STAGE_RECT,
+            ground_y=EVENT_GROUND_Y,
+        )
+        self.assets.draw(surface, self._location_sprite(), EVENT_LOCATION_RECT)
+        self.fonts.draw(surface, tr("EVENT", lang), EVENT_TITLE_POS, ACCENT, 22)
 
         if not self.event:
             self.fonts.draw(surface, tr(self.error, lang), (32, 78), BAD, 16)
             return
 
         self.fonts.draw_fit(
-            surface, event_title(self.event.event_id, lang), (62, 50), 190, TEXT, 15
+            surface, event_title(self.event.event_id, lang), (176, 33), 102, TEXT, 13
         )
         self.fonts.draw_fit(
             surface,
             event_description(self.event.event_id, lang),
-            (32, 66),
-            210,
+            EVENT_DESC_POS,
+            194,
             MUTED,
-            13,
+            12,
         )
         for choice in self.event.choices:
-            rect = (30, 80 + choice.index * 24, 188, 23)
+            rect = (EVENT_CHOICE_X, EVENT_CHOICE_Y + choice.index * EVENT_CHOICE_GAP, 188, 23)
             button = self._buttons()[choice.index]
             detail = event_effect_preview(choice.effects, lang)
             draw_choice_card(
@@ -99,9 +119,14 @@ class EventScreen(Screen):
                 surface,
                 self.fonts,
                 rect,
-                event_choice_label(choice.index, choice.effects, lang),
+                f"  {event_choice_label(choice.index, choice.effects, lang)}",
                 detail,
                 hover=button.contains(self.hover_pos),
+            )
+            self.assets.draw(
+                surface,
+                self._choice_sprite(choice.effects),
+                (rect[0] + 5, rect[1] + 4, 14, 14),
             )
 
         for button in self._buttons().values():
@@ -117,9 +142,27 @@ class EventScreen(Screen):
         if not self.event:
             return {}
         return {
-            choice.index: Button((234, 83 + choice.index * 24, 48, 18), tr("Pick", self._lang()))
+            choice.index: Button(
+                (EVENT_BUTTON_X, EVENT_BUTTON_Y + choice.index * EVENT_CHOICE_GAP, 48, 18),
+                tr("Pick", self._lang()),
+            )
             for choice in self.event.choices[:3]
         }
+
+    def _location_sprite(self) -> str:
+        if not self.event:
+            return "event_shrine"
+        event_id = str(getattr(self.event, "event_id", ""))
+        return "event_terminal_ruin" if sum(ord(char) for char in event_id) % 2 else "event_shrine"
+
+    @staticmethod
+    def _choice_sprite(effects: tuple[str, ...]) -> str:
+        risky = {"take_damage", "lose_health", "lose_gold", "trigger_battle", "start_battle"}
+        return (
+            "choice_icon_risk"
+            if any(effect in risky for effect in effects)
+            else "choice_icon_reward"
+        )
 
     def _choose(self, index: int) -> ScreenAction:
         result = self.runner.resolve_current_event(index)

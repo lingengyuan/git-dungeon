@@ -14,8 +14,22 @@ from git_dungeon.ui_pixel.widgets import (
     Button,
     draw_action_bar,
     draw_choice_card,
+    draw_location_stage,
     draw_panel,
 )
+
+REST_STAGE_RECT = (22, 24, 276, 48)
+REST_GROUND_Y = 60
+REST_CAMPFIRE_RECT = (34, 36, 36, 32)
+REST_SHRINE_RECT = (76, 34, 34, 34)
+REST_TITLE_POS = (124, 31)
+REST_DETAIL_POS = (124, 53)
+REST_OPTION_X = 28
+REST_HEAL_Y = 82
+REST_FOCUS_Y = 116
+REST_OPTION_W = 184
+REST_OPTION_H = 28
+REST_BUTTON_X = 224
 
 
 class RestScreen(Screen):
@@ -75,14 +89,27 @@ class RestScreen(Screen):
         surface.fill(BG)
         lang = self._lang()
         draw_panel(self.pygame, surface, (14, 18, 292, 136))
-        self.assets.draw(surface, "node_rest", (28, 32, 24, 24))
-        self.fonts.draw(surface, tr("REST NODE", lang), (62, 34), ACCENT, 22)
+        draw_location_stage(
+            self.pygame,
+            surface,
+            self.assets,
+            REST_STAGE_RECT,
+            ground_y=REST_GROUND_Y,
+        )
+        self.assets.draw(surface, "rest_campfire", REST_CAMPFIRE_RECT)
+        self.assets.draw(surface, "rest_shrine", REST_SHRINE_RECT)
+        self.fonts.draw(surface, tr("REST NODE", lang), REST_TITLE_POS, ACCENT, 22)
         self.fonts.draw_fit(
-            surface, tr("Pick one real state change", lang), (62, 56), 194, MUTED, 14
+            surface, tr("Pick one real state change", lang), REST_DETAIL_POS, 156, MUTED, 12
         )
 
         for option in self.runner.rest_options():
-            rect = (28, 78 if option.action == "heal" else 112, 184, 28)
+            rect = (
+                REST_OPTION_X,
+                REST_HEAL_Y if option.action == "heal" else REST_FOCUS_Y,
+                REST_OPTION_W,
+                REST_OPTION_H,
+            )
             button = self._buttons()[option.action]
             draw_choice_card(
                 self.pygame,
@@ -102,8 +129,8 @@ class RestScreen(Screen):
 
     def _buttons(self) -> dict[str, Button]:
         return {
-            "heal": Button((224, 82, 58, 18), tr("Heal", self._lang())),
-            "focus": Button((224, 116, 58, 18), tr("Focus", self._lang())),
+            "heal": Button((REST_BUTTON_X, REST_HEAL_Y + 4, 58, 18), tr("Heal", self._lang())),
+            "focus": Button((REST_BUTTON_X, REST_FOCUS_Y + 4, 58, 18), tr("Focus", self._lang())),
         }
 
     def _choose(self, action: str) -> ScreenAction | None:

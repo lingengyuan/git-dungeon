@@ -8,6 +8,7 @@ from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
 from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
 from git_dungeon.ui_pixel.text import (
     shop_offer_detail,
+    shop_offer_title,
     shop_result_feedback,
     stat_value,
     tr,
@@ -20,11 +21,23 @@ from git_dungeon.ui_pixel.widgets import (
     Button,
     draw_action_bar,
     draw_item_card,
+    draw_location_stage,
     draw_panel,
 )
 
 SHOP_SKIP_BUTTON_RECT = (236, 157, 44, 16)
 SHOP_ACTION_BAR_RESERVE = 70
+SHOP_STAGE_RECT = (22, 22, 276, 44)
+SHOP_GROUND_Y = 54
+SHOPKEEPER_RECT = (34, 30, 34, 34)
+SHOP_COUNTER_RECT = (72, 31, 50, 32)
+SHOP_OFFER_X = 28
+SHOP_OFFER_Y = 70
+SHOP_OFFER_GAP = 28
+SHOP_OFFER_W = 196
+SHOP_OFFER_H = 26
+SHOP_BUY_X = 236
+SHOP_BUY_Y = 74
 
 
 class ShopScreen(Screen):
@@ -75,15 +88,28 @@ class ShopScreen(Screen):
         surface.fill(BG)
         lang = self._lang()
         draw_panel(self.pygame, surface, (14, 12, 292, 142))
-        self.assets.draw(surface, "node_shop", (26, 24, 24, 24))
+        draw_location_stage(
+            self.pygame,
+            surface,
+            self.assets,
+            SHOP_STAGE_RECT,
+            ground_y=SHOP_GROUND_Y,
+        )
+        self.assets.draw(surface, "shopkeeper", SHOPKEEPER_RECT)
+        self.assets.draw(surface, "shop_counter", SHOP_COUNTER_RECT)
         player = self.runner.player_snapshot()
-        self.fonts.draw(surface, tr("SHOP", lang), (58, 24), ACCENT, 22)
-        self.fonts.draw_fit(surface, stat_value("gold", player.gold, lang), (202, 28), 82, TEXT, 15)
+        self.fonts.draw(surface, tr("SHOP", lang), (132, 26), ACCENT, 22)
+        self.fonts.draw_fit(surface, stat_value("gold", player.gold, lang), (202, 30), 82, TEXT, 15)
 
         for offer in self.offers:
-            rect = (28, 54 + offer.index * 31, 196, 28)
+            rect = (
+                SHOP_OFFER_X,
+                SHOP_OFFER_Y + offer.index * SHOP_OFFER_GAP,
+                SHOP_OFFER_W,
+                SHOP_OFFER_H,
+            )
             button = self._buttons()[offer.index]
-            title = f"{offer.index + 1}. {tr(offer.label, lang)}"
+            title = f"{offer.index + 1}. {shop_offer_title(offer.label, lang)}"
             detail = shop_offer_detail(offer, lang)
             draw_item_card(
                 self.pygame,
@@ -118,7 +144,7 @@ class ShopScreen(Screen):
     def _buttons(self) -> dict[int, Button]:
         return {
             offer.index: Button(
-                (236, 59 + offer.index * 31, 44, 18),
+                (SHOP_BUY_X, SHOP_BUY_Y + offer.index * SHOP_OFFER_GAP, 44, 18),
                 tr("Buy", self._lang()),
                 enabled=offer.affordable,
                 tooltip=tr("not enough gold", self._lang()),

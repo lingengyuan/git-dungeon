@@ -28,6 +28,7 @@ from git_dungeon.ui_pixel.widgets import (
     TEXT,
     Button,
     draw_action_bar,
+    draw_location_stage,
     draw_panel,
     draw_stat_bar,
     draw_tooltip,
@@ -61,9 +62,6 @@ ENEMY_DEFAULT_SPRITE = "enemy_default_git_goblin"
 FX_SLASH_SPRITE = "fx_slash"
 FX_SHIELD_SPRITE = "fx_shield"
 FX_REWARD_SPRITE = "fx_reward_drop"
-BATTLE_FLOOR_SPRITE = "tile_floor_stone"
-BATTLE_WALL_SPRITE = "tile_wall_stone"
-
 BOSS_SPRITES = (
     "boss_fix",
     "boss_refactor",
@@ -236,7 +234,9 @@ class BattleScreen(Screen):
 
         enemy_name = enemy_name_label(str(snap.enemy.name), lang)[:24]
         self.fonts.draw_fit(surface, enemy_name, BATTLE_ENEMY_NAME_POS, 94, TEXT, 13)
-        draw_stat_bar(self.pygame, surface, BATTLE_ENEMY_BAR_RECT, snap.enemy.hp, snap.enemy.max_hp, BAD)
+        draw_stat_bar(
+            self.pygame, surface, BATTLE_ENEMY_BAR_RECT, snap.enemy.hp, snap.enemy.max_hp, BAD
+        )
         self.fonts.draw_fit(
             surface,
             stat_value("hp", snap.enemy.hp, lang, snap.enemy.max_hp),
@@ -430,17 +430,13 @@ class BattleScreen(Screen):
         self.floating_texts.append(FloatingText(text=text, x=x, y=y, color=color, ttl=ttl))
 
     def _draw_scene(self, surface: Any, boss: bool) -> None:
-        self.pygame.draw.rect(surface, (22, 20, 30), BATTLE_SCENE_RECT)
-        for x in range(BATTLE_SCENE_RECT[0], BATTLE_SCENE_RECT[0] + BATTLE_SCENE_RECT[2], 16):
-            width = min(16, BATTLE_SCENE_RECT[0] + BATTLE_SCENE_RECT[2] - x)
-            self.assets.draw(surface, BATTLE_WALL_SPRITE, (x, BATTLE_SCENE_RECT[1], width, 16))
-            self.assets.draw(surface, BATTLE_FLOOR_SPRITE, (x, BATTLE_GROUND_TOP, width, 16))
-        self.pygame.draw.line(
+        draw_location_stage(
+            self.pygame,
             surface,
-            BAD if boss else ACCENT,
-            (BATTLE_SCENE_RECT[0] + 3, BATTLE_GROUND_TOP),
-            (BATTLE_SCENE_RECT[0] + BATTLE_SCENE_RECT[2] - 4, BATTLE_GROUND_TOP),
-            1,
+            self.assets,
+            BATTLE_SCENE_RECT,
+            ground_y=BATTLE_GROUND_TOP,
+            border=BAD if boss else ACCENT,
         )
         if boss:
             self.pygame.draw.rect(surface, (82, 35, 46), (238, 52, 52, 64), 1)

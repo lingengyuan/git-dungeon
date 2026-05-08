@@ -1,7 +1,7 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：Phase 0-15 已完成最小闭环、首批体验修复、统一 UI/玩家语言层、gpt-image-2 地牢/战斗素材流水线、tile 场景重做和战斗表现补强（截至 2026-05-08）；后续按 `plans/pixel-stardew-level-repair-plan.md` 进入 Phase 16 非战斗场景重做
+> **状态**：Phase 0-16 已完成最小闭环、首批体验修复、统一 UI/玩家语言层、gpt-image-2 地牢/战斗/非战斗素材流水线、tile 场景重做、战斗表现补强和非战斗地点重做（截至 2026-05-08）；后续按 `plans/pixel-stardew-level-repair-plan.md` 进入 Phase 17 主题统一
 > **作用**：Phase 0-18 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
@@ -38,7 +38,7 @@
 | Phase 14B | gpt-image-2 地牢素材流水线 | `pixel-stardew-level-repair-plan.md` | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-14b-handoff.md) |
 | Phase 14C | 地牢 tile 场景重做 | `pixel-stardew-level-repair-plan.md` | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-14c-handoff.md) |
 | Phase 15 | 战斗表现补强 | `pixel-game-issues.md` 战斗体验 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-15-handoff.md) |
-| Phase 16 | 非战斗场景和玩家文案 | `pixel-game-issues.md` 商店/事件/休息/标题流程 | 未开始 | 待回填 |
+| Phase 16 | 非战斗场景和玩家文案 | `pixel-game-issues.md` 商店/事件/休息/标题流程 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-16-handoff.md) |
 | Phase 17 | 美术、动画和音乐方向统一 | `pixel-game-issues.md` 美术/音频/主题 | 未开始 | 待回填 |
 | Phase 18 | 视觉回归保护 | `pixel-game-issues.md` 测试/可访问性/输入 | 未开始 | 待回填 |
 
@@ -416,12 +416,25 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeo
 
 详见 `plans/pixel-stardew-level-repair-plan.md`。本阶段补齐战斗 sprite sheet，把普通战和首领战改成有角色、敌人、Boss 身份、动作反馈和掉落反馈的战斗场景。
 
-**状态**：已完成，交接文档见 `handoffs/2026-05-08-pixel-phase-15-handoff.md`。下一步进入 Phase 16。
+**状态**：已完成，交接文档见 `handoffs/2026-05-08-pixel-phase-15-handoff.md`。
 
 **关键约束**：
 - 战斗表现不得改变战斗结算、CLI 自动路径或 Pixel/CLI parity。
 - 新战斗素材必须通过 prompt、raw、processed、contact sheet、asset card 和 manifest 校验。
 - 中文模式不得显示 `Battle started`、`phase_1` 等内部字段。
+
+---
+
+## Phase 16 — 非战斗场景和玩家文案
+
+详见 `plans/pixel-stardew-level-repair-plan.md`。本阶段把事件、商店、休息从数据面板改成有地点感的场景，并补齐非战斗地点素材。
+
+**状态**：已完成，交接文档见 `handoffs/2026-05-08-pixel-phase-16-handoff.md`。下一步进入 Phase 17。
+
+**关键约束**：
+- 事件、商店、休息页面不得暴露 `event_id`、`choice_id`、opcode 或英文原始商品标题。
+- 非战斗页面要使用地点素材，而不是继续只画节点图标和数据卡片。
+- 不改变事件、商店、休息的结算规则。
 
 ---
 
@@ -463,3 +476,4 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeo
 | 2026-05-08 | Phase 14B 收口，回填 handoff 链接 | Codex GPT Image 2 地牢素材、后处理、contact sheet、manifest 和校验脚本完成 |
 | 2026-05-08 | Phase 14C 收口，回填 handoff 链接 | 地牢界面接入 tile、门、走廊、陷阱、宝箱、钥匙、宝库和截图验证 |
 | 2026-05-08 | Phase 15 收口，回填 handoff 链接 | Codex GPT Image 2 战斗素材、普通战/首领战场景、动作反馈和中文字段清理完成 |
+| 2026-05-08 | Phase 16 收口，回填 handoff 链接 | 非战斗地点素材、事件/商店/休息场景、商品标题和风险标签清理完成 |

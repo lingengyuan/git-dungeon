@@ -24,6 +24,12 @@ Current accepted generated asset batches:
   - Processed sprites: `assets/generated/processed/phase15/`
   - Contact sheet: `assets/generated/contact_sheets/phase15_battle.png`
   - Asset card: `assets/generated/phase15/asset_plan.json`
+- Phase 16 non-combat location sprites:
+  - Prompt: `assets/source_prompts/phase16/noncombat_sheet.md`
+  - Raw output: `assets/generated/raw/phase16/noncombat_sheet.png`
+  - Processed sprites: `assets/generated/processed/phase16/`
+  - Contact sheet: `assets/generated/contact_sheets/phase16_noncombat.png`
+  - Asset card: `assets/generated/phase16/asset_plan.json`
 
 Run:
 
@@ -32,4 +38,6 @@ PYTHONPATH=src .venv/bin/python scripts/postprocess_pixel_assets.py --config ass
 PYTHONPATH=src .venv/bin/python scripts/verify_pixel_assets.py --asset-cards assets/generated/phase14b/asset_plan.json
 PYTHONPATH=src .venv/bin/python scripts/postprocess_pixel_assets.py --config assets/generated/phase15/asset_plan.json
 PYTHONPATH=src .venv/bin/python scripts/verify_pixel_assets.py --asset-cards assets/generated/phase15/asset_plan.json
+PYTHONPATH=src .venv/bin/python scripts/postprocess_pixel_assets.py --config assets/generated/phase16/asset_plan.json
+PYTHONPATH=src .venv/bin/python scripts/verify_pixel_assets.py --asset-cards assets/generated/phase16/asset_plan.json
 ```

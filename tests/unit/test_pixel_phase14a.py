@@ -275,6 +275,11 @@ def test_shop_bottom_bar_reserves_skip_button_space_and_draws_it_last(monkeypatc
         lambda *_args, **_kwargs: calls.append("action_bar"),
     )
     monkeypatch.setattr(
+        shop_module,
+        "draw_location_stage",
+        lambda *_args, **_kwargs: calls.append("stage"),
+    )
+    monkeypatch.setattr(
         shop_module.Button,
         "draw",
         lambda self, *_args, **_kwargs: calls.append(str(self.label)),

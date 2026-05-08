@@ -208,6 +208,29 @@ def draw_stat_bar(
     pygame.draw.rect(surface, MUTED, rect, 1)
 
 
+def draw_location_stage(
+    pygame: Any,
+    surface: Any,
+    assets: Any,
+    rect: tuple[int, int, int, int],
+    *,
+    ground_y: int,
+    border: tuple[int, int, int] = ACCENT,
+) -> None:
+    pygame.draw.rect(surface, (22, 20, 30), rect)
+    for x in range(rect[0], rect[0] + rect[2], 16):
+        width = min(16, rect[0] + rect[2] - x)
+        assets.draw(surface, "tile_wall_stone", (x, rect[1], width, 16))
+        assets.draw(surface, "tile_floor_stone", (x, ground_y, width, 16))
+    pygame.draw.line(
+        surface,
+        border,
+        (rect[0] + 3, ground_y),
+        (rect[0] + rect[2] - 4, ground_y),
+        1,
+    )
+
+
 def wrap_text(text: str, max_chars: int) -> list[str]:
     words = text.split()
     lines: list[str] = []

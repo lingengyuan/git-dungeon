@@ -365,6 +365,18 @@ def shop_offer_detail(offer: object, lang: str) -> str:
     return " / ".join(parts)
 
 
+def shop_offer_title(label: str, lang: str) -> str:
+    if lang != "zh_CN":
+        return label
+    if label.startswith("Restore ") and label.endswith(" HP"):
+        return "恢复生命"
+    if label == "Attack +2, Max HP +5, HP +5":
+        return "战斗强化"
+    if label == "Focus":
+        return "恢复魔力"
+    return tr(label, lang)
+
+
 def shop_result_feedback(message: str, lang: str) -> str:
     if message == "skip":
         return tr("Skip shop", lang)
@@ -382,19 +394,21 @@ def event_description(_event_id: str, lang: str) -> str:
 
 
 def event_choice_label(index: int, effects: tuple[str, ...], lang: str) -> str:
-    label = "Unknown choice"
-    if any(effect in effects for effect in ("heal", "upgrade_card")):
-        label = "Safe choice"
-    if any(effect in effects for effect in ("take_damage", "lose_gold")):
+    if any(
+        effect in effects
+        for effect in ("take_damage", "lose_gold", "trigger_battle", "start_battle")
+    ):
         label = "Risky choice"
-    if any(effect in effects for effect in ("gain_gold", "add_relic")):
+    elif any(effect in effects for effect in ("gain_gold", "add_relic")):
         label = "Treasure choice"
-    if "trigger_battle" in effects:
-        label = "Battle choice"
-    if "add_card" in effects:
+    elif "add_card" in effects:
         label = "Card choice"
-    if "add_relic" in effects:
+    elif "add_relic" in effects:
         label = "Relic choice"
+    elif any(effect in effects for effect in ("heal", "upgrade_card")):
+        label = "Safe choice"
+    else:
+        label = "Unknown choice"
     return f"{index + 1}. {tr(label, lang)}"
 
 
@@ -411,6 +425,7 @@ def event_effect_preview(effects: tuple[str, ...], lang: str) -> str:
         "modify_bias": "change build direction",
         "apply_status": "gain status",
         "trigger_battle": "start battle",
+        "start_battle": "start battle",
     }
     parts = [tr(labels[effect], lang) for effect in effects if effect in labels]
     return " / ".join(parts) if parts else tr("No visible change", lang)
