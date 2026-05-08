@@ -271,6 +271,8 @@ Phase 17 生成标题和主题资产：
 
 ### Phase 15：战斗场景和 Boss 身份
 
+> 状态：已完成（2026-05-08，见 `handoffs/2026-05-08-pixel-phase-15-handoff.md`）。
+
 目标：战斗不再是按钮面板，而是角色和敌人在场景里互动。
 
 交付：
@@ -357,8 +359,9 @@ Phase 17 生成标题和主题资产：
 2. Phase 14A 已完成：统一 UI kit 和玩家语言层。
 3. Phase 14B 已完成：打通 gpt-image-2 生成、后处理、contact sheet 和 manifest。
 4. Phase 14C 已完成：把地牢改成 tile 场景。
-5. Phase 15：补强战斗场景和 Boss 身份。
-6. 后续按 Phase 16-18 推进，每个 phase 完成后写 handoff、提交并推送。
+5. Phase 15 已完成：补强战斗场景和 Boss 身份。
+6. Phase 16：重做事件、商店、休息场景。
+7. 后续按 Phase 17-18 推进，每个 phase 完成后写 handoff、提交并推送。
 
 ## 8. 变更记录
 
@@ -369,3 +372,4 @@ Phase 17 生成标题和主题资产：
 | 2026-05-07 | 标记 Phase 14A 完成 | UI kit、玩家语言 formatter、运行页 action bar 和截图/测试验收已完成 |
 | 2026-05-08 | 标记 Phase 14B 完成 | Codex GPT Image 2 地牢素材流水线、asset card、contact sheet、manifest 和校验脚本已完成 |
 | 2026-05-08 | 标记 Phase 14C 完成 | 地牢 tile 场景、门/走廊/交互物件、陷阱损失提示和截图验收已完成 |
+| 2026-05-08 | 标记 Phase 15 完成 | 战斗 sprite sheet、普通战/首领战差异、攻击/防御/奖励效果和中文字段清理已完成 |

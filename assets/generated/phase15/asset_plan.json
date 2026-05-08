@@ -1,0 +1,28 @@
+{
+  "phase": "phase15",
+  "source": "codex_builtin_gpt_image_2",
+  "prompt_file": "assets/source_prompts/phase15/battle_sheet.md",
+  "raw_file": "assets/generated/raw/phase15/battle_sheet.png",
+  "contact_sheet": "assets/generated/contact_sheets/phase15_battle.png",
+  "generated_at": "2026-05-08",
+  "license_note": "generated project asset; keep prompt, raw output, processed output, and asset card together",
+  "sheet": {
+    "columns": 5,
+    "rows": 3
+  },
+  "assets": [
+    {"id": "player_idle", "cell": [0, 0], "size": [32, 32]},
+    {"id": "player_attack", "cell": [1, 0], "size": [32, 32]},
+    {"id": "player_defend", "cell": [2, 0], "size": [32, 32]},
+    {"id": "enemy_default_git_goblin", "cell": [3, 0], "size": [32, 32]},
+    {"id": "boss_fix", "cell": [4, 0], "size": [32, 32]},
+    {"id": "boss_refactor", "cell": [0, 1], "size": [32, 32]},
+    {"id": "boss_merge_conflict", "cell": [1, 1], "size": [32, 32]},
+    {"id": "boss_ci_sentinel", "cell": [2, 1], "size": [32, 32]},
+    {"id": "boss_secret_leak", "cell": [3, 1], "size": [32, 32]},
+    {"id": "boss_release_gate", "cell": [4, 1], "size": [32, 32]},
+    {"id": "fx_slash", "cell": [0, 2], "size": [32, 32]},
+    {"id": "fx_shield", "cell": [1, 2], "size": [32, 32]},
+    {"id": "fx_reward_drop", "cell": [2, 2], "size": [32, 32]}
+  ]
+}

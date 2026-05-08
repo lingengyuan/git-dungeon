@@ -10,17 +10,26 @@ Generated images do not count as in-game assets until all of these are true:
 4. A contact-sheet check confirms the sprite reads clearly at final size.
 5. `assets/manifest_sprites.json` points to the processed sprite.
 
-Current Phase 14B accepted assets live under:
+Current accepted generated asset batches:
 
-- Prompt: `assets/source_prompts/phase14b/dungeon_sheet.md`
-- Raw output: `assets/generated/raw/phase14b/dungeon_sheet.png`
-- Processed sprites: `assets/generated/processed/phase14b/`
-- Contact sheet: `assets/generated/contact_sheets/phase14b_dungeon.png`
-- Asset card: `assets/generated/phase14b/asset_plan.json`
+- Phase 14B dungeon tiles:
+  - Prompt: `assets/source_prompts/phase14b/dungeon_sheet.md`
+  - Raw output: `assets/generated/raw/phase14b/dungeon_sheet.png`
+  - Processed sprites: `assets/generated/processed/phase14b/`
+  - Contact sheet: `assets/generated/contact_sheets/phase14b_dungeon.png`
+  - Asset card: `assets/generated/phase14b/asset_plan.json`
+- Phase 15 battle sprites:
+  - Prompt: `assets/source_prompts/phase15/battle_sheet.md`
+  - Raw output: `assets/generated/raw/phase15/battle_sheet.png`
+  - Processed sprites: `assets/generated/processed/phase15/`
+  - Contact sheet: `assets/generated/contact_sheets/phase15_battle.png`
+  - Asset card: `assets/generated/phase15/asset_plan.json`
 
 Run:
 
 ```bash
 PYTHONPATH=src .venv/bin/python scripts/postprocess_pixel_assets.py --config assets/generated/phase14b/asset_plan.json
 PYTHONPATH=src .venv/bin/python scripts/verify_pixel_assets.py --asset-cards assets/generated/phase14b/asset_plan.json
+PYTHONPATH=src .venv/bin/python scripts/postprocess_pixel_assets.py --config assets/generated/phase15/asset_plan.json
+PYTHONPATH=src .venv/bin/python scripts/verify_pixel_assets.py --asset-cards assets/generated/phase15/asset_plan.json
 ```

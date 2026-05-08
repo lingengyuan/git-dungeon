@@ -31,11 +31,32 @@
       "credit": "Codex built-in GPT Image 2",
       "license": "generated project asset",
       "contact_sheet": "assets/generated/contact_sheets/phase14b_dungeon.png"
+    },
+    {
+      "id": "gpt_image_2_phase15",
+      "root": "assets/generated/processed/phase15",
+      "tile_size": 32,
+      "credit": "Codex built-in GPT Image 2",
+      "license": "generated project asset",
+      "contact_sheet": "assets/generated/contact_sheets/phase15_battle.png"
     }
   ],
   "sprites": {
     "player_default": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0085.png",
     "enemy_default": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0108.png",
+    "player_idle": "assets/generated/processed/phase15/player_idle.png",
+    "player_attack": "assets/generated/processed/phase15/player_attack.png",
+    "player_defend": "assets/generated/processed/phase15/player_defend.png",
+    "enemy_default_git_goblin": "assets/generated/processed/phase15/enemy_default_git_goblin.png",
+    "boss_fix": "assets/generated/processed/phase15/boss_fix.png",
+    "boss_refactor": "assets/generated/processed/phase15/boss_refactor.png",
+    "boss_merge_conflict": "assets/generated/processed/phase15/boss_merge_conflict.png",
+    "boss_ci_sentinel": "assets/generated/processed/phase15/boss_ci_sentinel.png",
+    "boss_secret_leak": "assets/generated/processed/phase15/boss_secret_leak.png",
+    "boss_release_gate": "assets/generated/processed/phase15/boss_release_gate.png",
+    "fx_slash": "assets/generated/processed/phase15/fx_slash.png",
+    "fx_shield": "assets/generated/processed/phase15/fx_shield.png",
+    "fx_reward_drop": "assets/generated/processed/phase15/fx_reward_drop.png",
 
     "node_battle": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0103.png",
     "node_event": "assets/sprites/kenney_tiny_dungeon/Tiles/tile_0090.png",

@@ -58,7 +58,7 @@ PIXEL_TEXT = {
         "Press Q again to close game": "再次按 Q 关闭游戏",
         "BATTLE": "战斗",
         "ELITE": "精英",
-        "BOSS": "Boss",
+        "BOSS": "首领",
         "Turn": "回合",
         "Developer": "开发者",
         "Attack": "攻击",
@@ -166,6 +166,16 @@ STAT_LABELS = {
     },
 }
 
+ENEMY_NAME_LABELS = {
+    "zh_CN": {
+        "Git Goblin": "Git 小怪",
+        "Merge Conflict": "合并冲突",
+        "Legacy Code": "遗留代码",
+        "Infinite Loop": "无限循环",
+        "Production Bug": "生产缺陷",
+    }
+}
+
 
 def tr(text: str, lang: str) -> str:
     if lang != "zh_CN":
@@ -211,6 +221,35 @@ def stat_value(stat: str, current: int, lang: str, maximum: int | None = None) -
 
 def stat_delta(stat: str, amount: int, lang: str) -> str:
     return f"{stat_label(stat, lang)} {amount:+d}"
+
+
+def enemy_name_label(name: str, lang: str) -> str:
+    if lang != "zh_CN":
+        return name
+    if name.startswith("Elite "):
+        return f"{tr('ELITE', lang)} {enemy_name_label(name.removeprefix('Elite '), lang)}"
+    labels = ENEMY_NAME_LABELS["zh_CN"]
+    if name in labels:
+        return labels[name]
+    if name.startswith("Feature: "):
+        return name.replace("Feature: ", "功能：", 1)
+    if name.startswith("Bug: "):
+        return name.replace("Bug: ", "缺陷：", 1)
+    if name.startswith("Docs: "):
+        return name.replace("Docs: ", "文档：", 1)
+    return name
+
+
+def boss_phase_label(phase: str, lang: str) -> str:
+    if not phase:
+        return ""
+    if lang != "zh_CN":
+        return phase.replace("_", " ").title()
+    if phase.startswith("phase_") and phase.removeprefix("phase_").isdigit():
+        return f"阶段 {phase.removeprefix('phase_')}"
+    if phase == "enraged":
+        return "狂暴"
+    return phase.replace("_", " ")
 
 
 def key_label(key_id: str | None, lang: str) -> str:

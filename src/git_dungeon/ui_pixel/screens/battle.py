@@ -13,6 +13,8 @@ from git_dungeon.ui_pixel.text import (
     audio_label,
     battle_reward_feedback,
     battle_reward_float,
+    boss_phase_label,
+    enemy_name_label,
     skill_cost_text,
     stat_value,
     tr,
@@ -49,6 +51,44 @@ BATTLE_ENEMY_STAT_WIDTH = 66
 BATTLE_BUTTON_TOP = 134
 BATTLE_BUTTON_HEIGHT = 14
 BATTLE_ACTION_BAR_RECT = (18, 151, 274, 15)
+BATTLE_SCENE_RECT = (18, 38, 284, 88)
+BATTLE_GROUND_TOP = 112
+
+PLAYER_IDLE_SPRITE = "player_idle"
+PLAYER_ATTACK_SPRITE = "player_attack"
+PLAYER_DEFEND_SPRITE = "player_defend"
+ENEMY_DEFAULT_SPRITE = "enemy_default_git_goblin"
+FX_SLASH_SPRITE = "fx_slash"
+FX_SHIELD_SPRITE = "fx_shield"
+FX_REWARD_SPRITE = "fx_reward_drop"
+BATTLE_FLOOR_SPRITE = "tile_floor_stone"
+BATTLE_WALL_SPRITE = "tile_wall_stone"
+
+BOSS_SPRITES = (
+    "boss_fix",
+    "boss_refactor",
+    "boss_merge_conflict",
+    "boss_ci_sentinel",
+    "boss_secret_leak",
+    "boss_release_gate",
+)
+
+BOSS_NAME_SPRITES = {
+    "production": "boss_fix",
+    "bug": "boss_fix",
+    "legacy": "boss_refactor",
+    "refactor": "boss_refactor",
+    "merge": "boss_merge_conflict",
+    "conflict": "boss_merge_conflict",
+    "ci": "boss_ci_sentinel",
+    "loop": "boss_ci_sentinel",
+    "sentinel": "boss_ci_sentinel",
+    "secret": "boss_secret_leak",
+    "leak": "boss_secret_leak",
+    "release": "boss_release_gate",
+    "gate": "boss_release_gate",
+    "tag": "boss_release_gate",
+}
 
 
 @dataclass
@@ -78,12 +118,13 @@ class BattleScreen(Screen):
         self.settings = settings
         self.hover_pos: tuple[int, int] | None = None
         self.snapshot = runner.start_current_battle()
-        self.message = self.snapshot.message
+        self.message = tr(self.snapshot.message, self._lang())
         self.enemy_flash_timer = 0.0
         self.player_flash_timer = 0.0
         self.shield_timer = 0.0
         self.critical_timer = 0.0
         self.enemy_fade_timer = 0.0
+        self.player_attack_timer = 0.0
         self.floating_texts: list[FloatingText] = []
         self.pending_action: ScreenAction | None = None
         self.finish_timer = 0.0
@@ -125,6 +166,7 @@ class BattleScreen(Screen):
         self.shield_timer = max(0.0, self.shield_timer - dt)
         self.critical_timer = max(0.0, self.critical_timer - dt)
         self.enemy_fade_timer = max(0.0, self.enemy_fade_timer - dt)
+        self.player_attack_timer = max(0.0, self.player_attack_timer - dt)
         for item in self.floating_texts:
             item.ttl -= dt
             item.y -= 18 * dt
@@ -150,7 +192,8 @@ class BattleScreen(Screen):
         )
         self.fonts.draw(surface, f"{tr('Turn', lang)} {snap.turn}", (244, 24), MUTED, 14)
 
-        self.assets.draw(surface, "player_default", BATTLE_PLAYER_SPRITE_RECT)
+        self._draw_scene(surface, snap.enemy.is_boss)
+        self.assets.draw(surface, self._player_sprite_id(), BATTLE_PLAYER_SPRITE_RECT)
         enemy_alpha = 255
         if self.enemy_fade_timer > 0:
             enemy_alpha = max(70, int(255 * self.enemy_fade_timer / 0.55))
@@ -161,7 +204,8 @@ class BattleScreen(Screen):
             BATTLE_ENEMY_SPRITE_RECT[2],
             BATTLE_ENEMY_SPRITE_RECT[3],
         )
-        self._draw_sprite(surface, "enemy_default", enemy_rect, alpha=enemy_alpha)
+        self._draw_sprite(surface, self._enemy_sprite_id(snap.enemy), enemy_rect, alpha=enemy_alpha)
+        self._draw_combat_fx(surface)
         if self.enemy_flash_timer > 0:
             self.pygame.draw.rect(surface, BAD, BATTLE_ENEMY_HIT_RECT, 1)
         if self.player_flash_timer > 0:
@@ -190,7 +234,7 @@ class BattleScreen(Screen):
             10,
         )
 
-        enemy_name = snap.enemy.name[:24]
+        enemy_name = enemy_name_label(str(snap.enemy.name), lang)[:24]
         self.fonts.draw_fit(surface, enemy_name, BATTLE_ENEMY_NAME_POS, 94, TEXT, 13)
         draw_stat_bar(self.pygame, surface, BATTLE_ENEMY_BAR_RECT, snap.enemy.hp, snap.enemy.max_hp, BAD)
         self.fonts.draw_fit(
@@ -212,7 +256,7 @@ class BattleScreen(Screen):
         if snap.enemy.phase:
             self.fonts.draw_fit(
                 surface,
-                snap.enemy.phase,
+                boss_phase_label(str(snap.enemy.phase), lang),
                 BATTLE_ENEMY_PHASE_POS,
                 BATTLE_ENEMY_STAT_WIDTH,
                 BAD,
@@ -282,6 +326,8 @@ class BattleScreen(Screen):
         result, snapshot = self.runner.resolve_battle_action(action)
         self.snapshot = snapshot
         self.message = _message_for_result(result, snapshot, self._lang())
+        if result.accepted and action in {ACTION_ATTACK, ACTION_SKILL}:
+            self.player_attack_timer = 0.25
         self._queue_feedback(result)
         if result.player_damage > 0 or result.critical:
             self.enemy_flash_timer = 0.18
@@ -382,6 +428,46 @@ class BattleScreen(Screen):
         ttl: float = 0.7,
     ) -> None:
         self.floating_texts.append(FloatingText(text=text, x=x, y=y, color=color, ttl=ttl))
+
+    def _draw_scene(self, surface: Any, boss: bool) -> None:
+        self.pygame.draw.rect(surface, (22, 20, 30), BATTLE_SCENE_RECT)
+        for x in range(BATTLE_SCENE_RECT[0], BATTLE_SCENE_RECT[0] + BATTLE_SCENE_RECT[2], 16):
+            width = min(16, BATTLE_SCENE_RECT[0] + BATTLE_SCENE_RECT[2] - x)
+            self.assets.draw(surface, BATTLE_WALL_SPRITE, (x, BATTLE_SCENE_RECT[1], width, 16))
+            self.assets.draw(surface, BATTLE_FLOOR_SPRITE, (x, BATTLE_GROUND_TOP, width, 16))
+        self.pygame.draw.line(
+            surface,
+            BAD if boss else ACCENT,
+            (BATTLE_SCENE_RECT[0] + 3, BATTLE_GROUND_TOP),
+            (BATTLE_SCENE_RECT[0] + BATTLE_SCENE_RECT[2] - 4, BATTLE_GROUND_TOP),
+            1,
+        )
+        if boss:
+            self.pygame.draw.rect(surface, (82, 35, 46), (238, 52, 52, 64), 1)
+
+    def _draw_combat_fx(self, surface: Any) -> None:
+        if self.player_attack_timer > 0 or self.critical_timer > 0:
+            self.assets.draw(surface, FX_SLASH_SPRITE, (226, 72, 36, 36))
+        if self.shield_timer > 0:
+            self.assets.draw(surface, FX_SHIELD_SPRITE, BATTLE_PLAYER_SHIELD_RECT)
+        if self.enemy_fade_timer > 0:
+            self.assets.draw(surface, FX_REWARD_SPRITE, (134, 78, 32, 32))
+
+    def _player_sprite_id(self) -> str:
+        if self.shield_timer > 0:
+            return PLAYER_DEFEND_SPRITE
+        if self.player_attack_timer > 0:
+            return PLAYER_ATTACK_SPRITE
+        return PLAYER_IDLE_SPRITE
+
+    def _enemy_sprite_id(self, enemy: Any) -> str:
+        if not enemy.is_boss:
+            return ENEMY_DEFAULT_SPRITE
+        name = str(enemy.name).lower()
+        for token, sprite_id in BOSS_NAME_SPRITES.items():
+            if token in name:
+                return sprite_id
+        return BOSS_SPRITES[sum(ord(char) for char in name) % len(BOSS_SPRITES)]
 
     def _draw_sprite(
         self,

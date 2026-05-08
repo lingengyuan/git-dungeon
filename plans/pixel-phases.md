@@ -1,7 +1,7 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：Phase 0-14C 已完成最小闭环、首批体验修复、统一 UI/玩家语言层、gpt-image-2 地牢素材流水线和 tile 场景重做（截至 2026-05-08）；后续按 `plans/pixel-stardew-level-repair-plan.md` 进入 Phase 15 战斗表现补强
+> **状态**：Phase 0-15 已完成最小闭环、首批体验修复、统一 UI/玩家语言层、gpt-image-2 地牢/战斗素材流水线、tile 场景重做和战斗表现补强（截至 2026-05-08）；后续按 `plans/pixel-stardew-level-repair-plan.md` 进入 Phase 16 非战斗场景重做
 > **作用**：Phase 0-18 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
@@ -37,7 +37,7 @@
 | Phase 14A | 统一 UI kit 和玩家语言层 | `pixel-stardew-level-repair-plan.md` | ✅ 完成 (2026-05-07) | [2026-05-07](../handoffs/2026-05-07-pixel-phase-14a-handoff.md) |
 | Phase 14B | gpt-image-2 地牢素材流水线 | `pixel-stardew-level-repair-plan.md` | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-14b-handoff.md) |
 | Phase 14C | 地牢 tile 场景重做 | `pixel-stardew-level-repair-plan.md` | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-14c-handoff.md) |
-| Phase 15 | 战斗表现补强 | `pixel-game-issues.md` 战斗体验 | 未开始 | 待回填 |
+| Phase 15 | 战斗表现补强 | `pixel-game-issues.md` 战斗体验 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-15-handoff.md) |
 | Phase 16 | 非战斗场景和玩家文案 | `pixel-game-issues.md` 商店/事件/休息/标题流程 | 未开始 | 待回填 |
 | Phase 17 | 美术、动画和音乐方向统一 | `pixel-game-issues.md` 美术/音频/主题 | 未开始 | 待回填 |
 | Phase 18 | 视觉回归保护 | `pixel-game-issues.md` 测试/可访问性/输入 | 未开始 | 待回填 |
@@ -403,12 +403,25 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeo
 
 详见 `plans/pixel-stardew-level-repair-plan.md`。Phase 14 不再只做 tile 表现，而是拆成 14A/14B/14C：先统一 UI kit 和玩家语言层，再生成并验证地牢基础素材，最后把地牢从节点图重做成 tile 场景。
 
-**状态**：Phase 14A、Phase 14B 和 Phase 14C 已完成，交接文档见 `handoffs/2026-05-07-pixel-phase-14a-handoff.md`、`handoffs/2026-05-08-pixel-phase-14b-handoff.md` 与 `handoffs/2026-05-08-pixel-phase-14c-handoff.md`。下一步进入 Phase 15。
+**状态**：Phase 14A、Phase 14B 和 Phase 14C 已完成，交接文档见 `handoffs/2026-05-07-pixel-phase-14a-handoff.md`、`handoffs/2026-05-08-pixel-phase-14b-handoff.md` 与 `handoffs/2026-05-08-pixel-phase-14c-handoff.md`。
 
 **关键约束**：
 - 未通过 asset card、contact sheet 和 manifest 校验的 AI 图不得接入运行时。
 - 所有玩家可见文案必须走统一 formatter，禁止 screen 自己拼内部字段。
 - tile 表现不得改变 CLI 自动路径和主线结算。
+
+---
+
+## Phase 15 — 战斗表现补强
+
+详见 `plans/pixel-stardew-level-repair-plan.md`。本阶段补齐战斗 sprite sheet，把普通战和首领战改成有角色、敌人、Boss 身份、动作反馈和掉落反馈的战斗场景。
+
+**状态**：已完成，交接文档见 `handoffs/2026-05-08-pixel-phase-15-handoff.md`。下一步进入 Phase 16。
+
+**关键约束**：
+- 战斗表现不得改变战斗结算、CLI 自动路径或 Pixel/CLI parity。
+- 新战斗素材必须通过 prompt、raw、processed、contact sheet、asset card 和 manifest 校验。
+- 中文模式不得显示 `Battle started`、`phase_1` 等内部字段。
 
 ---
 
@@ -419,7 +432,7 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeo
 1. **CLI 路径不破坏**：所有 phase 验收都必须包含「同 seed 下 CLI `--auto` 行为不变」检查。
 2. **确定性**：禁止全局 `random` / `time.time()`；走 `engine.rng.DefaultRNG(seed=…)`。
 3. **禁止掩盖性 fallback**：缺资源、配置损坏、音频设备缺失等必须显式可见。
-4. **Phase 完成 → 写 handoff**：路径 `handoffs/<YYYY-MM-DD>-<phase-id>-handoff.md`，5 节必填（见 `handoffs/README.md`）。回填本文件「Phase 表」对应行的 Handoff 列。
+4. **Phase 完成 → 写 handoff、提交并推送**：路径 `handoffs/<YYYY-MM-DD>-<phase-id>-handoff.md`，5 节必填（见 `handoffs/README.md`）。回填本文件「Phase 表」对应行的 Handoff 列，并按 AGENTS.md 第 7 条提交、推送到 GitHub。
 5. **MiMo 边界**：MiMo 不碰 GameRunner、engine、CLI 入口、奖励/章节/Boss 流程；超过 3 个无关模块的改动一律不让 MiMo 做。
 
 ---
@@ -449,3 +462,4 @@ SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeo
 | 2026-05-07 | Phase 14A 收口，回填 handoff 链接 | 统一 UI kit、玩家语言 formatter、运行页 action bar 和可读性回归 |
 | 2026-05-08 | Phase 14B 收口，回填 handoff 链接 | Codex GPT Image 2 地牢素材、后处理、contact sheet、manifest 和校验脚本完成 |
 | 2026-05-08 | Phase 14C 收口，回填 handoff 链接 | 地牢界面接入 tile、门、走廊、陷阱、宝箱、钥匙、宝库和截图验证 |
+| 2026-05-08 | Phase 15 收口，回填 handoff 链接 | Codex GPT Image 2 战斗素材、普通战/首领战场景、动作反馈和中文字段清理完成 |
