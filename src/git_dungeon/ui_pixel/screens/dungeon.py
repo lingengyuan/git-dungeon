@@ -18,6 +18,7 @@ from git_dungeon.ui_pixel.text import (
     key_label,
     locked_message,
     reward_feedback,
+    stat_delta,
     stat_value,
     trap_feedback,
     tr,
@@ -28,7 +29,6 @@ from git_dungeon.ui_pixel.widgets import (
     BG,
     GOOD,
     MUTED,
-    SURFACE_2,
     TEXT,
     Button,
     draw_action_bar,
@@ -40,6 +40,7 @@ from git_dungeon.ui_pixel.widgets import (
 FLOOR_ORIGIN = (20, 62)
 FLOOR_TILE = 18
 FLOOR_CELL = 16
+DOOR_GAP = 4
 
 NODE_SPRITES = {
     "battle": "node_battle",
@@ -49,6 +50,21 @@ NODE_SPRITES = {
     "elite": "node_elite",
     "boss": "node_boss",
 }
+
+TILE_WALL_SPRITE = "tile_wall_stone"
+TILE_FLOOR_SPRITE = "tile_floor_stone"
+TILE_CORRIDOR_SPRITE = "tile_corridor"
+DOOR_OPEN_SPRITE = "door_open"
+CHEST_CLOSED_SPRITE = "chest_closed"
+CHEST_OPEN_SPRITE = "chest_open"
+TRAP_ARMED_SPRITE = "trap_spikes_armed"
+TRAP_SPENT_SPRITE = "trap_spikes_spent"
+KEY_IRON_SPRITE = "key_iron"
+VAULT_LOCKED_SPRITE = "vault_locked"
+VAULT_OPEN_SPRITE = "vault_open"
+ROOM_MARKER_CURRENT_SPRITE = "room_marker_current"
+ROOM_MARKER_AVAILABLE_SPRITE = "room_marker_available"
+BOSS_GATE_SPRITE = "boss_gate"
 
 
 class DungeonScreen(Screen):
@@ -163,53 +179,35 @@ class DungeonScreen(Screen):
         button.draw(self.pygame, surface, self.fonts, button.contains(self.hover_pos))
 
     def _draw_floor(self, surface: Any) -> None:
-        origin_x, origin_y = FLOOR_ORIGIN
-        tile = FLOOR_TILE
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
-                tone = (28, 27, 38) if (x + y) % 2 == 0 else (24, 24, 34)
-                self.pygame.draw.rect(
-                    surface,
-                    tone,
-                    (origin_x + x * tile, origin_y + y * tile, FLOOR_CELL, FLOOR_CELL),
-                )
+                self.assets.draw(surface, TILE_WALL_SPRITE, self._coord_rect((x, y)))
+
+        floor_coords = {room.coord for room in self.floor.rooms}
+        floor_coords.update(reward.coord for reward in self.floor.reward_rooms)
+        for coord in floor_coords:
+            self.assets.draw(surface, TILE_FLOOR_SPRITE, self._coord_rect(coord))
+
         for left, right in self.floor.doors:
-            lx, ly = left
-            rx, ry = right
-            x1, y1 = origin_x + lx * tile + FLOOR_CELL // 2, origin_y + ly * tile + FLOOR_CELL // 2
-            x2, y2 = origin_x + rx * tile + FLOOR_CELL // 2, origin_y + ry * tile + FLOOR_CELL // 2
-            self.pygame.draw.line(surface, (61, 56, 72), (x1, y1), (x2, y2), 4)
-            self.pygame.draw.line(surface, MUTED, (x1, y1), (x2, y2), 1)
+            self._draw_door(surface, left, right)
+
         for trap in self.floor.traps:
-            x, y = trap.coord
-            color = MUTED if self._trap_consumed(trap.trap_id) else BAD
-            rect = (origin_x + x * tile + 3, origin_y + y * tile + 3, 10, 10)
-            self.pygame.draw.rect(surface, (45, 28, 38), rect)
-            self.pygame.draw.polygon(
-                surface,
-                color,
-                [
-                    (rect[0] + 1, rect[1] + 9),
-                    (rect[0] + 3, rect[1] + 3),
-                    (rect[0] + 5, rect[1] + 9),
-                    (rect[0] + 7, rect[1] + 3),
-                    (rect[0] + 9, rect[1] + 9),
-                ],
-                1,
-            )
+            sprite = TRAP_SPENT_SPRITE if self._trap_consumed(trap.trap_id) else TRAP_ARMED_SPRITE
+            self.assets.draw(surface, sprite, self._coord_rect(trap.coord))
+
         for reward in self.floor.reward_rooms:
-            x, y = reward.coord
-            rect = (origin_x + x * tile, origin_y + y * tile, FLOOR_CELL, FLOOR_CELL)
+            rect = self._coord_rect(reward.coord)
             border = self._reward_border(reward)
-            fill = (34, 35, 44) if self._reward_claimed(reward.reward_id) else SURFACE_2
-            self.pygame.draw.rect(surface, fill, rect)
+            self.assets.draw(surface, self._reward_sprite(reward), rect)
             self.pygame.draw.rect(surface, border, rect, 1)
-            self._draw_reward_icon(surface, reward, rect)
+
         for room in self.floor.rooms:
-            x, y = room.coord
-            rect = (origin_x + x * tile, origin_y + y * tile, FLOOR_CELL, FLOOR_CELL)
+            rect = self._coord_rect(room.coord)
             border = ACCENT if room.is_current else MUTED if room.is_visited else (87, 82, 99)
-            self.pygame.draw.rect(surface, SURFACE_2, rect)
+            if room.is_current:
+                self.assets.draw(surface, ROOM_MARKER_CURRENT_SPRITE, rect)
+            elif room.is_playable_now:
+                self.assets.draw(surface, ROOM_MARKER_AVAILABLE_SPRITE, rect)
             self.pygame.draw.rect(surface, border, rect, 1)
             if room.is_current:
                 self.pygame.draw.rect(
@@ -223,17 +221,46 @@ class DungeonScreen(Screen):
                     (rect[0] + 7, rect[1] + rect[3] - 1),
                     1,
                 )
+            room_sprite = BOSS_GATE_SPRITE if room.kind == "boss" else NODE_SPRITES.get(
+                room.kind, "node_event"
+            )
             self.assets.draw(
                 surface,
-                NODE_SPRITES.get(room.kind, "node_event"),
+                room_sprite,
                 (rect[0] + 3, rect[1] + 3, 10, 10),
             )
         if self.player_coord is not None:
-            px, py = self.player_coord
-            rect = (origin_x + px * tile, origin_y + py * tile, FLOOR_CELL, FLOOR_CELL)
+            rect = self._coord_rect(self.player_coord)
             self.pygame.draw.rect(surface, TEXT, (rect[0] + 5, rect[1] + 11, 6, 3))
             self.assets.draw(surface, "player_default", (rect[0] + 3, rect[1] + 4, 10, 10))
             self.pygame.draw.rect(surface, TEXT, rect, 1)
+
+    def _coord_rect(self, coord: Coord) -> tuple[int, int, int, int]:
+        x, y = coord
+        origin_x, origin_y = FLOOR_ORIGIN
+        return (origin_x + x * FLOOR_TILE, origin_y + y * FLOOR_TILE, FLOOR_CELL, FLOOR_CELL)
+
+    def _draw_door(self, surface: Any, left: Coord, right: Coord) -> None:
+        left_rect = self._coord_rect(left)
+        right_rect = self._coord_rect(right)
+        if left[1] == right[1]:
+            x = min(left_rect[0], right_rect[0]) + FLOOR_CELL
+            y = left_rect[1] + (FLOOR_CELL - DOOR_GAP) // 2
+            self.assets.draw(
+                surface,
+                TILE_CORRIDOR_SPRITE,
+                (x, y, FLOOR_TILE - FLOOR_CELL, DOOR_GAP),
+            )
+            self.assets.draw(surface, DOOR_OPEN_SPRITE, (x - 5, left_rect[1] + 3, 12, 10))
+            return
+        x = left_rect[0] + (FLOOR_CELL - DOOR_GAP) // 2
+        y = min(left_rect[1], right_rect[1]) + FLOOR_CELL
+        self.assets.draw(
+            surface,
+            TILE_CORRIDOR_SPRITE,
+            (x, y, DOOR_GAP, FLOOR_TILE - FLOOR_CELL),
+        )
+        self.assets.draw(surface, DOOR_OPEN_SPRITE, (left_rect[0] + 3, y - 5, 10, 12))
 
     def _move(self, delta: tuple[int, int]) -> ScreenAction | None:
         if self.player_coord is None:
@@ -447,27 +474,13 @@ class DungeonScreen(Screen):
         self.pygame.draw.line(surface, color, (289, 43), (294, 43), 1)
         self.pygame.draw.line(surface, color, (292, 43), (292, 46), 1)
 
-    def _draw_reward_icon(
-        self, surface: Any, reward: DungeonRewardRoom, rect: tuple[int, int, int, int]
-    ) -> None:
+    def _reward_sprite(self, reward: DungeonRewardRoom) -> str:
         claimed = self._reward_claimed(reward.reward_id)
-        color = MUTED if claimed else self._reward_border(reward)
         if reward.grants_key:
-            self.pygame.draw.circle(surface, color, (rect[0] + 6, rect[1] + 8), 3, 1)
-            self.pygame.draw.line(
-                surface, color, (rect[0] + 9, rect[1] + 8), (rect[0] + 13, rect[1] + 8), 1
-            )
-            self.pygame.draw.line(
-                surface, color, (rect[0] + 12, rect[1] + 8), (rect[0] + 12, rect[1] + 11), 1
-            )
-            return
+            return CHEST_OPEN_SPRITE if claimed else KEY_IRON_SPRITE
         if reward.requires_key:
-            self.pygame.draw.rect(surface, color, (rect[0] + 4, rect[1] + 7, 8, 6), 1)
-            self.pygame.draw.arc(surface, color, (rect[0] + 5, rect[1] + 3, 6, 8), 3.14, 6.28, 1)
-            return
-        lid_y = rect[1] + (8 if claimed else 5)
-        self.pygame.draw.rect(surface, color, (rect[0] + 4, rect[1] + 8, 8, 5), 1)
-        self.pygame.draw.line(surface, color, (rect[0] + 5, lid_y), (rect[0] + 11, lid_y), 1)
+            return VAULT_OPEN_SPRITE if claimed else VAULT_LOCKED_SPRITE
+        return CHEST_OPEN_SPRITE if claimed else CHEST_CLOSED_SPRITE
 
     def _coord_at(self, pos: tuple[int, int] | None) -> Coord | None:
         if pos is None:
@@ -523,6 +536,13 @@ class DungeonScreen(Screen):
 
     def _action_hint(self) -> str:
         lang = self._lang()
+        hovered = self._coord_at(self.hover_pos)
+        if hovered is not None:
+            trap = self.floor.trap_at(hovered)
+            if trap is not None:
+                if self._trap_consumed(trap.trap_id):
+                    return tr("Trap already spent", lang)
+                return f"{tr('Trap', lang)}: {stat_delta('hp', -trap.damage, lang)}"
         reward = self._claimable_reward()
         if reward is not None:
             if not self._reward_unlocked(reward):

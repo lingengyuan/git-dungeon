@@ -29,7 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **`handoffs/`** 下最新一份 — 拿到精确进度、未决问题、推荐验证命令。
 4. 仅在以上三步无法回答问题时再读源代码。
 
-当前活跃 plan：`plans/pixel-phases.md`（像素化改造，Phase 0-14B 已完成；后续按 `plans/pixel-stardew-level-repair-plan.md` 从 Phase 14C 接手）。
+当前活跃 plan：`plans/pixel-phases.md`（像素化改造，Phase 0-14C 已完成；后续按 `plans/pixel-stardew-level-repair-plan.md` 从 Phase 15 接手）。
 
 ## Project Snapshot
 
