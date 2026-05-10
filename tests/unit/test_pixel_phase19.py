@@ -66,6 +66,15 @@ def _key(key: str) -> Any:
     return SimpleNamespace(type=FakePygame.KEYDOWN, key=key)
 
 
+def _run_loading(screen: LoadingScreen) -> Any:
+    assert screen.update(0.016) is None
+    for _ in range(20):
+        action = screen.update(0.016)
+        if action is not None:
+            return action
+    return None
+
+
 def test_loading_screen_opens_tutorial_until_seen(tmp_path: Path) -> None:
     store = PixelSettingsStore(tmp_path / "settings.toml")
     settings = PixelSettings(tutorial_seen=False)
@@ -78,7 +87,7 @@ def test_loading_screen_opens_tutorial_until_seen(tmp_path: Path) -> None:
         settings_store=store,
     )
 
-    action = screen.update(0.016)
+    action = _run_loading(screen)
 
     assert action is not None
     assert action.kind == "replace"
@@ -97,7 +106,7 @@ def test_loading_screen_skips_tutorial_after_seen(tmp_path: Path) -> None:
         settings_store=store,
     )
 
-    action = screen.update(0.016)
+    action = _run_loading(screen)
 
     assert action is not None
     assert action.kind == "replace"

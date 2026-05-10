@@ -20,13 +20,14 @@ from git_dungeon.ui_pixel.screens.pause import PauseScreen
 from git_dungeon.ui_pixel.screens.rest import RestScreen
 from git_dungeon.ui_pixel.screens.settings import SettingsScreen
 from git_dungeon.ui_pixel.screens.shop import ShopScreen
-from git_dungeon.ui_pixel.screens.title import TitleScreen
+from git_dungeon.ui_pixel.screens.title import LoadingScreen, TitleScreen
 from git_dungeon.ui_pixel.screens.tutorial import TutorialScreen
 from git_dungeon.ui_pixel.settings import PixelSettings
 
 LANGUAGES = ("en", "zh_CN")
 SCREEN_ORDER = (
     "title",
+    "loading",
     "tutorial",
     "dungeon",
     "battle",
@@ -61,6 +62,9 @@ class DemoRunner:
 
     def current_chapter(self) -> Any:
         return SimpleNamespace(chapter_index=2)
+
+    def load_repository(self) -> Any:
+        return SimpleNamespace()
 
     def is_dungeon_reward_claimed(self, _reward_id: str) -> bool:
         return False
@@ -151,6 +155,14 @@ def _build_screens(pygame: Any, fonts: PixelFont, assets: SpriteCatalog, lang: s
     runner = DemoRunner()
     return {
         "title": TitleScreen(pygame, fonts, runner, assets, settings=settings),
+        "loading": LoadingScreen(
+            pygame,
+            fonts,
+            runner,
+            assets,
+            settings=settings,
+            settings_store=DemoStore(),
+        ),
         "tutorial": TutorialScreen(
             pygame,
             fonts,

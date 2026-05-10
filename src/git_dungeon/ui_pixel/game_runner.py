@@ -164,12 +164,15 @@ class GameRunner:
         self.repo_path = repo_path
         self.seed = seed
         self.lang = normalize_lang(lang)
+        self.content_pack_args = list(content_pack_args or [])
+        self.content_dir = content_dir
+        self.mutator_name = mutator
         i18n.load_language(self.lang)
         self.mutator: MutatorConfig = get_mutator_config(mutator)
 
         self.content_runtime = load_runtime_content(
-            content_dir=content_dir,
-            content_pack_args=content_pack_args,
+            content_dir=self.content_dir,
+            content_pack_args=self.content_pack_args,
         )
         self.rng = create_rng(seed)
         self.combat_rules = CombatRules(rng=self.rng)
@@ -198,6 +201,17 @@ class GameRunner:
         self._chapter_nodes: dict[str, list[RouteNode]] = {}
         self._chapter_node_cursor: dict[str, int] = {}
         self.loaded = False
+
+    def fresh_copy(self) -> "GameRunner":
+        """Return a clean runner with the same startup configuration."""
+        return GameRunner(
+            repo_path=self.repo_path,
+            seed=self.seed,
+            lang=self.lang,
+            content_pack_args=self.content_pack_args,
+            content_dir=self.content_dir,
+            mutator=self.mutator_name,
+        )
 
     def load_repository(self) -> RunSummary:
         """Load commits and build the initial state without printing or reading input."""

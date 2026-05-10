@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from queue import Empty, Queue
+from threading import Thread
 from typing import Any
 
 from git_dungeon.ui_pixel.game_runner import GameRunner, RunSummary
@@ -239,16 +241,28 @@ class LoadingScreen(Screen):
         self.started = False
         self.summary: RunSummary | None = None
         self.error: str | None = None
+        self.cancelled = False
+        self.elapsed = 0.0
+        self._result_queue: Queue[tuple[str, Any]] = Queue()
+        self._thread: Thread | None = None
 
     def update(self, dt: float) -> ScreenAction | None:
-        if self.started:
+        self.elapsed += dt
+        if not self.started:
+            self.started = True
+            self._thread = Thread(target=self._load_in_background, daemon=True)
+            self._thread.start()
             return None
-        self.started = True
         try:
-            self.summary = self.runner.load_repository()
-        except Exception as exc:
-            self.error = str(exc)
+            kind, payload = self._result_queue.get_nowait()
+        except Empty:
             return None
+        if self.cancelled:
+            return None
+        if kind == "error":
+            self.error = str(payload)
+            return None
+        self.summary = payload
         if not getattr(self.settings, "tutorial_seen", False) and self.settings_store is not None:
             return ScreenAction.replace(
                 TutorialScreen(
@@ -274,15 +288,16 @@ class LoadingScreen(Screen):
                 settings_error=self.settings_error,
                 apply_display_mode=self.apply_display_mode,
             )
-            )
+        )
 
     def handle(self, event: Any) -> ScreenAction | None:
-        if event.type == self.pygame.KEYDOWN and event.key in (
-            self.pygame.K_ESCAPE,
-            self.pygame.K_q,
-            self.pygame.K_RETURN,
-        ):
-            return ScreenAction.quit()
+        if event.type != self.pygame.KEYDOWN:
+            return None
+        if event.key in (self.pygame.K_ESCAPE, self.pygame.K_q):
+            self.cancelled = True
+            return self._back_to_title()
+        if self.error and event.key == self.pygame.K_RETURN:
+            return self._back_to_title()
         return None
 
     def draw(self, surface: Any) -> None:
@@ -294,17 +309,56 @@ class LoadingScreen(Screen):
         if self.error:
             self.fonts.draw(surface, tr("Load failed", lang), (32, 70), BAD, 18)
             self.fonts.draw_fit(surface, self.error, (32, 94), 244, TEXT, 16)
-            self.fonts.draw(surface, tr("Enter/Esc: Quit", lang), (32, 128), MUTED, 16)
+            self.fonts.draw(surface, tr("Enter/Esc: Back", lang), (32, 128), MUTED, 16)
             return
 
         if self.summary is None:
-            self.fonts.draw(surface, tr("Reading git history...", lang), (32, 82), MUTED, 16)
+            self.fonts.draw(surface, tr(self._loading_status(), lang), (32, 78), MUTED, 16)
+            self.fonts.draw(surface, self._loading_dots(), (32, 98), ACCENT, 16)
             if self.audio is not None:
                 label = audio_label(self.audio.status().label(), lang)
                 if label:
-                    self.fonts.draw_fit(surface, label, (32, 118), 240, MUTED, 13)
+                    self.fonts.draw_fit(surface, label, (32, 116), 240, MUTED, 13)
             if self.settings_error:
-                self.fonts.draw_fit(surface, self.settings_error, (32, 136), 244, BAD, 12)
+                self.fonts.draw_fit(surface, self.settings_error, (32, 132), 244, BAD, 12)
+            else:
+                self.fonts.draw(surface, tr("Esc/Q: Cancel", lang), (32, 132), MUTED, 12)
             return
 
         self.fonts.draw(surface, tr("Repository loaded", lang), (32, 64), GOOD, 18)
+
+    def _load_in_background(self) -> None:
+        try:
+            summary = self.runner.load_repository()
+        except Exception as exc:
+            self._result_queue.put(("error", str(exc)))
+            return
+        self._result_queue.put(("summary", summary))
+
+    def _loading_status(self) -> str:
+        if self.elapsed < 0.4:
+            return "Preparing run..."
+        if self.elapsed < 1.2:
+            return "Reading git history..."
+        if self.elapsed < 2.4:
+            return "Building dungeon route..."
+        return "Still working on this repository..."
+
+    def _loading_dots(self) -> str:
+        return "." * (1 + int(self.elapsed * 3) % 4)
+
+    def _back_to_title(self) -> ScreenAction:
+        runner = self.runner.fresh_copy() if hasattr(self.runner, "fresh_copy") else self.runner
+        return ScreenAction.replace(
+            TitleScreen(
+                self.pygame,
+                self.fonts,
+                runner,
+                self.assets,
+                self.audio,
+                self.settings,
+                self.settings_store,
+                self.settings_error,
+                self.apply_display_mode,
+            )
+        )
