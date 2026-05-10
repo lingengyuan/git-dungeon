@@ -1,0 +1,182 @@
+[
+  {
+    "lang": "en",
+    "screen": "title",
+    "path": "docs/screenshots/pixel/en-title.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "en",
+    "screen": "loading",
+    "path": "docs/screenshots/pixel/en-loading.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "en",
+    "screen": "tutorial",
+    "path": "docs/screenshots/pixel/en-tutorial.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "en",
+    "screen": "dungeon",
+    "path": "docs/screenshots/pixel/en-dungeon.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "en",
+    "screen": "battle",
+    "path": "docs/screenshots/pixel/en-battle.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "en",
+    "screen": "event",
+    "path": "docs/screenshots/pixel/en-event.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "en",
+    "screen": "shop",
+    "path": "docs/screenshots/pixel/en-shop.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "en",
+    "screen": "rest",
+    "path": "docs/screenshots/pixel/en-rest.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "en",
+    "screen": "pause",
+    "path": "docs/screenshots/pixel/en-pause.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "en",
+    "screen": "settings",
+    "path": "docs/screenshots/pixel/en-settings.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "zh_CN",
+    "screen": "title",
+    "path": "docs/screenshots/pixel/zh_CN-title.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "zh_CN",
+    "screen": "loading",
+    "path": "docs/screenshots/pixel/zh_CN-loading.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "zh_CN",
+    "screen": "tutorial",
+    "path": "docs/screenshots/pixel/zh_CN-tutorial.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "zh_CN",
+    "screen": "dungeon",
+    "path": "docs/screenshots/pixel/zh_CN-dungeon.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "zh_CN",
+    "screen": "battle",
+    "path": "docs/screenshots/pixel/zh_CN-battle.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "zh_CN",
+    "screen": "event",
+    "path": "docs/screenshots/pixel/zh_CN-event.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "zh_CN",
+    "screen": "shop",
+    "path": "docs/screenshots/pixel/zh_CN-shop.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "zh_CN",
+    "screen": "rest",
+    "path": "docs/screenshots/pixel/zh_CN-rest.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "zh_CN",
+    "screen": "pause",
+    "path": "docs/screenshots/pixel/zh_CN-pause.png",
+    "size": [
+      960,
+      540
+    ]
+  },
+  {
+    "lang": "zh_CN",
+    "screen": "settings",
+    "path": "docs/screenshots/pixel/zh_CN-settings.png",
+    "size": [
+      960,
+      540
+    ]
+  }
+]

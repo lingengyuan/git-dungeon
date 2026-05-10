@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Turn Git commit history into a playable command-line roguelike.
+Turn Git commit history into a playable roguelike, with both a deterministic CLI mode and a PC pixel-art mode.
 
 ## What This Project Is
 
@@ -11,6 +11,7 @@ Turn Git commit history into a playable command-line roguelike.
 - Each commit becomes an enemy encounter.
 - Commit types (`feat`, `fix`, `docs`, `merge`) shape chapter flavor and pacing.
 - You gain EXP and gold, level up, and progress chapter by chapter.
+- The PC pixel mode turns the same run into a tile-based dungeon with battles, events, shops, rest rooms, traps, rewards, pause/settings, and first-run guidance.
 - Optional AI text adds narrative flavor while keeping deterministic fallback behavior.
 
 This project is useful for:
@@ -18,6 +19,18 @@ This project is useful for:
 - Exploring repository history in a game-like way.
 - Demoing deterministic game systems in Python CLI.
 - Serving as a reference for test-first roguelike architecture.
+
+## Pixel Mode Preview
+
+Pixel mode is a Pygame-CE frontend for desktop PC play. It keeps the same deterministic engine as the CLI while adding a visual dungeon, keyboard/mouse controls, localized UI, audio, settings, and screenshot-based regression coverage.
+
+| Title and first-run flow | Dungeon exploration |
+|---|---|
+| ![Git Dungeon pixel title screen](docs/screenshots/pixel/en-title.png) | ![Git Dungeon pixel dungeon screen](docs/screenshots/pixel/en-dungeon.png) |
+
+| Battle screen | Shop screen |
+|---|---|
+| ![Git Dungeon pixel battle screen](docs/screenshots/pixel/en-battle.png) | ![Git Dungeon pixel shop screen](docs/screenshots/pixel/en-shop.png) |
 
 ## Gameplay Loop
 
@@ -95,6 +108,13 @@ Start here for a 1-minute first run:
 git-dungeon . --seed 42 --auto --compact --print-metrics
 ```
 
+For the PC pixel UI, install the optional pixel dependency and run:
+
+```bash
+pip install -e ".[pixel]"
+PYTHONPATH=src python -m git_dungeon . --pixel --seed 42 --lang en
+```
+
 ## Common Options
 
 - `--auto`: automatic combat decisions.
@@ -102,6 +122,8 @@ git-dungeon . --seed 42 --auto --compact --print-metrics
 - `--metrics-out <path>`: write metrics JSON.
 - `--print-metrics`: print run summary.
 - `--seed <int>`: deterministic run seed.
+- `--pixel`: run the PC-only Pygame pixel UI.
+- `--headless --auto`: run the pixel entry path without opening a window, for smoke checks.
 - `--ai=off|on --ai-provider=mock|gemini|openai|copilot`: AI flavor text control.
 - `--ai-model <id>`: override remote provider model id, e.g. `openai/o4-mini`.
 
@@ -201,6 +223,7 @@ export GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-saves
 ```bash
 git-dungeon . --auto
 git-dungeon . --seed 42 --auto --compact --print-metrics
+PYTHONPATH=src python -m git_dungeon . --pixel --seed 42 --lang en
 git-dungeon . --auto --lang zh_CN
 git-dungeon . --content-pack content_packs/example_pack --seed 42 --auto --compact
 git-dungeon . --daily --mutator hard --auto --compact
@@ -217,6 +240,14 @@ make build-wheel
 make smoke-install
 ```
 
+Pixel UI verification:
+
+```bash
+PYTHONPATH=src python scripts/verify_assets.py --strict
+PYTHONPATH=src python scripts/verify_audio.py
+SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy PYTHONPATH=src python scripts/render_pixel_screens.py --out-dir /tmp/git-dungeon-pixel-screens --scale 2
+```
+
 ## Docs
 
 - `CHANGELOG.md`
@@ -225,6 +256,7 @@ make smoke-install
 - `docs/perf.md`
 - `docs/AI_TEXT.md`
 - `docs/TESTING_FRAMEWORK.md`
+- `plans/pixel-pc-release-checklist.md`
 
 ## License
 

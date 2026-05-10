@@ -2,7 +2,7 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-将 Git 提交历史映射为可游玩的命令行 Roguelike。
+将 Git 提交历史映射为可游玩的 Roguelike，同时支持可复现的 CLI 模式和 PC 像素风模式。
 
 ## 项目是做什么的
 
@@ -11,6 +11,7 @@
 - 每个 commit 对应一个敌人遭遇。
 - commit 类型（`feat`、`fix`、`docs`、`merge`）影响章节风格和节奏。
 - 战斗后获得 EXP/金币，升级并推进章节。
+- PC 像素模式会把同一局游戏呈现为 tile 地牢，包含战斗、事件、商店、休息点、陷阱、奖励、暂停设置和首次游玩引导。
 - 可选 AI 文案增强叙事，同时保留可复现与降级能力。
 
 适用场景：
@@ -18,6 +19,18 @@
 - 以游戏化方式浏览项目历史。
 - 演示 Python CLI 中可复现玩法系统。
 - 作为测试驱动 roguelike 架构参考实现。
+
+## Pixel 模式预览
+
+Pixel 模式是基于 Pygame-CE 的桌面 PC 前端。它复用 CLI 的确定性引擎，同时增加可视化地牢、键鼠操作、中文界面、音频、设置页和截图回归检查。
+
+| 标题与首次引导 | 地牢探索 |
+|---|---|
+| ![Git Dungeon 像素标题页](docs/screenshots/pixel/zh_CN-title.png) | ![Git Dungeon 像素地牢页](docs/screenshots/pixel/zh_CN-dungeon.png) |
+
+| 战斗界面 | 商店界面 |
+|---|---|
+| ![Git Dungeon 像素战斗页](docs/screenshots/pixel/zh_CN-battle.png) | ![Git Dungeon 像素商店页](docs/screenshots/pixel/zh_CN-shop.png) |
 
 ## 玩法流程
 
@@ -88,6 +101,13 @@ git-dungeon . --seed 42 --auto --compact --metrics-out ./run_metrics.json
 git-dungeon . --seed 42 --auto --compact --print-metrics
 ```
 
+运行 PC 像素界面：
+
+```bash
+pip install -e ".[pixel]"
+PYTHONPATH=src python -m git_dungeon . --pixel --seed 42 --lang zh_CN
+```
+
 ## 常用参数
 
 - `--auto`：自动战斗决策。
@@ -95,6 +115,8 @@ git-dungeon . --seed 42 --auto --compact --print-metrics
 - `--metrics-out <path>`：输出指标 JSON。
 - `--print-metrics`：打印本局指标摘要。
 - `--seed <int>`：固定随机种子。
+- `--pixel`：运行 PC-only 的 Pygame 像素界面。
+- `--headless --auto`：不打开窗口运行 pixel 入口，用于 smoke 检查。
 - `--ai=off|on --ai-provider=mock|gemini|openai|copilot`：AI 文案开关与提供方。
 - `--ai-model <id>`：覆盖远端 provider 默认模型，例如 `openai/o4-mini`。
 
@@ -193,6 +215,7 @@ export GIT_DUNGEON_SAVE_DIR=/tmp/git-dungeon-saves
 ```bash
 git-dungeon . --auto
 git-dungeon . --seed 42 --auto --compact --print-metrics
+PYTHONPATH=src python -m git_dungeon . --pixel --seed 42 --lang zh_CN
 git-dungeon . --auto --lang zh_CN
 git-dungeon . --content-pack content_packs/example_pack --seed 42 --auto --compact
 git-dungeon . --daily --mutator hard --auto --compact
@@ -209,6 +232,14 @@ make build-wheel
 make smoke-install
 ```
 
+Pixel 界面检查：
+
+```bash
+PYTHONPATH=src python scripts/verify_assets.py --strict
+PYTHONPATH=src python scripts/verify_audio.py
+SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy PYTHONPATH=src python scripts/render_pixel_screens.py --out-dir /tmp/git-dungeon-pixel-screens --scale 2
+```
+
 ## 文档
 
 - `CHANGELOG.md`
@@ -217,6 +248,7 @@ make smoke-install
 - `docs/perf.md`
 - `docs/AI_TEXT.md`
 - `docs/TESTING_FRAMEWORK.md`
+- `plans/pixel-pc-release-checklist.md`
 
 ## License
 
