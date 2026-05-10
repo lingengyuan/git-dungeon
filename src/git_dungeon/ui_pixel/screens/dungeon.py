@@ -41,6 +41,7 @@ FLOOR_ORIGIN = (20, 62)
 FLOOR_TILE = 18
 FLOOR_CELL = 16
 DOOR_GAP = 4
+RUN_LOG_PANEL = (210, 68, 92, 76)
 
 NODE_SPRITES = {
     "battle": "node_battle",
@@ -194,6 +195,7 @@ class DungeonScreen(Screen):
         self._draw_key_status(surface)
 
         self._draw_floor(surface)
+        self._draw_run_log(surface)
         audio_text = ""
         if self.audio is not None:
             audio_text = audio_label(self.audio.status().label(), lang)
@@ -276,6 +278,38 @@ class DungeonScreen(Screen):
             y_offset = 1 if int(self.anim_time * 5) % 2 else 0
             self.assets.draw(surface, "player_idle", (rect[0] + 3, rect[1] + 4 - y_offset, 10, 10))
             self.pygame.draw.rect(surface, TEXT, rect, 1)
+
+    def _draw_run_log(self, surface: Any) -> None:
+        lang = self._lang()
+        self.pygame.draw.rect(surface, (27, 25, 35), RUN_LOG_PANEL)
+        self.pygame.draw.rect(surface, self._chapter_accent(), RUN_LOG_PANEL, 1)
+        self.fonts.draw_fit(surface, tr("LOG", lang), (RUN_LOG_PANEL[0] + 6, 73), 34, ACCENT, 11)
+        summary = self._chapter_summary()
+        if summary is not None:
+            rooms = f"{tr('Rooms', lang)} {summary.cleared_rooms}/{summary.total_rooms}"
+            self.fonts.draw_fit(surface, rooms, (RUN_LOG_PANEL[0] + 42, 73), 42, MUTED, 9)
+        entries = self._recent_events()
+        if not entries:
+            self.fonts.draw_fit(
+                surface, tr("No events yet", lang), (RUN_LOG_PANEL[0] + 6, 91), 78, MUTED, 9
+            )
+            return
+        for index, entry in enumerate(entries[-4:]):
+            y = 91 + index * 12
+            color = BAD if entry.kind == "trap" else GOOD if entry.kind == "reward" else TEXT
+            self.fonts.draw_fit(surface, tr(entry.message, lang), (RUN_LOG_PANEL[0] + 6, y), 78, color, 9)
+
+    def _recent_events(self) -> tuple[Any, ...]:
+        recent = getattr(self.runner, "recent_run_events", None)
+        if not callable(recent):
+            return ()
+        return tuple(recent(4))
+
+    def _chapter_summary(self) -> Any | None:
+        summary = getattr(self.runner, "chapter_summary_snapshot", None)
+        if not callable(summary):
+            return None
+        return summary()
 
     def _coord_rect(self, coord: Coord) -> tuple[int, int, int, int]:
         x, y = coord

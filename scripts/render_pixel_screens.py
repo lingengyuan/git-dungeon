@@ -12,7 +12,7 @@ from typing import Any
 
 from git_dungeon.ui_pixel.app import LOGICAL_SIZE, PixelFont
 from git_dungeon.ui_pixel.assets import SpriteCatalog
-from git_dungeon.ui_pixel.game_runner import NodeSnapshot, PlayerSnapshot
+from git_dungeon.ui_pixel.game_runner import ChapterSummarySnapshot, NodeSnapshot, PlayerSnapshot, RunLogEntry
 from git_dungeon.ui_pixel.screens.battle import BattleScreen
 from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
 from git_dungeon.ui_pixel.screens.event import EventScreen
@@ -143,6 +143,16 @@ class DemoRunner:
             SimpleNamespace(action="heal", label="Heal", detail="Restore 30 HP"),
             SimpleNamespace(action="focus", label="Focus", detail="Attack +2, Max HP +5, HP +5"),
         )
+
+    def recent_run_events(self, _limit: int = 4) -> tuple[RunLogEntry, ...]:
+        return (
+            RunLogEntry("battle", "Battle won"),
+            RunLogEntry("trap", "Trap hit: -8 HP"),
+            RunLogEntry("reward", "Reward claimed"),
+        )
+
+    def chapter_summary_snapshot(self) -> ChapterSummarySnapshot:
+        return ChapterSummarySnapshot("Demo", 2, 5, 80, 100, 60)
 
 
 class DemoStore:

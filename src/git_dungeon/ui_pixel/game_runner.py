@@ -134,6 +134,22 @@ class RewardSnapshot:
 
 
 @dataclass(frozen=True)
+class RunLogEntry:
+    kind: str
+    message: str
+
+
+@dataclass(frozen=True)
+class ChapterSummarySnapshot:
+    chapter_name: str
+    cleared_rooms: int
+    total_rooms: int
+    hp: int
+    max_hp: int
+    gold: int
+
+
+@dataclass(frozen=True)
 class DungeonTrapResult:
     trap_id: str
     damage: int
@@ -198,6 +214,7 @@ class GameRunner:
         self.dungeon_consumed_traps: set[str] = set()
         self.dungeon_claimed_rewards: set[str] = set()
         self.dungeon_collected_keys: set[str] = set()
+        self.run_log: list[RunLogEntry] = []
         self._chapter_nodes: dict[str, list[RouteNode]] = {}
         self._chapter_node_cursor: dict[str, int] = {}
         self.loaded = False
@@ -397,6 +414,7 @@ class GameRunner:
             raise RuntimeError("Current event node has no event definition")
         result = apply_event_resolution(self._require_state(), event, choice_index, self.rng)
         self._mark_current_node_resolved()
+        self.record_run_event("event", "Event resolved")
         return result
 
     def rest_options(self) -> tuple[RestOptionSnapshot, ...]:
@@ -423,6 +441,7 @@ class GameRunner:
         self._require_current_node(NodeKind.REST)
         result = resolve_rest_action(self._require_state(), action)
         self._mark_current_node_resolved()
+        self.record_run_event("rest", f"Rest: {action.title()}")
         return result
 
     def shop_offers(self) -> tuple[ShopOfferSnapshot, ...]:
@@ -453,6 +472,7 @@ class GameRunner:
         offers = shop_offers_for_node(int(self.seed or 0), chapter, node)
         result = resolve_shop_purchase(self._require_state(), self.inventory, offers, selected_idx)
         self._mark_current_node_resolved()
+        self.record_run_event("shop", "Shop skipped" if selected_idx is None else "Shop purchase")
         return result
 
     def start_current_battle(self) -> BattleSnapshot:
@@ -547,6 +567,27 @@ class GameRunner:
     def last_reward_snapshot(self) -> RewardSnapshot | None:
         return self.last_reward
 
+    def record_run_event(self, kind: str, message: str) -> None:
+        self.run_log.append(RunLogEntry(kind=kind, message=message))
+        del self.run_log[:-12]
+
+    def recent_run_events(self, limit: int = 4) -> tuple[RunLogEntry, ...]:
+        return tuple(self.run_log[-limit:])
+
+    def chapter_summary_snapshot(self) -> ChapterSummarySnapshot:
+        chapter = self._require_chapter()
+        nodes = self.prepare_current_chapter_nodes()
+        cursor = self._chapter_node_cursor.get(chapter.chapter_id, 0)
+        player = self.player_snapshot()
+        return ChapterSummarySnapshot(
+            chapter_name=str(getattr(chapter, "name", "")),
+            cleared_rooms=min(cursor, len(nodes)),
+            total_rooms=len(nodes),
+            hp=player.hp,
+            max_hp=player.max_hp,
+            gold=player.gold,
+        )
+
     @staticmethod
     def non_combat_kinds() -> set[NodeKind]:
         return {NodeKind.EVENT, NodeKind.REST, NodeKind.SHOP}
@@ -566,6 +607,7 @@ class GameRunner:
                 self._require_state().enemies_defeated.append(self.current_battle_commit.hexsha[:7])
             self.last_reward = self._grant_enemy_rewards(enemy, chapter)
         self._mark_current_node_resolved()
+        self.record_run_event("battle", "Battle won")
         self._clear_battle()
 
     def _grant_enemy_rewards(self, enemy: EnemyState, chapter: Any) -> RewardSnapshot:
@@ -739,6 +781,7 @@ class GameRunner:
         if player.current_hp <= 0:
             player.is_alive = False
         self.dungeon_consumed_traps.add(trap_key)
+        self.record_run_event("trap", f"Trap hit: -{actual_damage} HP")
         return DungeonTrapResult(trap_id=trap_id, damage=actual_damage, already_triggered=False)
 
     def _dungeon_trap_key(self, trap_id: str) -> str:
@@ -770,6 +813,7 @@ class GameRunner:
         if key_id is not None:
             self.dungeon_collected_keys.add(self._dungeon_key_key(key_id))
         self.dungeon_claimed_rewards.add(reward_key)
+        self.record_run_event("reward", "Reward claimed")
         return DungeonRewardResult(
             reward_id=reward_id,
             heal=actual_heal,
