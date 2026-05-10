@@ -1,7 +1,7 @@
 # Pixel 化改造 Phase 拆解
 
 > **源 plan**：`/Users/hughlin/MyNotes/HughLin/Notes/plans/git-dungeon/pixel-game-plan.md`（审阅修订版）
-> **状态**：Phase 0-18 已完成最小闭环、首批体验修复、统一 UI/玩家语言层、gpt-image-2 地牢/战斗/非战斗/主题素材流水线、tile 场景重做、战斗表现补强、非战斗地点重做、主题统一和最终视觉回归（截至 2026-05-08）。Phase 19-25 进入 PC-only 打磨线：不做手柄、不做移动端，只处理桌面键鼠体验、加载、记录、内容和发布固定。
+> **状态**：Phase 0-25 已完成（截至 2026-05-10）。Phase 19-25 是 PC-only 打磨线：不做手柄、不做移动端，只处理桌面键鼠体验、加载、记录、内容和发布固定。PC 发布前检查见 `plans/pixel-pc-release-checklist.md`。
 > **作用**：Phase 0-18 的范围/交付/验收索引；每个 phase 完成后回填 handoff 链接。
 >
 > 阅读路径：`AGENTS.md`（或 `CLAUDE.md`）→ 本文件 → `handoffs/` 下最新一份。
@@ -47,7 +47,7 @@
 | Phase 22 | 大仓库加载体验 | Phase 18 延期项：大仓库后台加载 | ✅ 完成 (2026-05-10) | [2026-05-10](../handoffs/2026-05-10-pixel-phase-22-handoff.md) |
 | Phase 23 | 近期事件日志和章节总结 | Phase 18 延期项：事件日志/章节总结 | ✅ 完成 (2026-05-10) | [2026-05-10](../handoffs/2026-05-10-pixel-phase-23-handoff.md) |
 | Phase 24 | 内容体验打磨 | PC 像素 RPG 内容补强 | ✅ 完成 (2026-05-10) | [2026-05-10](../handoffs/2026-05-10-pixel-phase-24-handoff.md) |
-| Phase 25 | PC 发布前固定 | 截图、文档、smoke 和发布入口 | ⏳ 计划中 | - |
+| Phase 25 | PC 发布前固定 | 截图、文档、smoke 和发布入口 | ✅ 完成 (2026-05-10) | [2026-05-10](../handoffs/2026-05-10-pixel-phase-25-handoff.md) |
 
 ---
 

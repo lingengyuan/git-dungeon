@@ -52,7 +52,12 @@ def test_loading_screen_enters_dungeon_screen() -> None:
     runner = FakeRunner()
     loading = LoadingScreen(FakePygame, fonts=None, runner=runner, assets=None)
 
-    action = loading.update(0.0)
+    assert loading.update(0.0) is None
+    action = None
+    for _ in range(20):
+        action = loading.update(0.016)
+        if action is not None:
+            break
 
     assert runner.loaded is True
     assert action is not None

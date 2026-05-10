@@ -15,7 +15,8 @@
 
 | 文件 | 用途 | 状态 |
 |---|---|---|
-| `pixel-phases.md` | 像素化改造（Phase 0-18 已完成；Phase 19-25 为 PC-only 打磨线）拆解索引 | 进行中 |
+| `pixel-phases.md` | 像素化改造（Phase 0-25 已完成，当前为 PC-only）拆解索引 | 已完成 |
+| `pixel-pc-release-checklist.md` | Pixel mode PC-only 试玩和发布前检查清单 | 已完成 |
 | `pixel-game-issues.md` | Phase 0-12 后的真实试玩/像素游戏体验问题清单 | 进行中 |
 | `pixel-game-fix-plan.md` | 根据问题清单拆出的 Phase 13-18 修复路线 | 进行中 |
 | `pixel-ui-event-stardew-gap-review.md` | 对标《星露谷物语》的界面与事件差距深度审查 | 进行中 |
