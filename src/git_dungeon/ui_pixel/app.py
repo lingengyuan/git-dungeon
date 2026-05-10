@@ -68,6 +68,12 @@ class ScreenStack:
                 self._screens.append(action.screen)
                 action.screen.enter()
             return
+        if action.kind == "reset" and action.screen is not None:
+            while self._screens:
+                self._screens.pop().exit()
+            self._screens.append(action.screen)
+            action.screen.enter()
+            return
         if action.kind == "push" and action.screen is not None:
             self._screens.append(action.screen)
             action.screen.enter()

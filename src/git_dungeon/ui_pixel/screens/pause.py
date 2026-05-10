@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
+from git_dungeon.ui_pixel.screens.settings import SettingsScreen
 from git_dungeon.ui_pixel.text import tr
 from git_dungeon.ui_pixel.widgets import BAD, BG, MUTED, Button, draw_dialog
 
@@ -16,11 +18,19 @@ class PauseScreen(Screen):
         fonts: Any,
         settings: Any | None = None,
         audio: Any | None = None,
+        runner: Any | None = None,
+        assets: Any | None = None,
+        settings_store: Any | None = None,
+        settings_error: str = "",
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
         self.settings = settings
         self.audio = audio
+        self.runner = runner
+        self.assets = assets
+        self.settings_store = settings_store
+        self.settings_error = settings_error
         self.hover_pos: tuple[int, int] | None = None
         self.quit_armed = False
         self.message = "Esc/Enter: Resume"
@@ -33,12 +43,14 @@ class PauseScreen(Screen):
                 return ScreenAction.pop()
             if event.key == self.pygame.K_q:
                 if self.quit_armed:
-                    return ScreenAction.quit()
+                    return self._quit_run()
                 self.quit_armed = True
-                self.message = "Press Q again to close game"
+                self.message = "Press Q again to return to title"
                 if self.audio is not None:
                     self.audio.play_sfx("ui_denied")
                 return None
+            if event.key == self.pygame.K_s:
+                return self._open_settings()
         if event.type == self.pygame.MOUSEMOTION:
             self.hover_pos = getattr(event, "logical_pos", None)
         if event.type == self.pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -50,11 +62,13 @@ class PauseScreen(Screen):
                     if self.audio is not None:
                         self.audio.play_sfx("ui_cancel")
                     return ScreenAction.pop()
+                if key == "settings":
+                    return self._open_settings()
                 if key == "quit":
                     if self.quit_armed:
-                        return ScreenAction.quit()
+                        return self._quit_run()
                     self.quit_armed = True
-                    self.message = "Press Q again to close game"
+                    self.message = "Press Q again to return to title"
                     if self.audio is not None:
                         self.audio.play_sfx("ui_denied")
                     return None
@@ -78,9 +92,61 @@ class PauseScreen(Screen):
     def _buttons(self) -> dict[str, Button]:
         lang = self._lang()
         return {
-            "resume": Button((82, 104, 70, 18), tr("Resume", lang)),
-            "quit": Button((166, 104, 72, 18), tr("Close Game", lang)),
+            "resume": Button((70, 104, 58, 18), tr("Resume", lang)),
+            "settings": Button(
+                (134, 104, 58, 18),
+                tr("Settings", lang),
+                enabled=self.settings is not None and self.settings_store is not None,
+                tooltip=tr("Settings open over the paused run", lang),
+            ),
+            "quit": Button((198, 104, 62, 18), tr("Quit Run", lang)),
         }
+
+    def _open_settings(self) -> ScreenAction | None:
+        if self.settings is None or self.settings_store is None:
+            return None
+        if self.audio is not None:
+            self.audio.play_sfx("ui_confirm")
+        return ScreenAction.push(
+            SettingsScreen(
+                self.pygame,
+                self.fonts,
+                self.settings,
+                self.settings_store,
+                self.audio,
+                self.settings_error,
+                self._apply_settings,
+            )
+        )
+
+    def _apply_settings(self, settings: Any) -> None:
+        self.settings = settings
+        self.fonts.set_lang(settings.lang)
+        if hasattr(self.fonts, "set_text_size"):
+            self.fonts.set_text_size(settings.text_size)
+        if self.audio is not None:
+            self.audio.set_volumes(settings.bgm_volume, settings.sfx_volume)
+
+    def _quit_run(self) -> ScreenAction:
+        if self.audio is not None:
+            self.audio.play_sfx("ui_cancel")
+        if self.runner is None or self.assets is None:
+            return ScreenAction.quit()
+        from git_dungeon.ui_pixel.screens.title import TitleScreen
+
+        settings = replace(self.settings, tutorial_seen=True).normalized() if self.settings else None
+        return ScreenAction.reset(
+            TitleScreen(
+                self.pygame,
+                self.fonts,
+                self.runner,
+                self.assets,
+                self.audio,
+                settings,
+                self.settings_store,
+                self.settings_error,
+            )
+        )
 
     def _lang(self) -> str:
         return getattr(self.settings, "lang", "en")

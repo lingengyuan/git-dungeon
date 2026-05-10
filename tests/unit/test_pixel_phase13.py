@@ -191,8 +191,8 @@ def test_pause_quit_requires_second_confirmation() -> None:
     second = pause.handle(_key(FakePygame.K_q))
 
     assert first is None
-    assert pause.message == "Press Q again to close game"
-    assert pause._buttons()["quit"].label == "Close Game"
+    assert pause.message == "Press Q again to return to title"
+    assert pause._buttons()["quit"].label == "Quit Run"
     assert second is not None
     assert second.kind == "quit"
 

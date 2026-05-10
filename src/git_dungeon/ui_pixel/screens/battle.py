@@ -107,6 +107,8 @@ class BattleScreen(Screen):
         assets: Any,
         audio: Any | None = None,
         settings: Any | None = None,
+        settings_store: Any | None = None,
+        settings_error: str = "",
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -114,6 +116,8 @@ class BattleScreen(Screen):
         self.assets = assets
         self.audio = audio
         self.settings = settings
+        self.settings_store = settings_store
+        self.settings_error = settings_error
         self.hover_pos: tuple[int, int] | None = None
         self.snapshot = runner.start_current_battle()
         self.message = tr(self.snapshot.message, self._lang())
@@ -139,7 +143,16 @@ class BattleScreen(Screen):
                 from git_dungeon.ui_pixel.screens.pause import PauseScreen
 
                 return ScreenAction.push(
-                    PauseScreen(self.pygame, self.fonts, self.settings, self.audio)
+                    PauseScreen(
+                        self.pygame,
+                        self.fonts,
+                        self.settings,
+                        self.audio,
+                        self.runner,
+                        self.assets,
+                        self.settings_store,
+                        self.settings_error,
+                    )
                 )
             if event.key in (self.pygame.K_1, self.pygame.K_a):
                 return self._act(ACTION_ATTACK)
@@ -374,6 +387,8 @@ class BattleScreen(Screen):
                         message=reward_text,
                         audio=self.audio,
                         settings=self.settings,
+                        settings_store=self.settings_store,
+                        settings_error=self.settings_error,
                     )
                 )
                 self.finish_timer = 0.65
@@ -388,6 +403,8 @@ class BattleScreen(Screen):
                         message="Escaped battle",
                         audio=self.audio,
                         settings=self.settings,
+                        settings_store=self.settings_store,
+                        settings_error=self.settings_error,
                     )
                 )
                 self.finish_timer = 0.25

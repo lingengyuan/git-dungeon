@@ -83,6 +83,8 @@ class DungeonScreen(Screen):
         message: str = "Move to the current room",
         audio: Any | None = None,
         settings: Any | None = None,
+        settings_store: Any | None = None,
+        settings_error: str = "",
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -90,6 +92,8 @@ class DungeonScreen(Screen):
         self.assets = assets
         self.audio = audio
         self.settings = settings
+        self.settings_store = settings_store
+        self.settings_error = settings_error
         self.hover_pos: tuple[int, int] | None = None
         self.floor: DungeonFloor = build_dungeon_floor(self.runner.route_nodes())
         self.player_coord: Coord | None = self._initial_player_coord()
@@ -114,7 +118,16 @@ class DungeonScreen(Screen):
                 from git_dungeon.ui_pixel.screens.pause import PauseScreen
 
                 return ScreenAction.push(
-                    PauseScreen(self.pygame, self.fonts, self.settings, self.audio)
+                    PauseScreen(
+                        self.pygame,
+                        self.fonts,
+                        self.settings,
+                        self.audio,
+                        self.runner,
+                        self.assets,
+                        self.settings_store,
+                        self.settings_error,
+                    )
                 )
             if event.key in (self.pygame.K_RETURN, self.pygame.K_SPACE):
                 return self._open_current()
@@ -427,7 +440,14 @@ class DungeonScreen(Screen):
 
             return ScreenAction.replace(
                 BattleScreen(
-                    self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings
+                    self.pygame,
+                    self.fonts,
+                    self.runner,
+                    self.assets,
+                    self.audio,
+                    self.settings,
+                    self.settings_store,
+                    self.settings_error,
                 )
             )
         if current.kind.value == "event":
@@ -435,7 +455,14 @@ class DungeonScreen(Screen):
 
             return ScreenAction.replace(
                 EventScreen(
-                    self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings
+                    self.pygame,
+                    self.fonts,
+                    self.runner,
+                    self.assets,
+                    self.audio,
+                    self.settings,
+                    self.settings_store,
+                    self.settings_error,
                 )
             )
         if current.kind.value == "rest":
@@ -443,7 +470,14 @@ class DungeonScreen(Screen):
 
             return ScreenAction.replace(
                 RestScreen(
-                    self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings
+                    self.pygame,
+                    self.fonts,
+                    self.runner,
+                    self.assets,
+                    self.audio,
+                    self.settings,
+                    self.settings_store,
+                    self.settings_error,
                 )
             )
         if current.kind.value == "shop":
@@ -451,7 +485,14 @@ class DungeonScreen(Screen):
 
             return ScreenAction.replace(
                 ShopScreen(
-                    self.pygame, self.fonts, self.runner, self.assets, self.audio, self.settings
+                    self.pygame,
+                    self.fonts,
+                    self.runner,
+                    self.assets,
+                    self.audio,
+                    self.settings,
+                    self.settings_store,
+                    self.settings_error,
                 )
             )
         self.message = f"{current.kind.value.title()} is not playable yet"

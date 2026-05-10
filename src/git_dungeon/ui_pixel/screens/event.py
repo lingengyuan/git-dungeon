@@ -49,6 +49,8 @@ class EventScreen(Screen):
         assets: Any,
         audio: Any | None = None,
         settings: Any | None = None,
+        settings_store: Any | None = None,
+        settings_error: str = "",
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -56,6 +58,8 @@ class EventScreen(Screen):
         self.assets = assets
         self.audio = audio
         self.settings = settings
+        self.settings_store = settings_store
+        self.settings_error = settings_error
         self.hover_pos: tuple[int, int] | None = None
         self.event = runner.event_for_node()
         self.error = "" if self.event else "No event definition"
@@ -66,7 +70,16 @@ class EventScreen(Screen):
                 from git_dungeon.ui_pixel.screens.pause import PauseScreen
 
                 return ScreenAction.push(
-                    PauseScreen(self.pygame, self.fonts, self.settings, self.audio)
+                    PauseScreen(
+                        self.pygame,
+                        self.fonts,
+                        self.settings,
+                        self.audio,
+                        self.runner,
+                        self.assets,
+                        self.settings_store,
+                        self.settings_error,
+                    )
                 )
             if self.event:
                 for idx, key in enumerate((self.pygame.K_1, self.pygame.K_2, self.pygame.K_3)):
@@ -177,6 +190,8 @@ class EventScreen(Screen):
                 message=event_result_feedback(result.hp_delta, result.gold_delta, self._lang()),
                 audio=self.audio,
                 settings=self.settings,
+                settings_store=self.settings_store,
+                settings_error=self.settings_error,
             )
         )
 

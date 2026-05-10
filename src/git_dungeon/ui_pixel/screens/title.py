@@ -261,6 +261,8 @@ class LoadingScreen(Screen):
                 self.assets,
                 audio=self.audio,
                 settings=self.settings,
+                settings_store=self.settings_store,
+                settings_error=self.settings_error,
             )
         )
 

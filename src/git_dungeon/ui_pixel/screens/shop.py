@@ -49,6 +49,8 @@ class ShopScreen(Screen):
         assets: Any,
         audio: Any | None = None,
         settings: Any | None = None,
+        settings_store: Any | None = None,
+        settings_error: str = "",
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -56,6 +58,8 @@ class ShopScreen(Screen):
         self.assets = assets
         self.audio = audio
         self.settings = settings
+        self.settings_store = settings_store
+        self.settings_error = settings_error
         self.hover_pos: tuple[int, int] | None = None
         self.offers = runner.shop_offers()
         self.message = "Unavailable items are disabled"
@@ -66,7 +70,16 @@ class ShopScreen(Screen):
                 from git_dungeon.ui_pixel.screens.pause import PauseScreen
 
                 return ScreenAction.push(
-                    PauseScreen(self.pygame, self.fonts, self.settings, self.audio)
+                    PauseScreen(
+                        self.pygame,
+                        self.fonts,
+                        self.settings,
+                        self.audio,
+                        self.runner,
+                        self.assets,
+                        self.settings_store,
+                        self.settings_error,
+                    )
                 )
             if event.key == self.pygame.K_0:
                 return self._choose(None)
@@ -173,6 +186,8 @@ class ShopScreen(Screen):
                 message=shop_result_feedback(result.message, self._lang()),
                 audio=self.audio,
                 settings=self.settings,
+                settings_store=self.settings_store,
+                settings_error=self.settings_error,
             )
         )
 

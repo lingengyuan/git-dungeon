@@ -10,7 +10,7 @@ from typing import Any, Literal
 class ScreenAction:
     """A requested screen stack transition."""
 
-    kind: Literal["push", "pop", "replace", "quit"]
+    kind: Literal["push", "pop", "replace", "reset", "quit"]
     screen: "Screen | None" = None
 
     @classmethod
@@ -24,6 +24,10 @@ class ScreenAction:
     @classmethod
     def replace(cls, screen: "Screen") -> "ScreenAction":
         return cls("replace", screen)
+
+    @classmethod
+    def reset(cls, screen: "Screen") -> "ScreenAction":
+        return cls("reset", screen)
 
     @classmethod
     def quit(cls) -> "ScreenAction":

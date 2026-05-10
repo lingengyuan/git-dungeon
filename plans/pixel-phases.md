@@ -42,7 +42,7 @@
 | Phase 17 | 美术、动画和音乐方向统一 | `pixel-game-issues.md` 美术/音频/主题 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-17-handoff.md) |
 | Phase 18 | 视觉回归保护 | `pixel-game-issues.md` 测试/可访问性/输入 | ✅ 完成 (2026-05-08) | [2026-05-08](../handoffs/2026-05-08-pixel-phase-18-handoff.md) |
 | Phase 19 | PC 新手引导 | Phase 18 延期项：首次游玩教学 | ✅ 完成 (2026-05-10) | [2026-05-10](../handoffs/2026-05-10-pixel-phase-19-handoff.md) |
-| Phase 20 | 暂停、设置和退出本局闭环 | Phase 18 延期项：暂停页进入设置 | ⏳ 计划中 | - |
+| Phase 20 | 暂停、设置和退出本局闭环 | Phase 18 延期项：暂停页进入设置 | ✅ 完成 (2026-05-10) | [2026-05-10](../handoffs/2026-05-10-pixel-phase-20-handoff.md) |
 | Phase 21 | PC 窗口/全屏即时切换 | Phase 18 延期项：窗口模式即时切换 | ⏳ 计划中 | - |
 | Phase 22 | 大仓库加载体验 | Phase 18 延期项：大仓库后台加载 | ⏳ 计划中 | - |
 | Phase 23 | 近期事件日志和章节总结 | Phase 18 延期项：事件日志/章节总结 | ⏳ 计划中 | - |
