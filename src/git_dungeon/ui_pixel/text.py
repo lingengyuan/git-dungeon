@@ -160,6 +160,8 @@ PIXEL_TEXT = {
         "Saved": "已保存",
         "Save failed": "保存失败",
         "Restart applies window mode": "窗口模式重启后生效",
+        "Window applies now": "窗口立即切换",
+        "Window applied": "窗口已切换",
         "settings damaged": "设置损坏",
         "settings write failed": "设置写入失败",
     }

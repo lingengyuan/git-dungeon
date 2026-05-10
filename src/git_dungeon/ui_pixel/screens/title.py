@@ -42,6 +42,7 @@ class TitleScreen(Screen):
         settings: Any | None = None,
         settings_store: Any | None = None,
         settings_error: str = "",
+        apply_display_mode: Any | None = None,
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -51,6 +52,7 @@ class TitleScreen(Screen):
         self.settings = settings
         self.settings_store = settings_store
         self.settings_error = settings_error
+        self.apply_display_mode = apply_display_mode
         self.hover_pos: tuple[int, int] | None = None
         self.status = "Press Enter to load repository"
         self.anim_time = 0.0
@@ -84,6 +86,7 @@ class TitleScreen(Screen):
                         self.settings,
                         self.settings_store,
                         self.settings_error,
+                        self.apply_display_mode,
                     )
                 )
         if event.type == self.pygame.MOUSEMOTION:
@@ -103,6 +106,7 @@ class TitleScreen(Screen):
                                 self.settings,
                                 self.settings_store,
                                 self.settings_error,
+                                self.apply_display_mode,
                             )
                         )
                     if key == "settings":
@@ -203,6 +207,8 @@ class TitleScreen(Screen):
             self.fonts.set_text_size(settings.text_size)
         if self.audio is not None:
             self.audio.set_volumes(settings.bgm_volume, settings.sfx_volume)
+        if self.apply_display_mode is not None:
+            self.apply_display_mode(settings)
 
     def _lang(self) -> str:
         return getattr(self.settings, "lang", "en")
@@ -219,6 +225,7 @@ class LoadingScreen(Screen):
         settings: Any | None = None,
         settings_store: Any | None = None,
         settings_error: str = "",
+        apply_display_mode: Any | None = None,
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -228,6 +235,7 @@ class LoadingScreen(Screen):
         self.settings = settings
         self.settings_store = settings_store
         self.settings_error = settings_error
+        self.apply_display_mode = apply_display_mode
         self.started = False
         self.summary: RunSummary | None = None
         self.error: str | None = None
@@ -251,6 +259,7 @@ class LoadingScreen(Screen):
                     settings=self.settings,
                     settings_store=self.settings_store,
                     audio=self.audio,
+                    apply_display_mode=self.apply_display_mode,
                 )
             )
         return ScreenAction.replace(
@@ -263,8 +272,9 @@ class LoadingScreen(Screen):
                 settings=self.settings,
                 settings_store=self.settings_store,
                 settings_error=self.settings_error,
+                apply_display_mode=self.apply_display_mode,
             )
-        )
+            )
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN and event.key in (

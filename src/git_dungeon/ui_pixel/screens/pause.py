@@ -22,6 +22,7 @@ class PauseScreen(Screen):
         assets: Any | None = None,
         settings_store: Any | None = None,
         settings_error: str = "",
+        apply_display_mode: Any | None = None,
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -31,6 +32,7 @@ class PauseScreen(Screen):
         self.assets = assets
         self.settings_store = settings_store
         self.settings_error = settings_error
+        self.apply_display_mode = apply_display_mode
         self.hover_pos: tuple[int, int] | None = None
         self.quit_armed = False
         self.message = "Esc/Enter: Resume"
@@ -126,6 +128,8 @@ class PauseScreen(Screen):
             self.fonts.set_text_size(settings.text_size)
         if self.audio is not None:
             self.audio.set_volumes(settings.bgm_volume, settings.sfx_volume)
+        if self.apply_display_mode is not None:
+            self.apply_display_mode(settings)
 
     def _quit_run(self) -> ScreenAction:
         if self.audio is not None:
@@ -145,6 +149,7 @@ class PauseScreen(Screen):
                 settings,
                 self.settings_store,
                 self.settings_error,
+                self.apply_display_mode,
             )
         )
 

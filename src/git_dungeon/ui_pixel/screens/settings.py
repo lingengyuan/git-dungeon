@@ -30,7 +30,7 @@ class SettingsScreen(Screen):
         self.load_error = load_error
         self.apply_settings = apply_settings
         self.hover_pos: tuple[int, int] | None = None
-        self.message = tr("Restart applies window mode", settings.lang)
+        self.message = tr("Window applies now", settings.lang)
 
     def handle(self, event: Any) -> ScreenAction | None:
         if event.type == self.pygame.KEYDOWN:
@@ -172,7 +172,7 @@ class SettingsScreen(Screen):
             self.settings, lang=LANGUAGES[(current + 1) % len(LANGUAGES)]
         ).normalized()
         self._apply_settings()
-        self.message = tr("Restart applies window mode", self.settings.lang)
+        self.message = tr("Window applies now", self.settings.lang)
 
     def _cycle_window(self) -> None:
         current = (
@@ -185,7 +185,7 @@ class SettingsScreen(Screen):
             window_mode=WINDOW_MODES[(current + 1) % len(WINDOW_MODES)],
         ).normalized()
         self._apply_settings()
-        self.message = tr("Restart applies window mode", self.settings.lang)
+        self.message = tr("Window applied", self.settings.lang)
 
     def _cycle_text_size(self) -> None:
         current = (

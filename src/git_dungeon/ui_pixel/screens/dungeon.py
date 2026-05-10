@@ -85,6 +85,7 @@ class DungeonScreen(Screen):
         settings: Any | None = None,
         settings_store: Any | None = None,
         settings_error: str = "",
+        apply_display_mode: Any | None = None,
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -94,6 +95,7 @@ class DungeonScreen(Screen):
         self.settings = settings
         self.settings_store = settings_store
         self.settings_error = settings_error
+        self.apply_display_mode = apply_display_mode
         self.hover_pos: tuple[int, int] | None = None
         self.floor: DungeonFloor = build_dungeon_floor(self.runner.route_nodes())
         self.player_coord: Coord | None = self._initial_player_coord()
@@ -127,6 +129,7 @@ class DungeonScreen(Screen):
                         self.assets,
                         self.settings_store,
                         self.settings_error,
+                        self.apply_display_mode,
                     )
                 )
             if event.key in (self.pygame.K_RETURN, self.pygame.K_SPACE):
@@ -448,6 +451,7 @@ class DungeonScreen(Screen):
                     self.settings,
                     self.settings_store,
                     self.settings_error,
+                    self.apply_display_mode,
                 )
             )
         if current.kind.value == "event":
@@ -463,6 +467,7 @@ class DungeonScreen(Screen):
                     self.settings,
                     self.settings_store,
                     self.settings_error,
+                    self.apply_display_mode,
                 )
             )
         if current.kind.value == "rest":
@@ -478,6 +483,7 @@ class DungeonScreen(Screen):
                     self.settings,
                     self.settings_store,
                     self.settings_error,
+                    self.apply_display_mode,
                 )
             )
         if current.kind.value == "shop":
@@ -493,6 +499,7 @@ class DungeonScreen(Screen):
                     self.settings,
                     self.settings_store,
                     self.settings_error,
+                    self.apply_display_mode,
                 )
             )
         self.message = f"{current.kind.value.title()} is not playable yet"

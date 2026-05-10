@@ -109,6 +109,7 @@ class BattleScreen(Screen):
         settings: Any | None = None,
         settings_store: Any | None = None,
         settings_error: str = "",
+        apply_display_mode: Any | None = None,
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -118,6 +119,7 @@ class BattleScreen(Screen):
         self.settings = settings
         self.settings_store = settings_store
         self.settings_error = settings_error
+        self.apply_display_mode = apply_display_mode
         self.hover_pos: tuple[int, int] | None = None
         self.snapshot = runner.start_current_battle()
         self.message = tr(self.snapshot.message, self._lang())
@@ -152,6 +154,7 @@ class BattleScreen(Screen):
                         self.assets,
                         self.settings_store,
                         self.settings_error,
+                        self.apply_display_mode,
                     )
                 )
             if event.key in (self.pygame.K_1, self.pygame.K_a):
@@ -389,6 +392,7 @@ class BattleScreen(Screen):
                         settings=self.settings,
                         settings_store=self.settings_store,
                         settings_error=self.settings_error,
+                        apply_display_mode=self.apply_display_mode,
                     )
                 )
                 self.finish_timer = 0.65
@@ -405,6 +409,7 @@ class BattleScreen(Screen):
                         settings=self.settings,
                         settings_store=self.settings_store,
                         settings_error=self.settings_error,
+                        apply_display_mode=self.apply_display_mode,
                     )
                 )
                 self.finish_timer = 0.25

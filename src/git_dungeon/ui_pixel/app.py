@@ -29,6 +29,10 @@ GOOD = (99, 199, 122)
 BAD = (219, 87, 87)
 
 
+def display_flags_for_window_mode(pygame_module, window_mode: str) -> int:
+    return pygame_module.FULLSCREEN if window_mode == "fullscreen" else 0
+
+
 @dataclass(frozen=True)
 class PixelRunConfig:
     repo_path: str
@@ -197,8 +201,20 @@ def run(
         settings_store = PixelSettingsStore()
         settings_result = settings_store.load(lang_override=lang)
         settings = settings_result.settings
-        display_flags = pygame.FULLSCREEN if settings.window_mode == "fullscreen" else 0
+        display_flags = display_flags_for_window_mode(pygame, settings.window_mode)
         window = pygame.display.set_mode(WINDOW_SIZE, display_flags)
+        active_window_mode = settings.window_mode
+
+        def apply_display_mode(next_settings) -> None:
+            nonlocal window, active_window_mode
+            if next_settings.window_mode == active_window_mode:
+                return
+            window = pygame.display.set_mode(
+                WINDOW_SIZE,
+                display_flags_for_window_mode(pygame, next_settings.window_mode),
+            )
+            active_window_mode = next_settings.window_mode
+
         pygame.display.set_caption("Git Dungeon Pixel")
         surface = pygame.Surface(LOGICAL_SIZE)
         clock = pygame.time.Clock()
@@ -225,6 +241,7 @@ def run(
                     settings,
                     settings_store,
                     settings_result.error,
+                    apply_display_mode,
                 )
             else:
                 initial_screen = TitleScreen(
@@ -236,6 +253,7 @@ def run(
                     settings,
                     settings_store,
                     settings_result.error,
+                    apply_display_mode,
                 )
         except Exception as exc:
             initial_screen = ErrorScreen(pygame, fonts, "PIXEL STARTUP ERROR", str(exc))

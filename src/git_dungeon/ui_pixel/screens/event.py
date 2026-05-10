@@ -51,6 +51,7 @@ class EventScreen(Screen):
         settings: Any | None = None,
         settings_store: Any | None = None,
         settings_error: str = "",
+        apply_display_mode: Any | None = None,
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -60,6 +61,7 @@ class EventScreen(Screen):
         self.settings = settings
         self.settings_store = settings_store
         self.settings_error = settings_error
+        self.apply_display_mode = apply_display_mode
         self.hover_pos: tuple[int, int] | None = None
         self.event = runner.event_for_node()
         self.error = "" if self.event else "No event definition"
@@ -79,6 +81,7 @@ class EventScreen(Screen):
                         self.assets,
                         self.settings_store,
                         self.settings_error,
+                        self.apply_display_mode,
                     )
                 )
             if self.event:
@@ -192,6 +195,7 @@ class EventScreen(Screen):
                 settings=self.settings,
                 settings_store=self.settings_store,
                 settings_error=self.settings_error,
+                apply_display_mode=self.apply_display_mode,
             )
         )
 

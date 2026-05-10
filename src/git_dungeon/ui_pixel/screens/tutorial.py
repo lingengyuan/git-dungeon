@@ -31,6 +31,7 @@ class TutorialScreen(Screen):
         settings: Any,
         settings_store: Any,
         audio: Any | None = None,
+        apply_display_mode: Any | None = None,
     ) -> None:
         self.pygame = pygame_module
         self.fonts = fonts
@@ -39,6 +40,7 @@ class TutorialScreen(Screen):
         self.settings = settings
         self.settings_store = settings_store
         self.audio = audio
+        self.apply_display_mode = apply_display_mode
         self.hover_pos: tuple[int, int] | None = None
         self.message = "Learn the PC controls before entering the run"
 
@@ -105,6 +107,7 @@ class TutorialScreen(Screen):
                 audio=self.audio,
                 settings=self.settings,
                 settings_store=self.settings_store,
+                apply_display_mode=self.apply_display_mode,
             )
         )
 
