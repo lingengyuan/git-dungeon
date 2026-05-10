@@ -37,6 +37,7 @@ class PixelSettings:
     text_size: str = "normal"
     high_contrast: bool = False
     reduce_motion: bool = False
+    tutorial_seen: bool = False
 
     def normalized(self) -> "PixelSettings":
         lang = normalize_lang(self.lang)
@@ -53,6 +54,7 @@ class PixelSettings:
             text_size=text_size,
             high_contrast=bool(self.high_contrast),
             reduce_motion=bool(self.reduce_motion),
+            tutorial_seen=bool(self.tutorial_seen),
         )
 
 
@@ -99,6 +101,10 @@ class PixelSettingsStore:
                     settings_data.get("reduce_motion", default.reduce_motion),
                     default.reduce_motion,
                 ),
+                tutorial_seen=_setting_bool(
+                    settings_data.get("tutorial_seen", default.tutorial_seen),
+                    default.tutorial_seen,
+                ),
             ).normalized()
         except Exception as exc:
             return SettingsLoadResult(default, self.path, f"settings damaged: {exc}")
@@ -119,5 +125,6 @@ class PixelSettingsStore:
             f'text_size = "{normalized.text_size}"\n'
             f"high_contrast = {str(normalized.high_contrast).lower()}\n"
             f"reduce_motion = {str(normalized.reduce_motion).lower()}\n"
+            f"tutorial_seen = {str(normalized.tutorial_seen).lower()}\n"
         )
         self.path.write_text(text, encoding="utf-8")

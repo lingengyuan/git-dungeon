@@ -20,15 +20,17 @@ from git_dungeon.ui_pixel.screens.rest import RestScreen
 from git_dungeon.ui_pixel.screens.settings import SettingsScreen
 from git_dungeon.ui_pixel.screens.shop import ShopScreen
 from git_dungeon.ui_pixel.screens.title import TitleScreen
+from git_dungeon.ui_pixel.screens.tutorial import TutorialScreen
 from git_dungeon.ui_pixel.settings import PixelSettings
 
 LANGUAGES = ("en", "zh_CN")
-SCREEN_ORDER = ("title", "dungeon", "battle", "event", "shop", "rest", "settings")
+SCREEN_ORDER = ("title", "tutorial", "dungeon", "battle", "event", "shop", "rest", "settings")
 
 
 class DemoRunner:
     def __init__(self) -> None:
         self.dungeon_player_coord: tuple[int, int] | None = None
+        self.saved_settings: PixelSettings | None = None
         self.nodes = (
             NodeSnapshot("n0", "battle", 0, "Battle", False, True, False),
             NodeSnapshot("n1", "elite", 1, "Elite", False, True, False),
@@ -138,6 +140,14 @@ def _build_screens(pygame: Any, fonts: PixelFont, assets: SpriteCatalog, lang: s
     runner = DemoRunner()
     return {
         "title": TitleScreen(pygame, fonts, runner, assets, settings=settings),
+        "tutorial": TutorialScreen(
+            pygame,
+            fonts,
+            runner,
+            assets,
+            settings=settings,
+            settings_store=DemoStore(),
+        ),
         "dungeon": DungeonScreen(pygame, fonts, runner, assets, settings=settings),
         "battle": BattleScreen(pygame, fonts, runner, assets, settings=settings),
         "event": EventScreen(pygame, fonts, runner, assets, settings=settings),

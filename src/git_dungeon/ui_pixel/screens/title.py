@@ -8,6 +8,7 @@ from git_dungeon.ui_pixel.game_runner import GameRunner, RunSummary
 from git_dungeon.ui_pixel.screens.base import Screen, ScreenAction
 from git_dungeon.ui_pixel.screens.dungeon import DungeonScreen
 from git_dungeon.ui_pixel.screens.settings import SettingsScreen
+from git_dungeon.ui_pixel.screens.tutorial import TutorialScreen
 from git_dungeon.ui_pixel.text import audio_label, tr
 from git_dungeon.ui_pixel.widgets import ACCENT, BAD, BG, GOOD, MUTED, TEXT, Button, draw_panel
 
@@ -240,6 +241,18 @@ class LoadingScreen(Screen):
         except Exception as exc:
             self.error = str(exc)
             return None
+        if not getattr(self.settings, "tutorial_seen", False) and self.settings_store is not None:
+            return ScreenAction.replace(
+                TutorialScreen(
+                    self.pygame,
+                    self.fonts,
+                    self.runner,
+                    self.assets,
+                    settings=self.settings,
+                    settings_store=self.settings_store,
+                    audio=self.audio,
+                )
+            )
         return ScreenAction.replace(
             DungeonScreen(
                 self.pygame,
