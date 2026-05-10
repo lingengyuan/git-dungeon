@@ -30,6 +30,20 @@ PIXEL_TEXT = {
         "Shop skipped": "离开商店",
         "Shop purchase": "购买成功",
         "Reward claimed": "奖励已领取",
+        "Cache opened": "补给已开启",
+        "Vault opened": "宝库已开启",
+        "Battle room": "战斗房",
+        "Elite room": "精英房",
+        "Event room": "事件房",
+        "Rest room": "营火房",
+        "Shop room": "商店",
+        "Boss gate": "首领门",
+        "Defeat a commit creature": "击败提交怪物",
+        "Harder fight, better reward": "更危险，奖励也更好",
+        "Choose a dungeon outcome": "选择一次地牢遭遇",
+        "Recover or strengthen the build": "恢复状态或强化角色",
+        "Spend gold before moving on": "花金币补给后继续前进",
+        "Clear the chapter guardian": "击败本章守卫",
         "Move to the current room": "移动到当前房间",
         "Press Enter to enter": "按确认键进入",
         "Enter Room": "进入",
@@ -210,6 +224,24 @@ ENEMY_NAME_LABELS = {
     }
 }
 
+ROOM_TITLES = {
+    "battle": "Battle room",
+    "elite": "Elite room",
+    "event": "Event room",
+    "rest": "Rest room",
+    "shop": "Shop room",
+    "boss": "Boss gate",
+}
+
+ROOM_DESCRIPTIONS = {
+    "battle": "Defeat a commit creature",
+    "elite": "Harder fight, better reward",
+    "event": "Choose a dungeon outcome",
+    "rest": "Recover or strengthen the build",
+    "shop": "Spend gold before moving on",
+    "boss": "Clear the chapter guardian",
+}
+
 
 def tr(text: str, lang: str) -> str:
     if lang != "zh_CN":
@@ -272,6 +304,14 @@ def enemy_name_label(name: str, lang: str) -> str:
     if name.startswith("Docs: "):
         return name.replace("Docs: ", "文档：", 1)
     return name
+
+
+def room_title(kind: str, lang: str) -> str:
+    return tr(ROOM_TITLES.get(kind, "Current room"), lang)
+
+
+def room_description(kind: str, lang: str) -> str:
+    return tr(ROOM_DESCRIPTIONS.get(kind, "Move to the glowing room"), lang)
 
 
 def boss_phase_label(phase: str, lang: str) -> str:

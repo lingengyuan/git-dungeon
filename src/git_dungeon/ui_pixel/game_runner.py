@@ -813,7 +813,15 @@ class GameRunner:
         if key_id is not None:
             self.dungeon_collected_keys.add(self._dungeon_key_key(key_id))
         self.dungeon_claimed_rewards.add(reward_key)
-        self.record_run_event("reward", "Reward claimed")
+        if key_id is not None:
+            log_message = "Key found"
+        elif "vault" in reward_id:
+            log_message = "Vault opened"
+        elif "cache" in reward_id:
+            log_message = "Cache opened"
+        else:
+            log_message = "Reward claimed"
+        self.record_run_event("reward", log_message)
         return DungeonRewardResult(
             reward_id=reward_id,
             heal=actual_heal,

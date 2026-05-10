@@ -18,6 +18,8 @@ from git_dungeon.ui_pixel.text import (
     key_label,
     locked_message,
     reward_feedback,
+    room_description,
+    room_title,
     stat_delta,
     stat_value,
     trap_feedback,
@@ -663,6 +665,9 @@ class DungeonScreen(Screen):
                 if self._trap_consumed(trap.trap_id):
                     return tr("Trap already spent", lang)
                 return f"{tr('Trap', lang)}: {stat_delta('hp', -trap.damage, lang)}"
+            room = self.floor.room_at(hovered)
+            if room is not None and hasattr(room, "kind"):
+                return f"{room_title(room.kind, lang)}: {room_description(room.kind, lang)}"
         reward = self._claimable_reward()
         if reward is not None:
             if not self._reward_unlocked(reward):
