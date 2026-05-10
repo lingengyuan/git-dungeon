@@ -7,7 +7,7 @@ from typing import Any
 
 BG = (17, 16, 24)
 TEXT = (238, 232, 213)
-MUTED = (148, 139, 130)
+MUTED = (188, 180, 164)
 SURFACE = (33, 31, 45)
 SURFACE_2 = (45, 42, 60)
 ACCENT = (235, 177, 88)

@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from git_dungeon.ui_pixel.assets import SpriteCatalog
 from git_dungeon.ui_pixel.audio import AudioManager
@@ -19,6 +20,7 @@ from git_dungeon.ui_pixel.settings import PixelSettingsStore
 LOGICAL_SIZE = (320, 180)
 WINDOW_SIZE = (960, 540)
 FPS = 60
+CJK_OVERLAY_FONT_SCALE = 0.65
 
 BG = (17, 16, 24)
 SURFACE = (33, 31, 45)
@@ -33,6 +35,56 @@ def display_flags_for_window_mode(pygame_module, window_mode: str) -> int:
     return pygame_module.FULLSCREEN if window_mode == "fullscreen" else 0
 
 
+class PixelWindow:
+    def __init__(self, pygame_module: Any, window_mode: str) -> None:
+        self._pygame = pygame_module
+        self._window: Any | None = None
+        self.surface: Any = None
+        self.window_mode = ""
+        self.set_mode(window_mode)
+
+    def set_mode(self, window_mode: str) -> None:
+        if self._window is not None:
+            self._window.destroy()
+            self._window = None
+
+        window_cls = getattr(self._pygame, "Window", None)
+        if window_cls is not None:
+            try:
+                self._window = window_cls(
+                    title="Git Dungeon Pixel",
+                    size=WINDOW_SIZE,
+                    fullscreen=window_mode == "fullscreen",
+                    allow_high_dpi=True,
+                )
+                self.surface = self._window.get_surface()
+                self.window_mode = window_mode
+                return
+            except (TypeError, self._pygame.error):
+                self._window = None
+
+        self.surface = self._pygame.display.set_mode(
+            WINDOW_SIZE,
+            display_flags_for_window_mode(self._pygame, window_mode),
+        )
+        self._pygame.display.set_caption("Git Dungeon Pixel")
+        self.window_mode = window_mode
+
+    def event_size_for_pos(self, pos: tuple[int, int]) -> tuple[int, int]:
+        if self._window is None:
+            return self.surface.get_size()
+        window_size = self._window.size
+        if pos[0] >= window_size[0] or pos[1] >= window_size[1]:
+            return self.surface.get_size()
+        return window_size
+
+    def flip(self) -> None:
+        if self._window is not None:
+            self._window.flip()
+            return
+        self._pygame.display.flip()
+
+
 @dataclass(frozen=True)
 class PixelRunConfig:
     repo_path: str
@@ -40,6 +92,15 @@ class PixelRunConfig:
     lang: str | None = None
     content_pack_args: list[str] | None = None
     smoke_frames: int | None = None
+
+
+@dataclass(frozen=True)
+class TextDrawCommand:
+    text: str
+    pos: tuple[int, int]
+    color: tuple[int, int, int]
+    size: int
+    family: str
 
 
 class ScreenStack:
@@ -93,25 +154,40 @@ class PixelFont:
         except FileNotFoundError:
             root = Path()
         self._latin_font = root / "fonts" / "vt323" / "VT323-Regular.ttf"
-        self._cjk_font = (
+        self._bundled_cjk_font = (
             root
             / "fonts"
             / "ark_pixel"
             / "ark-pixel-12px-proportional-zh_cn.ttf"
         )
         self._cjk_font = self._resolve_cjk_font()
-        self._cache: dict[tuple[str, int], object] = {}
+        self._cache: dict[tuple[str, str, int], object] = {}
+        self._overlay_commands: list[TextDrawCommand] | None = None
 
-    def get(self, size: int):
-        family = "cjk" if self.lang == "zh_CN" else "latin"
-        key = (family, self.text_size, size)
+    def get(self, size: int, text: str = "", family: str | None = None):
+        family = family or self._font_family(text)
+        render_size = self._render_size(size, family)
+        return self._font(family, render_size)
+
+    def _font(self, family: str, render_size: int) -> Any:
+        key = (family, self.text_size, render_size)
         if key not in self._cache:
-            path = self._cjk_font if family == "cjk" and self._cjk_font.exists() else self._latin_font
+            path = self._font_path(family)
             self._cache[key] = self._pygame.font.Font(
                 str(path) if path.exists() else None,
-                self._render_size(size),
+                render_size,
             )
         return self._cache[key]
+
+    def _font_path(self, family: str) -> Path:
+        if family == "cjk" and self._cjk_font.exists():
+            return self._cjk_font
+        return self._latin_font
+
+    def _font_family(self, text: str) -> str:
+        if self.lang == "zh_CN" and any(ord(char) > 127 for char in text):
+            return "cjk"
+        return "latin"
 
     def _resolve_cjk_font(self) -> Path:
         candidates: list[Path] = []
@@ -124,13 +200,13 @@ class PixelFont:
                 Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
                 Path("/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
                 Path("/Library/Fonts/Arial Unicode.ttf"),
-                self._cjk_font,
+                self._bundled_cjk_font,
             ]
         )
         for path in candidates:
             if path.exists():
                 return path
-        return self._cjk_font
+        return self._bundled_cjk_font
 
     def set_lang(self, lang: str) -> None:
         self.lang = lang
@@ -141,29 +217,35 @@ class PixelFont:
         self.text_size = text_size
         self._cache.clear()
 
-    def _render_size(self, size: int) -> int:
+    def _render_size(self, size: int, family: str | None = None) -> int:
         size = size + 1 if self.text_size == "large" else size
-        if self.lang != "zh_CN":
+        if family != "cjk":
             return size
         return max(8, size - 2)
 
     def measure(self, text: str, size: int = 16) -> int:
-        return self.get(size).size(text)[0]
+        family = self._font_family(text)
+        return self.get(size, text, family).size(text)[0]
 
     def fit(self, text: str, max_width: int, size: int = 16) -> str:
-        if self.measure(text, size) <= max_width:
+        family = self._font_family(text)
+        if self.get(size, text, family).size(text)[0] <= max_width:
             return text
         suffix = "..."
-        available = max(1, max_width - self.measure(suffix, size))
+        available = max(1, max_width - self.get(size, suffix, family).size(suffix)[0])
         result = ""
         for char in text:
-            if self.measure(result + char, size) > available:
+            if self.get(size, result + char, family).size(result + char)[0] > available:
                 break
             result += char
         return (result or text[:1]) + suffix
 
     def draw(self, surface, text: str, pos: tuple[int, int], color=TEXT, size: int = 16) -> None:
-        img = self.get(size).render(text, False, color)
+        family = self._font_family(text)
+        if family == "cjk" and self._overlay_commands is not None:
+            self._overlay_commands.append(TextDrawCommand(text, pos, color, size, family))
+            return
+        img = self.get(size, text, family).render(text, self._should_antialias(family), color)
         surface.blit(img, pos)
 
     def draw_fit(
@@ -176,6 +258,37 @@ class PixelFont:
         size: int = 16,
     ) -> None:
         self.draw(surface, self.fit(text, max_width, size), pos, color, size)
+
+    def _should_antialias(self, family: str | None = None) -> bool:
+        return family == "cjk" and self._cjk_font != self._bundled_cjk_font
+
+    def begin_overlay(self) -> None:
+        self._overlay_commands = []
+
+    def flush_overlay(
+        self,
+        surface,
+        dest_rect: tuple[int, int, int, int],
+        logical_size: tuple[int, int],
+    ) -> None:
+        commands = self._overlay_commands
+        self._overlay_commands = None
+        if not commands:
+            return
+        scale_x = dest_rect[2] / logical_size[0]
+        scale_y = dest_rect[3] / logical_size[1]
+        text_scale = min(scale_x, scale_y)
+        for command in commands:
+            family_scale = CJK_OVERLAY_FONT_SCALE if command.family == "cjk" else 1.0
+            render_size = max(
+                1,
+                round(self._render_size(command.size, command.family) * text_scale * family_scale),
+            )
+            font = self._font(command.family, render_size)
+            img = font.render(command.text, self._should_antialias(command.family), command.color)
+            x = dest_rect[0] + round(command.pos[0] * scale_x)
+            y = dest_rect[1] + round(command.pos[1] * scale_y)
+            surface.blit(img, (x, y))
 
 
 def _import_pygame():
@@ -201,21 +314,13 @@ def run(
         settings_store = PixelSettingsStore()
         settings_result = settings_store.load(lang_override=lang)
         settings = settings_result.settings
-        display_flags = display_flags_for_window_mode(pygame, settings.window_mode)
-        window = pygame.display.set_mode(WINDOW_SIZE, display_flags)
-        active_window_mode = settings.window_mode
+        window = PixelWindow(pygame, settings.window_mode)
 
         def apply_display_mode(next_settings) -> None:
-            nonlocal window, active_window_mode
-            if next_settings.window_mode == active_window_mode:
+            if next_settings.window_mode == window.window_mode:
                 return
-            window = pygame.display.set_mode(
-                WINDOW_SIZE,
-                display_flags_for_window_mode(pygame, next_settings.window_mode),
-            )
-            active_window_mode = next_settings.window_mode
+            window.set_mode(next_settings.window_mode)
 
-        pygame.display.set_caption("Git Dungeon Pixel")
         surface = pygame.Surface(LOGICAL_SIZE)
         clock = pygame.time.Clock()
         fonts = PixelFont(pygame, settings.lang, settings.text_size)
@@ -259,6 +364,8 @@ def run(
             initial_screen = ErrorScreen(pygame, fonts, "PIXEL STARTUP ERROR", str(exc))
         stack = ScreenStack([initial_screen])
         frames = 0
+        scaled_surface: Any | None = None
+        scaled_size: tuple[int, int] | None = None
 
         while not stack.is_empty:
             dt = clock.tick(FPS) / 1000.0
@@ -269,7 +376,7 @@ def run(
                 if event.type in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
                     logical_pos = window_to_logical(
                         event.pos,
-                        window.get_size(),
+                        window.event_size_for_pos(event.pos),
                         LOGICAL_SIZE,
                     )
                     event = pygame.event.Event(
@@ -289,11 +396,23 @@ def run(
                 if stack.is_empty:
                     break
 
+            fonts.begin_overlay()
             stack.top.draw(surface)
-            window.fill(BG)
-            dest_rect = scale_rect(LOGICAL_SIZE, window.get_size())
-            pygame.transform.scale(surface, (dest_rect[2], dest_rect[3]), window.subsurface(dest_rect))
-            pygame.display.flip()
+            window_surface = window.surface
+            window_surface.fill(BG)
+            dest_rect = scale_rect(LOGICAL_SIZE, window_surface.get_size())
+            next_scaled_size = (dest_rect[2], dest_rect[3])
+            if scaled_surface is None or scaled_size != next_scaled_size:
+                scaled_surface = pygame.Surface(next_scaled_size)
+                scaled_size = next_scaled_size
+            pygame.transform.scale(
+                surface,
+                next_scaled_size,
+                scaled_surface,
+            )
+            window_surface.blit(scaled_surface, (dest_rect[0], dest_rect[1]))
+            fonts.flush_overlay(window_surface, dest_rect, LOGICAL_SIZE)
+            window.flip()
 
             frames += 1
             if smoke_frames is not None and frames >= smoke_frames:

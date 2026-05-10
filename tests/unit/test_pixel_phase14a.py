@@ -162,13 +162,37 @@ def test_chinese_font_prefers_readable_system_font_when_available() -> None:
     )
 
 
+def test_chinese_system_font_uses_smoothing() -> None:
+    pygame = __import__("pygame")
+    pygame.init()
+    try:
+        font = PixelFont(pygame, "zh_CN")
+        expected = "ark-pixel" not in str(font._cjk_font).lower()
+        assert font._should_antialias("cjk") is expected
+        assert font._should_antialias("latin") is False
+    finally:
+        pygame.quit()
+
+
 def test_chinese_font_render_size_is_smaller_than_layout_size() -> None:
     pygame = __import__("pygame")
     pygame.init()
     try:
         font = PixelFont(pygame, "zh_CN")
-        assert font._render_size(12) == 10
-        assert font._render_size(9) == 8
+        assert font._render_size(12, "cjk") == 10
+        assert font._render_size(9, "cjk") == 8
+        assert font._render_size(12, "latin") == 12
+    finally:
+        pygame.quit()
+
+
+def test_chinese_mode_keeps_ascii_text_on_pixel_font() -> None:
+    pygame = __import__("pygame")
+    pygame.init()
+    try:
+        font = PixelFont(pygame, "zh_CN")
+        assert font._font_family("GIT DUNGEON") == "latin"
+        assert font._font_family("进入地牢") == "cjk"
     finally:
         pygame.quit()
 

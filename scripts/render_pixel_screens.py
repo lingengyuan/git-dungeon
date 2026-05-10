@@ -217,11 +217,17 @@ def render(out_dir: Path, *, scale: int = 4) -> list[dict[str, Any]]:
                 surface = pygame.Surface(LOGICAL_SIZE)
                 screen = screens[name]
                 screen.update(0.25)
+                fonts.begin_overlay()
                 screen.draw(surface)
                 target = out_dir / f"{lang}-{name}.png"
                 scaled = pygame.transform.scale(
                     surface,
                     (LOGICAL_SIZE[0] * scale, LOGICAL_SIZE[1] * scale),
+                )
+                fonts.flush_overlay(
+                    scaled,
+                    (0, 0, LOGICAL_SIZE[0] * scale, LOGICAL_SIZE[1] * scale),
+                    LOGICAL_SIZE,
                 )
                 pygame.image.save(scaled, str(target))
                 manifest.append(
